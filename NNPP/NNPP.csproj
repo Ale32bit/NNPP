@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -6,6 +6,31 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
     </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<!-- Trimming -->
+		<PublishTrimmed>true</PublishTrimmed>
+		<TrimMode>full</TrimMode>
+
+		<!-- Globalization / time zones -->
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<InvariantTimezone>true</InvariantTimezone>
+
+		<!-- Runtime feature switches -->
+		<DebuggerSupport>false</DebuggerSupport>
+		<EventSourceSupport>false</EventSourceSupport>
+		<MetricsSupport>false</MetricsSupport>
+		<UseSystemResourceKeys>true</UseSystemResourceKeys>
+		<HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+		<NullabilityInfoContextSupport>false</NullabilityInfoContextSupport>
+		<EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+		<AutoreleasePoolSupport>false</AutoreleasePoolSupport>
+
+		<!-- Native relink (needs wasm-tools) -->
+		<WasmBuildNative>true</WasmBuildNative>
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<WasmEmitSymbolMap>false</WasmEmitSymbolMap>
+	</PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.2"/>
