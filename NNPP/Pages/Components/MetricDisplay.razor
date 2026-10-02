@@ -1,5 +1,17 @@
-﻿<h3>MetricDisplayComponent</h3>
+﻿@using NNPP.Models
+
+<div class="parameter">
+    @if (Parameter is Metric { Unit: not null } metric)
+    {
+        <p class="label">@metric.Label.ToUpperInvariant() (@metric.Unit)</p>
+    }
+    else
+    {
+        <p class="label">@Parameter.Label.ToUpperInvariant()</p>
+    }
+    <p class="value">@Parameter.GetValue()</p>
+</div>
 
 @code {
-    
+    [Parameter, EditorRequired] public required IParameter Parameter { get; set; }
 }

@@ -1,7 +1,76 @@
-﻿@page "/"
+﻿@implements IDisposable
+@page "/"
+@using NNPP.Pages.Components
+@using NNPP.Reactor
+@inject Simulation Sim
 
-<PageTitle>Home</PageTitle>
+<PageTitle>NNPP</PageTitle>
 
-<h1>Hello, world!</h1>
+<KeyListener Simulation="Sim" />
 
-Welcome to your new app.
+<Board>
+    <Panel>
+        <Display Title="Feedwater Pump 2">
+            <MetricDisplay Parameter="Sim.FeedwaterPump2.Utilization"></MetricDisplay>
+            <MetricDisplay Parameter="Sim.FeedwaterPump2.Flow"></MetricDisplay>
+        </Display>
+        <div>
+            <p>FW2 control here</p>
+        </div>
+    </Panel>
+
+    <Panel>
+        <Display Title="Feedwater Pump 1">
+            <MetricDisplay Parameter="Sim.FeedwaterPump1.Utilization"></MetricDisplay>
+            <MetricDisplay Parameter="Sim.FeedwaterPump1.Flow"></MetricDisplay>
+        </Display>
+        <div>
+            <p>FW1 control here</p>
+        </div>
+    </Panel>
+
+    <Panel>
+        <Display Title="Feedwater Overview">
+            <MetricDisplay Parameter="Sim.FeedwaterLevel"></MetricDisplay>
+            <MetricDisplay Parameter="Sim.TotalFeedwaterFlow"></MetricDisplay>
+        </Display>
+
+        <ToggleSwitch Switch="Sim.FeedwaterValve" />
+    </Panel>
+</Board>
+
+<Board>
+    <Panel>
+        <Display Title="Facility Overview">
+            <MetricDisplay Parameter="Sim.ReactorTemperature" />
+            <MetricDisplay Parameter="Sim.RodInsertion" />
+        </Display>
+
+        <RodControl Control="Sim.RodControl" Simulation="Sim" />
+    </Panel>
+</Board>
+
+<Board>
+    <Panel>
+        <Display Title="Coolant Overview">
+            <MetricDisplay Parameter="Sim.ReactorTemperature" />
+            <MetricDisplay Parameter="Sim.CoolantValveMetric" />
+        </Display>
+
+        <ToggleSwitch Switch="Sim.CoolantValve" />
+    </Panel>
+</Board>
+
+
+<Board>
+    <MetricDisplay Parameter="Sim.Fuel" />
+    <MetricDisplay Parameter="Sim.Pressure" />
+</Board>
+
+@code {
+    protected override void OnInitialized() => Sim.Ticked += OnTick;
+
+    private void OnTick() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Sim.Ticked -= OnTick;
+}

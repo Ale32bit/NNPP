@@ -1,0 +1,62 @@
+﻿@using NNPP.Models.Inputs
+@using NNPP.Reactor
+
+<div class="rods">
+    <button class="action" @onclick="StepUp">RAISE (Q)</button>
+
+    <input disabled id="range" type="range" min="-1" max="1" step="1" value="@Value">
+
+    <button class="action" @onclick="StepDown">LOWER (E)</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required RodControlInput Control { get; set; }
+    [Parameter, EditorRequired] public required Simulation Simulation { get; set; }
+
+    private int Value => (int)Control.Position;
+
+    protected override void OnInitialized()
+    {
+        Simulation.KeyPress += (_, key) =>
+        {
+            switch (key.Key)
+            {
+                case "e":
+                    StepDown();
+                    break;
+                case "q":
+                    StepUp();
+                    break;
+            }
+        };
+    }
+
+    private void StepUp()
+    {
+        if (!Control.Locked)
+        {
+            Control.Position = Control.Position switch
+            {
+                RodControlInput.ControlPosition.Lowering => RodControlInput.ControlPosition.Neutral,
+                RodControlInput.ControlPosition.Neutral => RodControlInput.ControlPosition.Raising,
+                _ => Control.Position
+            };
+
+            
+        }
+    }
+
+    private void StepDown()
+    {
+        if (!Control.Locked)
+        {
+            Control.Position = Control.Position switch
+            {
+                RodControlInput.ControlPosition.Raising => RodControlInput.ControlPosition.Neutral,
+                RodControlInput.ControlPosition.Neutral => RodControlInput.ControlPosition.Lowering,
+                _ => Control.Position
+            };
+        }
+    }
+
+}

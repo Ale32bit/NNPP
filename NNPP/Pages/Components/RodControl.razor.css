@@ -1,0 +1,61 @@
+﻿.rods {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.action {
+    display: block;
+    cursor: pointer;
+    user-select: none;
+}
+input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    writing-mode: vertical-lr;
+    height: 64px;
+    background: transparent;
+    cursor: pointer;
+}
+
+    /* Track */
+    input[type=range]::-webkit-slider-runnable-track {
+        width: 6px;
+        height: 100%;
+        background: #222;
+        border: 2px solid #555;
+        border-radius: 6px;
+    }
+
+    input[type=range]::-moz-range-track {
+        width: 6px;
+        height: 100%;
+        background: #222;
+        border: 2px solid #555;
+        border-radius: 6px;
+    }
+
+    /* Thumb */
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 48px;
+        height: 12px;
+        margin-left: -23px; /* center on track: (track - thumb) / 2 - border */
+        background: #555;
+        border: 2px solid #222;
+        border-radius: 0%;
+    }
+
+    input[type=range]::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        background: #ff3b3b;
+        border: 2px solid #fff;
+        border-radius: 0;
+    }
+
+    /* Disabled: keep it bright, kill grey */
+    input[type=range]:disabled {
+        opacity: 1;
+        cursor: default;
+    }

@@ -1,0 +1,17 @@
+﻿.parameter p {
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}
+
+.parameter .label {
+    font-weight: bolder;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    text-align: left;
+    padding-left: 0.8rem;
+}
+
+.parameter .value {
+    font-size: 1.75rem;
+}

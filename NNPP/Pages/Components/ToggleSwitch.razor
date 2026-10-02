@@ -1,0 +1,7 @@
+﻿@using NNPP.Models.Inputs
+<input type="checkbox" @bind="@Switch.Value" />
+
+@code {
+    [Parameter, EditorRequired]
+    public required Switch Switch { get; set; }
+}

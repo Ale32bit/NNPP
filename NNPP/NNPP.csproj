@@ -12,4 +12,13 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.2" PrivateAssets="all"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <_ContentIncludedByDefault Remove="wwwroot\sample-data\weather.json"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="wwwroot\fonts\noto\" />
+      <Folder Include="wwwroot\lib\" />
+    </ItemGroup>
+
 </Project>

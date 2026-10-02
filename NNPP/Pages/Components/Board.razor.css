@@ -1,0 +1,8 @@
+﻿.board {
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    background-color: #cbc4a6;
+    padding: 10px;
+}

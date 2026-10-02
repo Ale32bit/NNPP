@@ -1,0 +1,34 @@
+﻿@using NNPP.Reactor
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+@code {
+    [Parameter, EditorRequired]
+    public required Simulation Simulation { get; set; }
+
+    IJSObjectReference? _mod, _handle;
+    DotNetObjectReference<KeyListener>? _ref;
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (!first) return;
+        _ref = DotNetObjectReference.Create(this);
+        _mod = await JS.InvokeAsync<IJSObjectReference>("import", "./keys.js");
+        _handle = await _mod.InvokeAsync<IJSObjectReference>("listen", _ref);
+    }
+
+    [JSInvokable]
+    public void OnKey(string key, string code, bool ctrl, bool shift, bool alt)
+    {
+        Simulation.OnKeyPress(new KeyPressEventArgs(key, code, ctrl, shift, alt));
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_handle is not null) await _handle.InvokeVoidAsync("dispose");
+        if (_handle is not null) await _handle.DisposeAsync();
+        if (_mod is not null) await _mod.DisposeAsync();
+        _ref?.Dispose();
+    }
+}
