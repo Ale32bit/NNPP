@@ -91,3 +91,8 @@ button:hover {
 button:active {
     background: #666;
 }
+
+footer {
+    position: fixed;
+    bottom: 0;
+}
