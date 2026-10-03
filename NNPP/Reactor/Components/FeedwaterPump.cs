@@ -1,4 +1,5 @@
 ﻿using NNPP.Models;
+using NNPP.Models.Inputs;
 
 namespace NNPP.Reactor.Components;
 
@@ -10,6 +11,8 @@ public class FeedwaterPump
         DecimalPlaces = 2,
     };
     public MetricPercentage Utilization { get; } = new MetricPercentage("Utilization", 0.8);
+
+    public RateSwitch Switch { get; } = new RateSwitch();
 
     public bool Powered { get; set; } = true;
     public bool Alive { get; set; } = true;

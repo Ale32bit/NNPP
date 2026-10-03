@@ -78,7 +78,7 @@ public class Simulation : IAsyncDisposable
         CoolantPumpAlpha.Rpm.Value = Math.Clamp(CoolantPumpAlpha.Rpm.Value, 0, Parameters.CoolantPump.MaxRpm);
         CoolantPumpBeta.Rpm.Value = Math.Clamp(CoolantPumpBeta.Rpm.Value, 0, Parameters.CoolantPump.MaxRpm);
 
-        // feedwater
+        // Feedwater flow
         var fwTarget1 = Parameters.FeedwaterPumpTargetFlow(FeedwaterPump1.Utilization.Value, FeedwaterPump1.Running);
         var fwTarget2 = Parameters.FeedwaterPumpTargetFlow(FeedwaterPump2.Utilization.Value, FeedwaterPump2.Running);
         var fwFlow1 = Parameters.FeedwaterStepPumpFlow(FeedwaterPump1.Flow.Value, fwTarget1, dt);
@@ -91,7 +91,17 @@ public class Simulation : IAsyncDisposable
 
         FeedwaterLevel.Value = Math.Clamp(FeedwaterLevel.Value + Parameters.FeedwaterLevelRate(TotalFeedwaterFlow.Value, need) * dt, 0, 1);
 
+        // Feedwater switch
+        FeedwaterPump1.Utilization.Value += Parameters.FeedwaterSwitchRate(FeedwaterPump1.Switch.Value) * dt;
+        FeedwaterPump2.Utilization.Value += Parameters.FeedwaterSwitchRate(FeedwaterPump2.Switch.Value) * dt;
+        FeedwaterPump1.Utilization.Value = Math.Clamp(FeedwaterPump1.Utilization.Value, 0, 1);
+        FeedwaterPump2.Utilization.Value = Math.Clamp(FeedwaterPump2.Utilization.Value, 0, 1);
+
+        // Pressure
+
         Pressure.Value = Parameters.SteamPressure(ReactorTemperature.Value, FeedwaterLevel.Value);
+
+        // Fuel
 
         Fuel.Value += Parameters.FuelRate(RodInsertion.Value, Running) * dt;
 

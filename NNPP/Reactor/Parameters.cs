@@ -19,7 +19,7 @@ public static class Parameters
         public const double FuelBurnRate = 0.000474;
         public const double RodSpeed = 0.02;
     }
-    
+
     public static class Feedwater
     {
         public const double FlowPerUtil = 1.18;
@@ -64,7 +64,7 @@ public static class Parameters
         public const double TauMedium = 26.5;
         public const double TauSlow = 52.5;
         public const double TauBroken = 12;
-        
+
         // the following vibration values are arbitrary. i need to research more
         public const double VibPerAccel = 2;
         public const double VibAccel0 = 17.5;
@@ -172,6 +172,16 @@ public static class Parameters
     public static double FeedwaterCoolingRate(double level) =>
         Feedwater.Cooling - Math.Min(Feedwater.LossMax, Feedwater.LossPerLevel * Math.Max(0, Feedwater.Knee - level));
 
+    public static double FeedwaterSwitchRate(int position) =>
+        position switch
+        {
+            2 => 0.010,
+            1 => 0.002,
+            -1 => -0.002,
+            -2 => -0.010,
+            _ => 0,
+        };
+
     public static double SteamPressure(double temp, double level) =>
         Pressure.Atm + (FullPressure(temp) - Pressure.Atm) * level;
 
@@ -219,7 +229,7 @@ public static class Parameters
 
     public static double RpmAccel(double rpm, double target, double tau) =>
         (target - rpm) / tau; // synced: rpm = 3000 and accel = 0; else rpm = Math.Max(0, rpm + accel * dt)
-    
+
     public static double VibrationBase(double flow) => // todo: needs more research
         flow < Turbine.VibRefFlow
             ? 100 * Math.Pow(Math.Max(0, flow) / Turbine.VibRefFlow, 2.5)
@@ -231,6 +241,6 @@ public static class Parameters
     public static double StepVibration(double vib, double target, double dt) =>
         target > vib ? vib + (target - vib) * Math.Min(1, dt / Turbine.VibRiseTau)
             : target;
-    
-    
+
+
 }

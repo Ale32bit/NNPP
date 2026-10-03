@@ -1,7 +1,35 @@
 ﻿@using NNPP.Models.Inputs
-<input type="checkbox" @bind="@Switch.Value" />
+
+<div class="switch">
+    <div class="indicator">
+        <span class="light" style="color: @_offLight">•</span>
+        <span class="light" style="color: @_onLight">•</span>
+    </div>
+    <div class="knob" style="transform: @_transform;" onclick="@OnClick"></div>
+</div>
 
 @code {
     [Parameter, EditorRequired]
     public required Switch Switch { get; set; }
+
+    private string _transform = "";
+    private string _offLight = "#F00";
+    private string _onLight = "#000";
+
+    private void OnClick()
+    {
+        Switch.Value = !Switch.Value;
+        _transform = $"rotate({(Switch.Value ? -90 : 0)}deg)";
+
+        if (Switch.Value)
+        {
+            _offLight = "#000";
+            _onLight = "#0F0";
+        }
+        else
+        {
+            _offLight = "#F00";
+            _onLight = "#000";
+        }
+    }
 }

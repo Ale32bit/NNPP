@@ -14,9 +14,8 @@
             <MetricDisplay Parameter="Sim.FeedwaterPump2.Utilization"></MetricDisplay>
             <MetricDisplay Parameter="Sim.FeedwaterPump2.Flow"></MetricDisplay>
         </Display>
-        <div>
-            <p>FW2 control here</p>
-        </div>
+
+        <FlowRateValve Switch="Sim.FeedwaterPump2.Switch" />
     </Panel>
 
     <Panel>
@@ -24,9 +23,8 @@
             <MetricDisplay Parameter="Sim.FeedwaterPump1.Utilization"></MetricDisplay>
             <MetricDisplay Parameter="Sim.FeedwaterPump1.Flow"></MetricDisplay>
         </Display>
-        <div>
-            <p>FW1 control here</p>
-        </div>
+        
+        <FlowRateValve Switch="Sim.FeedwaterPump1.Switch" />
     </Panel>
 
     <Panel>

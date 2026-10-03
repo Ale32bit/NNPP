@@ -1,0 +1,46 @@
+﻿@using System.Drawing
+@using NNPP.Models.Inputs
+@inject IJSRuntime JS
+
+<div class="switch">
+    <span style="--a:-60deg">––</span>
+    <span style="--a:-30deg">–</span>
+    <span style="--a:0deg">•</span>
+    <span style="--a:30deg">+</span>
+    <span style="--a:60deg">++</span>
+    <div class="knob" style="transform: @_transform;" @ref="_element" onclick="@OnClick"></div>
+</div>
+
+@code {
+    private class Size
+    {
+        public int Width { get; set; }
+        public int Height { get; set; }
+    }
+
+    [Parameter, EditorRequired]
+    public required RateSwitch Switch { get; set; }
+
+    private ElementReference _element;
+    private Size? _size;
+
+    private string _transform = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _size = await JS.InvokeAsync<Size>("getElementSize", _element);
+        StateHasChanged();
+    }
+
+    private void OnClick(MouseEventArgs e)
+    {
+        var x = e.OffsetX;
+        var step = x < (_size?.Width ?? 50) / 2 ? -1 : 1;
+        var value = Math.Clamp(Switch.Value + step, -2, 2);
+        Switch.Position = (RateSwitch.SwitchPosition)value;
+
+        _transform = $"rotate({value * 30}deg)";
+
+    }
+}
