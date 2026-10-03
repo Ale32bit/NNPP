@@ -8,7 +8,22 @@
 
 <KeyListener Simulation="Sim"/>
 
+<section class="overview">
+    <OverviewDisplay Parameter="Sim.CoolantValveMetric" Color="#47a1af" Label="Coolant"/>
+    <OverviewDisplay Parameter="Sim.FeedwaterOverview" Color="#7117c0"/>
+    <OverviewDisplay Parameter="Sim.Fuel" Color="#ea0406"/>
+
+    <div>
+        <h2>Reactor Overview</h2>
+        <OverviewDisplay Parameter="Sim.Pressure" Color="#fa8500"/>
+        <OverviewDisplay Parameter="Sim.ReactorTemperature" Color="#2d6f25"/>
+        <OverviewDisplay Parameter="Sim.RodInsertion" Color="#fc1f09"/>
+    </div>
+</section>
+
 <section class="cr">
+    <h2>Reactor Primary</h2>
+
     <Board>
         <Panel>
             <Display Title="Feedwater Pump 2" Grid="Display.GridType.TwoThenOne">
@@ -78,11 +93,6 @@
         </Panel>
     </Board>
 </section>
-
-<Board>
-    <MetricDisplay Parameter="Sim.Fuel"/>
-    <MetricDisplay Parameter="Sim.Pressure"/>
-</Board>
 
 @code {
     protected override void OnInitialized() => Sim.Ticked += OnTick;

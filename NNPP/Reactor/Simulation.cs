@@ -38,6 +38,7 @@ public class Simulation : IAsyncDisposable
     };
 
     public Switch FeedwaterValve { get; } = new();
+    public MetricText FeedwaterOverview { get; } = new("Feedwater", "0/0 ACTIVE");
 
     public MetricText ReliefValveStatus { get; } = new("Relief Valve Status", "0/0");
 
@@ -112,6 +113,8 @@ public class Simulation : IAsyncDisposable
         FeedwaterPump2.Utilization.Value += Parameters.FeedwaterSwitchRate(FeedwaterPump2.Switch.Value) * dt;
         FeedwaterPump1.Utilization.Value = Math.Clamp(FeedwaterPump1.Utilization.Value, 0, 1);
         FeedwaterPump2.Utilization.Value = Math.Clamp(FeedwaterPump2.Utilization.Value, 0, 1);
+        
+        FeedwaterOverview.Value = $"2/2 ACTIVE"; // todo: implement HP
 
         // Pressure
 

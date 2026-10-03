@@ -1,0 +1,18 @@
+﻿@using NNPP.Models
+<div class="parameter" style="--color: @Color">
+    @if (ShowLabel)
+    {
+        <p class="label">@(Label ?? Parameter.Label)</p>
+    }
+    <span class="value">@Parameter.GetValue()</span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required IParameter Parameter { get; set; }
+    
+    [Parameter] public string? Label { get; set; }
+
+    [Parameter] public bool ShowLabel { get; set; } = true;
+    
+    [Parameter] public string? Color { get; set; } = "#757249";
+}
