@@ -1,7 +1,7 @@
 .switch {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: 56px;
+    height: 75px;
     user-select: none;
 }
 
@@ -10,7 +10,7 @@
     left: 50%;
     top: 50%;
     width: 15px;
-    margin: -5px 0 0 -15px;
+    margin: 8px 0 0 -8px;
     text-align: center;
     transform: rotate(var(--a)) translateY(-45px) rotate(calc(var(--a) * -1));
 }
@@ -22,7 +22,7 @@
 
 .knob {
     position: absolute;
-    left: 15px;
+    left: 0;
     top: 20px;
     width: 50px;
     height: 50px;
@@ -37,7 +37,7 @@
         content: "";
         position: absolute;
         left: 23px;
-        top: 0px;
+        top: 0;
         width: 4px;
         height: 20px;
         background: #333;

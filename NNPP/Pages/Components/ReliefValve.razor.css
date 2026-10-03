@@ -22,7 +22,7 @@
 
 .knob {
     position: absolute;
-    left: 0px;
+    left: 0;
     top: 20px;
     width: 25px;
     height: 25px;
