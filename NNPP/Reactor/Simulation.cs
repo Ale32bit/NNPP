@@ -20,7 +20,7 @@ public class Simulation : IAsyncDisposable
         DecimalPlaces = 0,
     };
 
-    public MetricPercentage FeedwaterLevel { get; } = new("Water Level", 0);
+    public MetricPercentage FeedwaterLevel { get; } = new("Water Level", 1);
     public RodController RodControl { get; } = new();
 
     public CoolantPump CoolantPumpAlpha { get; } = new();
@@ -92,24 +92,21 @@ public class Simulation : IAsyncDisposable
         CoolantPumpsStatus.Value = $"{runningCoolantPumps}/2";
 
         // Feedwater flow
-        FeedwaterPump1.Rpm.Value = Parameters.FeedwaterStepRpm(FeedwaterPump1.Rpm.Value,
+        FeedwaterPump1.Rpm.Value = Parameters.FeedwaterPumpStepRpm(FeedwaterPump1.Rpm.Value,
             FeedwaterPump1.Utilization.Value, FeedwaterPump1.Running, dt);
-        FeedwaterPump2.Rpm.Value = Parameters.FeedwaterStepRpm(FeedwaterPump2.Rpm.Value,
+        FeedwaterPump2.Rpm.Value = Parameters.FeedwaterPumpStepRpm(FeedwaterPump2.Rpm.Value,
             FeedwaterPump2.Utilization.Value, FeedwaterPump2.Running, dt);
 
-        var fwTarget1 = Parameters.FeedwaterPumpTargetFlow(FeedwaterPump1.Utilization.Value, FeedwaterPump1.Running);
-        var fwTarget2 = Parameters.FeedwaterPumpTargetFlow(FeedwaterPump2.Utilization.Value, FeedwaterPump2.Running);
-        var fwFlow1 = Parameters.FeedwaterStepPumpFlow(FeedwaterPump1.Flow.Value, fwTarget1, dt);
-        var fwFlow2 = Parameters.FeedwaterStepPumpFlow(FeedwaterPump2.Flow.Value, fwTarget2, dt);
-        FeedwaterPump1.Flow.Value = fwFlow1;
-        FeedwaterPump2.Flow.Value = fwFlow2;
-        TotalFeedwaterFlow.Value =
-            Parameters.TotalFeedwater(FeedwaterPump1.Flow.Value, FeedwaterPump2.Flow.Value, FeedwaterValve.Value);
+        FeedwaterPump1.Flow.Value = Parameters.FeedwaterPumpFlow(FeedwaterPump1.Rpm.Value);
+        FeedwaterPump2.Flow.Value = Parameters.FeedwaterPumpFlow(FeedwaterPump2.Rpm.Value);
+        TotalFeedwaterFlow.Value = Parameters.FeedwaterTotalFlow(FeedwaterPump1.Flow.Value, FeedwaterPump2.Flow.Value,
+            FeedwaterValve.Value);
 
         var need = Parameters.FeedwaterNeed(ReactorTemperature.Value, Running);
 
-        FeedwaterLevel.Value =
-            Math.Clamp(FeedwaterLevel.Value + Parameters.FeedwaterLevelRate(TotalFeedwaterFlow.Value, need) * dt, 0, 1);
+        var targetLevel = FeedwaterLevel.Value + Parameters.FeedwaterLevelRate(TotalFeedwaterFlow.Value, need) +
+                          (Parameters.ReliefValve.FeedwaterLevelReplenishRate * GetRunningReliefValves());
+        FeedwaterLevel.Value = Math.Clamp(targetLevel * dt, 0, 1);
 
         // Feedwater switch
         FeedwaterPump1.Utilization.Value += Parameters.FeedwaterSwitchRate(FeedwaterPump1.Switch.Value) * dt;

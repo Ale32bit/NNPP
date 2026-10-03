@@ -23,11 +23,9 @@ public static class Parameters
     public static class Feedwater
     {
         public const double MaxRpm = 3200; // 80% = 2560; 100% = 3200
-        public const double RpmRate = 100;
-        public const double FlowPerUtil = 1.18;
-        public const double FlowOffset = 0.03;
-        public const double FlowFallRate = 0.0268;
-        public const double FlowRiseRate = 0.0179;
+        public const double RpmRiseRate = 50;
+        public const double RpmFallRate = 75;
+        public const double MaxFlow = 1.15;
         public const double NeedBase = 0.7;
         public const double NeedRefTemp = 1420;
         public const double NeedSlope = 1500;
@@ -60,7 +58,7 @@ public static class Parameters
     {
         public const double Runtime = 10;
         public const double CooldownTime = 90;
-        public const double CoolingRate = 7; // 7K per second. 10 seconds => 70K
+        public const double FeedwaterLevelReplenishRate = 0.01; // 10s => 10%. 1s => 1%
     }
 
     public static class Turbine
@@ -158,15 +156,12 @@ public static class Parameters
         return Pressure.Atm + Pressure.PerKelvin * (temp - Pressure.ZeroTemp) * ramp;
     }
 
-    public static double FeedwaterPumpTargetFlow(double util, bool running) => // running = powered and not broken
-        running ? Math.Max(0, Feedwater.FlowPerUtil * util - Feedwater.FlowOffset) : 0;
+    public static double FeedwaterPumpFlow(double rpm)
+    {
+        return Feedwater.MaxFlow * rpm / Feedwater.MaxRpm;
+    }
 
-    public static double FeedwaterStepPumpFlow(double flow, double target, double dt) =>
-        target > flow
-            ? Math.Min(target, flow + Feedwater.FlowRiseRate * dt)
-            : Math.Max(target, flow - Feedwater.FlowFallRate * dt);
-
-    public static double TotalFeedwater(double pump1, double pump2, bool valveOpen) =>
+    public static double FeedwaterTotalFlow(double pump1, double pump2, bool valveOpen) =>
         valveOpen ? pump1 + pump2 : 0;
 
     public static double FeedwaterNeed(double temp, bool ignited) =>
@@ -191,11 +186,11 @@ public static class Parameters
             _ => 0,
         };
 
-    public static double FeedwaterStepRpm(double rpm, double utilization, bool running, double dt)
+    public static double FeedwaterPumpStepRpm(double rpm, double utilization, bool running, double dt)
     {
         double goal = running ? Feedwater.MaxRpm * utilization : 0;
-        double max = Feedwater.RpmRate * dt;
-        return rpm + Math.Clamp(goal - rpm, -max, max);
+        return goal > rpm ? Math.Min(goal, rpm + Feedwater.RpmRiseRate * dt)
+            : Math.Max(goal, rpm - Feedwater.RpmFallRate * dt);
     }
     
     public static double SteamPressure(double temp, double level) =>
