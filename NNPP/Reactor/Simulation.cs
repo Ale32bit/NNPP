@@ -103,10 +103,9 @@ public class Simulation : IAsyncDisposable
             FeedwaterValve.Value);
 
         var need = Parameters.FeedwaterNeed(ReactorTemperature.Value, Running);
-
-        var targetLevel = FeedwaterLevel.Value + Parameters.FeedwaterLevelRate(TotalFeedwaterFlow.Value, need) +
+        var targetLevel =  Parameters.FeedwaterLevelRate(TotalFeedwaterFlow.Value, need) +
                           (Parameters.ReliefValve.FeedwaterLevelReplenishRate * GetRunningReliefValves());
-        FeedwaterLevel.Value = Math.Clamp(targetLevel * dt, 0, 1);
+        FeedwaterLevel.Value = Math.Clamp(FeedwaterLevel.Value + targetLevel * dt, 0, 1);
 
         // Feedwater switch
         FeedwaterPump1.Utilization.Value += Parameters.FeedwaterSwitchRate(FeedwaterPump1.Switch.Value) * dt;
