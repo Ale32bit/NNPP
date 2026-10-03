@@ -38,6 +38,8 @@ public class Simulation : IAsyncDisposable
 
     public bool Scramming { get; set; } = false;
 
+    public bool Stalled { get; set; } = false;
+
 
     private double _extraHeat = 0; // meltdown. todo
 
@@ -107,9 +109,13 @@ public class Simulation : IAsyncDisposable
 
         if (Running)
         {
-            // heat rate
-            ReactorTemperature.Value += Parameters.TemperatureRate(Fuel.Value, RodInsertion.Value, _extraHeat,
+            Stalled = RodInsertion.Value >= 1 && ReactorTemperature.Value <= Parameters.Core.StallTemp;
+            if (!Stalled)
+            {
+                // heat rate
+                ReactorTemperature.Value += Parameters.TemperatureRate(Fuel.Value, RodInsertion.Value, _extraHeat,
                 FeedwaterLevel.Value, GetCoolantRate(), ReliefValves, Scramming) * dt;
+            }
 
             if (RodControl.Position != RodControlInput.ControlPosition.Neutral)
             {
@@ -127,6 +133,8 @@ public class Simulation : IAsyncDisposable
                     RodInsertion.Value = 0;
                 }
             }
+
+            
         }
         else
         {
