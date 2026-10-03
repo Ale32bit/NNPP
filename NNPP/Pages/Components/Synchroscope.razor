@@ -1,0 +1,53 @@
+﻿@using NNPP.Reactor
+@using NNPP.Reactor.Components
+@inject Simulation Sim
+
+<div class="box">
+    <div class="ring" style="width:@Px(Size);height:@Px(Size)">
+        @for (int i = 0; i < Dots; i++)
+        {
+            var a = 2 * Math.PI * i / Dots - Math.PI / 2;
+            var x = Center + Radius * Math.Cos(a);
+            var y = Center + Radius * Math.Sin(a);
+            var on = i == _lit ? "on" : "";
+            if (i == 0)
+            {
+                <span class="dot top @on" style="left:@Px(x);top:@Px(y)"></span>
+                <span class="dot top @on" style="left:@Px(x);top:@(Px(y, 10))"></span>
+            }
+            else
+            {
+                <span class="dot @on" style="left:@Px(x);top:@Px(y)"></span>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    public const int Dots = 30;
+    public const double Size = 100;
+    public const double Radius = 50;
+    public const double Center = Size / 2;
+
+    [Parameter, EditorRequired] public required Turbine Turbine { get; set; }
+
+    private int _lit = 0;
+
+    private static string Px(double v, double offset = 0) => (v + offset).ToString("0.##") + "px";
+
+    protected override void OnInitialized()
+    {
+        Sim.OnUpdate += async (_, dt) => await OnUpdate(dt);
+    }
+
+    private async Task OnUpdate(double dt)
+    {
+        var lit = Turbine.LitDot(Turbine.Phase);
+        if (lit != _lit)
+        {
+            _lit = lit;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+}

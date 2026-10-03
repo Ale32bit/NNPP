@@ -1,0 +1,31 @@
+﻿.box {
+    margin: 10px;
+    background-color: #f1ebd1;
+    padding: 10px;
+    border: 4px solid #888;
+}
+
+.ring {
+    position: relative;
+}
+
+.dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #800000;
+    transform: translate(-50%, -50%);
+}
+
+.dot.on {
+    background: #ff0000;
+}
+
+.dot.top {
+    background: #007300;
+}
+
+.dot.top.on {
+    background: #00ff00;
+}

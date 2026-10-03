@@ -1,4 +1,6 @@
-﻿namespace NNPP.Reactor;
+﻿using NNPP.Models.Inputs;
+
+namespace NNPP.Reactor;
 
 /// <summary>
 /// Hic sunt dracones.
@@ -71,6 +73,8 @@ public static class Parameters
         public const double TauMedium = 26.5;
         public const double TauSlow = 52.5;
         public const double TauBroken = 12;
+        
+        public const double SyncRpmTolerance = 50; // made up
 
         // the following vibration values are arbitrary. i need to research more
         public const double VibPerAccel = 2;
@@ -176,7 +180,7 @@ public static class Parameters
     public static double FeedwaterCoolingRate(double level) =>
         Feedwater.Cooling - Math.Min(Feedwater.LossMax, Feedwater.LossPerLevel * Math.Max(0, Feedwater.Knee - level));
 
-    public static double FeedwaterSwitchRate(int position) =>
+    public static double SwitchRate(int position) =>
         position switch
         {
             2 => 0.010,
@@ -216,25 +220,18 @@ public static class Parameters
         return 0.427 + 0.573 * (temp - 530) / 890; // some of these values come from ANRO handbooks. i think....
     }
 
-    public enum AccelMode
-    {
-        Slow,
-        Medium,
-        Fast
-    }
-
     public static double RpmTarget(double flow, bool broken) =>
         broken
             ? 0
             : Turbine.SyncRpm * Math.Max(0, flow - Turbine.DeadFlow) / (Turbine.SyncFlow - Turbine.DeadFlow);
 
-    public static double RpmTau(AccelMode mode, bool broken) =>
+    public static double RpmTau(AccelerationSwitch.SwitchPosition mode, bool broken) =>
         broken
             ? Turbine.TauBroken // needs more research
             : mode switch
             {
-                AccelMode.Fast => Turbine.TauFast,
-                AccelMode.Medium => Turbine.TauMedium,
+                AccelerationSwitch.SwitchPosition.Fast => Turbine.TauFast,
+                AccelerationSwitch.SwitchPosition.Medium => Turbine.TauMedium,
                 _ => Turbine.TauSlow,
             };
 

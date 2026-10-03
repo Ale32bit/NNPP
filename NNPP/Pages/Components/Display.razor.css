@@ -5,6 +5,7 @@
     color: #4aff45;
     user-select: none;
     border: #b0a687 solid 5px;
+    border-radius: 10px;
 }
 
 .content {
@@ -32,6 +33,13 @@
     grid-template-areas:
             "m1 m2"
             "m3 m3";
+    grid-template-columns: 1fr 1fr;
+}
+
+.one-then-two {
+    grid-template-areas:
+            "m1 m1"
+            "m2 m3";
     grid-template-columns: 1fr 1fr;
 }
 

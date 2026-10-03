@@ -1,0 +1,44 @@
+﻿@using System.Drawing
+@using NNPP.Models.Inputs
+@inject IJSRuntime JS
+
+<div class="switch">
+    <span style="--a:-30deg">S</span>
+    <span style="--a:0deg">M</span>
+    <span style="--a:30deg">F</span>
+    <div class="knob" style="transform: @_transform;" @ref="_element" onclick="@OnClick"></div>
+</div>
+
+@code {
+    private class Size
+    {
+        public int Width { get; set; }
+        public int Height { get; set; }
+    }
+
+    [Parameter, EditorRequired]
+    public required AccelerationSwitch Switch { get; set; }
+
+    private ElementReference _element;
+    private Size? _size;
+
+    private string _transform = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _size = await JS.InvokeAsync<Size>("getElementSize", _element);
+        StateHasChanged();
+    }
+
+    private void OnClick(MouseEventArgs e)
+    {
+        var x = e.OffsetX;
+        var step = x < (_size?.Width ?? 50) / 2 ? -1 : 1;
+        var value = Math.Clamp(Switch.Value + step, 1, 3);
+        Switch.Position = (AccelerationSwitch.SwitchPosition)value;
+
+        _transform = $"rotate({(value - 2) * 30}deg)";
+
+    }
+}

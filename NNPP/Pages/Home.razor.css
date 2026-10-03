@@ -9,6 +9,7 @@
     display: inline-block;
     background-color: #cbc4a6;
     padding: 10px;
+    height: 340px;
 }
 
 h2 {
@@ -21,4 +22,16 @@ h2 {
     color: #fffbe1;
     padding: 10px;
     border: 10px solid #bab183;
+}
+
+.turbine-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    row-gap: 0;
+}
+
+.turbine-controls ::deep > :last-child {
+    grid-column: 1 / -1;
+    justify-self: center;
 }

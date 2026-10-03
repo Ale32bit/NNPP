@@ -94,6 +94,60 @@
     </Board>
 </section>
 
+<section class="cr">
+    <h2>Grid</h2>
+    
+    <Board>
+        <Panel>
+            <Display Title="Steam Turbine 2">
+                <MetricDisplay Index="1" Parameter="Sim.Turbine2.Valve"/>
+                <MetricDisplay Index="2" Parameter="Sim.Turbine2.FlowRate"/>
+            </Display>
+
+            <div class="turbine-controls">
+                <FlowRateValve Switch="Sim.Turbine2.RateSwitch"/>
+                <AccelerationValve Switch="Sim.Turbine2.AccelerationSwitch"/>
+                <ToggleSwitch Switch="Sim.Turbine2.SyncSwitch"/>
+            </div>
+        </Panel>
+
+        <Panel>
+            <Display Title="Steam Turbine 2" Grid="Display.GridType.OneThenTwo">
+                <MetricDisplay Index="1" Parameter="Sim.Turbine2.Status"/>
+                <MetricDisplay Index="2" Parameter="Sim.Turbine2.Rpm" ShowLabelUnit="false"/>
+                <MetricDisplay Index="3" Parameter="Sim.Turbine2.Vibration" ShowLabelUnit="false"/>
+            </Display>
+
+            <Synchroscope Turbine="Sim.Turbine2"></Synchroscope>
+        </Panel>
+    </Board>
+    
+    <Board>
+        <Panel>
+            <Display Title="Steam Turbine 1">
+                <MetricDisplay Index="1" Parameter="Sim.Turbine1.Valve"/>
+                <MetricDisplay Index="2" Parameter="Sim.Turbine1.FlowRate"/>
+            </Display>
+            
+            <div class="turbine-controls">
+                <FlowRateValve Switch="Sim.Turbine1.RateSwitch"/>
+                <AccelerationValve Switch="Sim.Turbine1.AccelerationSwitch"/>
+                <ToggleSwitch Switch="Sim.Turbine1.SyncSwitch"/>
+            </div>
+        </Panel>
+
+        <Panel>
+            <Display Title="Steam Turbine 1" Grid="Display.GridType.OneThenTwo">
+                <MetricDisplay Index="1" Parameter="Sim.Turbine1.Status"/>
+                <MetricDisplay Index="2" Parameter="Sim.Turbine1.Rpm" ShowLabelUnit="false"/>
+                <MetricDisplay Index="3" Parameter="Sim.Turbine1.Vibration" ShowLabelUnit="false"/>
+            </Display>
+
+            <Synchroscope Turbine="Sim.Turbine1"></Synchroscope>
+        </Panel>
+    </Board>
+</section>
+
 @code {
     protected override void OnInitialized() => Sim.Ticked += OnTick;
 

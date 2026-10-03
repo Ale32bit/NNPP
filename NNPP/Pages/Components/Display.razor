@@ -16,6 +16,7 @@
         OneByTwo,
         TwoByTwo,
         TwoThenOne,
+        OneThenTwo,
     }
     
     [Parameter, EditorRequired] public string? Title { get; set; }
@@ -29,6 +30,7 @@
         GridType.OneByTwo => "one-by-two",
         GridType.TwoByTwo => "two-by-two",
         GridType.TwoThenOne => "two-then-one",
+        GridType.OneThenTwo => "one-then-two",
         _ => throw new ArgumentOutOfRangeException()
     };
 }

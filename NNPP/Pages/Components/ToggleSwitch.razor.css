@@ -1,7 +1,7 @@
 .switch {
     position: relative;
-    width: 56px;
-    height: 75px;
+    width: 46px;
+    height: 70px;
     user-select: none;
 }
 
@@ -12,7 +12,7 @@
     flex-direction: row;
     font-size: 2.5rem;
     justify-content: space-evenly;
-    width: 56px;
+    width: 46px;
 }
 
 .indicator span {
@@ -25,8 +25,8 @@
     position: absolute;
     left: 0;
     top: 20px;
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: #443d2e;
     border: 3px solid #333;
@@ -38,7 +38,7 @@
         content: "";
         position: absolute;
         left: 0;
-        top: 23px;
+        top: 18px;
         width: 20px;
         height: 4px;
         background: #efd71d;
