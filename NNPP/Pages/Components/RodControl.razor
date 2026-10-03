@@ -4,7 +4,11 @@
 <div class="rods">
     <button class="action" @onclick="StepUp">RAISE (Q)</button>
 
-    <input disabled id="range" type="range" min="-1" max="1" step="1" value="@Value">
+    <div class="lever" role="slider" aria-readonly="true"
+         aria-valuemin="-1" aria-valuemax="1" aria-valuenow="@Value">
+        <div class="lever-track"></div>
+        <div class="lever-thumb" style="--pos:@Value"></div>
+    </div>
 
     <button class="action" @onclick="StepDown">LOWER (E)</button>
 </div>
