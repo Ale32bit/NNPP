@@ -95,4 +95,12 @@ button:active {
 footer {
     position: fixed;
     bottom: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 99vw; /* dont ask */
+}
+
+footer p {
+    display: inline-block;
 }

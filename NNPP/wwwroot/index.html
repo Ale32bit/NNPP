@@ -2,46 +2,52 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>NNPP</title>
-    <base href="/" />
-    <link rel="preload" id="webassembly" />
-    <link rel="stylesheet" href="css/app.css" />
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <link href="NNPP.styles.css" rel="stylesheet" />
+    <base href="/"/>
+    <link rel="preload" id="webassembly"/>
+    <link rel="stylesheet" href="css/app.css"/>
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <link href="NNPP.styles.css" rel="stylesheet"/>
     <script type="importmap"></script>
 </head>
 
 <body>
-    <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
-    </div>
+<div id="app">
+    <svg class="loading-progress">
+        <circle r="40%" cx="50%" cy="50%"/>
+        <circle r="40%" cx="50%" cy="50%"/>
+    </svg>
+    <div class="loading-progress-text"></div>
+</div>
 
-    <div id="blazor-error-ui">
-        An unhandled error has occurred.
-        <a href="." class="reload">Reload</a>
-        <span class="dismiss">🗙</span>
-    </div>
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
 
 
-    <footer>
-        <a href="https://www.roblox.com/games/98626216952426/Naramo-Nuclear-Plant" target="_blank">Naramo Nuclear Power Plant</a> Reactor Simulation
-        - Based on <a href="https://www.roblox.com/communities/36000077/ANRO-Advanced-Noobic-Reactor-Operations" target="_blank">ANRO</a> research, public information and reverse engineering.
+<footer>
+    <p>
+        <a href="https://www.roblox.com/games/98626216952426/Naramo-Nuclear-Plant" target="_blank">Naramo Nuclear Power
+            Plant</a> Reactor Simulation
+        - Based on <a href="https://www.roblox.com/communities/36000077/ANRO-Advanced-Noobic-Reactor-Operations"
+                      target="_blank">ANRO</a> research, public information and reverse engineering.
         NNPPRS &copy; 2026 <a href="https://proto.land">AlexDevs</a>
-    </footer>
+    </p>
     
-    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
-    <script>
-        window.getElementSize = el => {
-            const r = el.getBoundingClientRect();
-            return { width: r.width, height: r.height };
-        };
-    </script>
+    <p>Source Code: <a href="https://github.com/Ale32bit/NNPP" target="_blank">Ale32bit/NNPP</a> (N/A)</p>
+</footer>
+
+<script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+<script>
+    window.getElementSize = el => {
+        const r = el.getBoundingClientRect();
+        return {width: r.width, height: r.height};
+    };
+</script>
 </body>
 
 </html>
