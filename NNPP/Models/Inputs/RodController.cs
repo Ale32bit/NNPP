@@ -1,6 +1,6 @@
 ﻿namespace NNPP.Models.Inputs;
 
-public class RodControlInput
+public class RodController
 {
     public enum ControlPosition
     {

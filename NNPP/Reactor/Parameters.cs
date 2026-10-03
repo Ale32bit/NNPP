@@ -22,6 +22,8 @@ public static class Parameters
 
     public static class Feedwater
     {
+        public const double MaxRpm = 3200; // 80% = 2560; 100% = 3200
+        public const double RpmRate = 100;
         public const double FlowPerUtil = 1.18;
         public const double FlowOffset = 0.03;
         public const double FlowFallRate = 0.0268;
@@ -52,6 +54,13 @@ public static class Parameters
         public const double MaxRpm = 2500;
         public const double RpmRate = 100;
         public const double CoolingPerPump = 5;
+    }
+    
+    public static class ReliefValve
+    {
+        public const double Runtime = 10;
+        public const double CooldownTime = 90;
+        public const double CoolingRate = 7; // 7K per second. 10 seconds => 70K
     }
 
     public static class Turbine
@@ -182,6 +191,13 @@ public static class Parameters
             _ => 0,
         };
 
+    public static double FeedwaterStepRpm(double rpm, double utilization, bool running, double dt)
+    {
+        double goal = running ? Feedwater.MaxRpm * utilization : 0;
+        double max = Feedwater.RpmRate * dt;
+        return rpm + Math.Clamp(goal - rpm, -max, max);
+    }
+    
     public static double SteamPressure(double temp, double level) =>
         Pressure.Atm + (FullPressure(temp) - Pressure.Atm) * level;
 

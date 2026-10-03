@@ -1,6 +1,6 @@
 ﻿@using NNPP.Models
 
-<div class="parameter">
+<div class="parameter" style="grid-area: @GridAreaName">
     @if (Parameter is Metric { Unit: not null } metric)
     {
         <p class="label">@metric.Label.ToUpperInvariant() (@metric.Unit)</p>
@@ -14,4 +14,8 @@
 
 @code {
     [Parameter, EditorRequired] public required IParameter Parameter { get; set; }
+
+    [Parameter] public int Index { get; set; } = 1;
+    
+    private string GridAreaName => $"m{Index}";
 }

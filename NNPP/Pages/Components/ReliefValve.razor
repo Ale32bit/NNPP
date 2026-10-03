@@ -1,0 +1,49 @@
+﻿@using NNPP.Models.Inputs
+
+<div class="switch">
+    <div class="indicator">
+        <span class="light" style="color: @_offLight">•</span>
+        <span class="light" style="color: @_onLight">•</span>
+    </div>
+    <div class="knob" style="transform: @_transform;" onclick="@OnClick"></div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required ReliefValveSwitch Valve { get; set; }
+
+    private string _transform = "";
+    private string _offLight = "#F00";
+    private string _onLight = "#000";
+
+    protected override void OnInitialized()
+    {
+        Valve.OnStatusChanged += Update;
+        Update();
+    }
+
+    private void OnClick()
+    {
+        Valve.Open();
+    }
+
+    private void Update()
+    {
+        _transform = $"rotate({(Valve.IsOpen() ? -90 : 0)}deg)";
+
+        switch (Valve.Status)
+        {
+            case ReliefValveSwitch.ReliefValveStatus.Ready:
+                _offLight = "#F00";
+                _onLight = "#000";
+                break;
+            case ReliefValveSwitch.ReliefValveStatus.Running:
+                _offLight = "#000";
+                _onLight = "#0F0";
+                break;
+            case ReliefValveSwitch.ReliefValveStatus.Cooldown:
+                _offLight = "#000";
+                _onLight = "#000";
+                break;
+        }
+    }
+}

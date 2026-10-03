@@ -8,6 +8,7 @@ public class Metric : IParameter
     public double Value { get; set; }
     public string? Unit { get; set; }
     public int DecimalPlaces { get; set; } = 1;
+    public bool ShowUnit { get; set; } = true;
     
     private string _format = "F";
 
@@ -22,7 +23,7 @@ public class Metric : IParameter
 
     public string GetValue()
     {
-        return Unit is null ? GetFormattedValue() : $"{GetFormattedValue()} {Unit}";
+        return Unit is null || !ShowUnit ? GetFormattedValue() : $"{GetFormattedValue()} {Unit}";
     }
     
     public string GetFormattedValue()

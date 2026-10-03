@@ -6,63 +6,81 @@
 
 <PageTitle>NNPP</PageTitle>
 
-<KeyListener Simulation="Sim" />
+<KeyListener Simulation="Sim"/>
 
 <Board>
     <Panel>
-        <Display Title="Feedwater Pump 2">
-            <MetricDisplay Parameter="Sim.FeedwaterPump2.Utilization"></MetricDisplay>
-            <MetricDisplay Parameter="Sim.FeedwaterPump2.Flow"></MetricDisplay>
+        <Display Title="Feedwater Pump 2" Grid="Display.GridType.TwoThenOne">
+            <MetricDisplay Index="1" Parameter="Sim.FeedwaterPump2.Utilization"></MetricDisplay>
+            <MetricDisplay Index="2" Parameter="Sim.FeedwaterPump2.Rpm"></MetricDisplay>
+            <MetricDisplay Index="3" Parameter="Sim.FeedwaterPump2.Flow"></MetricDisplay>
         </Display>
 
-        <FlowRateValve Switch="Sim.FeedwaterPump2.Switch" />
+        <FlowRateValve Switch="Sim.FeedwaterPump2.Switch"/>
     </Panel>
 
     <Panel>
-        <Display Title="Feedwater Pump 1">
-            <MetricDisplay Parameter="Sim.FeedwaterPump1.Utilization"></MetricDisplay>
-            <MetricDisplay Parameter="Sim.FeedwaterPump1.Flow"></MetricDisplay>
+        <Display Title="Feedwater Pump 1" Grid="Display.GridType.TwoThenOne">
+            <MetricDisplay Index="1" Parameter="Sim.FeedwaterPump1.Utilization"></MetricDisplay>
+            <MetricDisplay Index="2" Parameter="Sim.FeedwaterPump1.Rpm"></MetricDisplay>
+            <MetricDisplay Index="3" Parameter="Sim.FeedwaterPump1.Flow"></MetricDisplay>
         </Display>
-        
-        <FlowRateValve Switch="Sim.FeedwaterPump1.Switch" />
+
+        <FlowRateValve Switch="Sim.FeedwaterPump1.Switch"/>
     </Panel>
 
     <Panel>
         <Display Title="Feedwater Overview">
-            <MetricDisplay Parameter="Sim.FeedwaterLevel"></MetricDisplay>
-            <MetricDisplay Parameter="Sim.TotalFeedwaterFlow"></MetricDisplay>
+            <MetricDisplay Index="1" Parameter="Sim.FeedwaterLevel"></MetricDisplay>
+            <MetricDisplay Index="2" Parameter="Sim.TotalFeedwaterFlow"></MetricDisplay>
         </Display>
 
-        <ToggleSwitch Switch="Sim.FeedwaterValve" />
+        <ToggleSwitch Switch="Sim.FeedwaterValve"/>
     </Panel>
 </Board>
 
 <Board>
     <Panel>
         <Display Title="Facility Overview">
-            <MetricDisplay Parameter="Sim.ReactorTemperature" />
-            <MetricDisplay Parameter="Sim.RodInsertion" />
+            <MetricDisplay Index="1" Parameter="Sim.ReactorTemperature"/>
+            <MetricDisplay Index="2" Parameter="Sim.RodInsertion"/>
         </Display>
 
-        <RodControl Control="Sim.RodControl" Simulation="Sim" />
+        <RodControl Control="Sim.RodControl" Simulation="Sim"/>
     </Panel>
 </Board>
 
 <Board>
     <Panel>
         <Display Title="Coolant Overview">
-            <MetricDisplay Parameter="Sim.ReactorTemperature" />
-            <MetricDisplay Parameter="Sim.CoolantValveMetric" />
+            <MetricDisplay Index="1" Parameter="Sim.CoolantPumpsStatus"/>
+            <MetricDisplay Index="2" Parameter="Sim.CoolantValveMetric"/>
         </Display>
 
-        <ToggleSwitch Switch="Sim.CoolantValve" />
+        <ToggleSwitch Switch="Sim.CoolantValve"/>
+    </Panel>
+</Board>
+
+<Board>
+    <Panel>
+        <Display Title="Relief Valve Overview">
+            <MetricDisplay Index="1" Parameter="Sim.ReactorTemperature"/>
+            <MetricDisplay Index="2" Parameter="Sim.ReliefValveStatus"/>
+        </Display>
+
+        <div class="relief-valves">
+            <ReliefValve Valve="Sim.ReliefValves[0]"/>
+            <ReliefValve Valve="Sim.ReliefValves[1]"/>
+            <ReliefValve Valve="Sim.ReliefValves[2]"/>
+            <ReliefValve Valve="Sim.ReliefValves[3]"/>
+        </div>
     </Panel>
 </Board>
 
 
 <Board>
-    <MetricDisplay Parameter="Sim.Fuel" />
-    <MetricDisplay Parameter="Sim.Pressure" />
+    <MetricDisplay Parameter="Sim.Fuel"/>
+    <MetricDisplay Parameter="Sim.Pressure"/>
 </Board>
 
 @code {

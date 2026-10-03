@@ -10,7 +10,7 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public required RodControlInput Control { get; set; }
+    [Parameter, EditorRequired] public required RodController Control { get; set; }
     [Parameter, EditorRequired] public required Simulation Simulation { get; set; }
 
     private int Value => (int)Control.Position;
@@ -37,8 +37,8 @@
         {
             Control.Position = Control.Position switch
             {
-                RodControlInput.ControlPosition.Lowering => RodControlInput.ControlPosition.Neutral,
-                RodControlInput.ControlPosition.Neutral => RodControlInput.ControlPosition.Raising,
+                RodController.ControlPosition.Lowering => RodController.ControlPosition.Neutral,
+                RodController.ControlPosition.Neutral => RodController.ControlPosition.Raising,
                 _ => Control.Position
             };
 
@@ -52,8 +52,8 @@
         {
             Control.Position = Control.Position switch
             {
-                RodControlInput.ControlPosition.Raising => RodControlInput.ControlPosition.Neutral,
-                RodControlInput.ControlPosition.Neutral => RodControlInput.ControlPosition.Lowering,
+                RodController.ControlPosition.Raising => RodController.ControlPosition.Neutral,
+                RodController.ControlPosition.Neutral => RodController.ControlPosition.Lowering,
                 _ => Control.Position
             };
         }

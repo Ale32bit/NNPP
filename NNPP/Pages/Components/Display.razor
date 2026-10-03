@@ -1,15 +1,34 @@
 ﻿<div class="display">
+    
     @if (!string.IsNullOrWhiteSpace(Title))
     {
         <p class="title">@Title</p>
     }
-    <div class="content">
+    <div class="content @GetGridType()">
         @ChildContent
     </div>
 </div>
 
 @code {
+
+    public enum GridType
+    {
+        OneByTwo,
+        TwoByTwo,
+        TwoThenOne,
+    }
+    
     [Parameter, EditorRequired] public string? Title { get; set; }
 
+    [Parameter] public GridType Grid { get; set; } = GridType.OneByTwo;
+
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    
+    private string GetGridType() => Grid switch
+    {
+        GridType.OneByTwo => "one-by-two",
+        GridType.TwoByTwo => "two-by-two",
+        GridType.TwoThenOne => "two-then-one",
+        _ => throw new ArgumentOutOfRangeException()
+    };
 }

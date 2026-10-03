@@ -8,10 +8,31 @@
 }
 
 .content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    display: grid;
     padding: 0;
+}
+
+.one-by-two {
+    grid-template-areas:
+            "m1"
+            "m2";
+    grid-template-columns: 1fr;
+    
+}
+
+.two-by-two {
+    grid-template-areas:
+            "m1 m2"
+            "m3 m4";
+    grid-template-columns: 1fr 1fr;
+    
+}
+
+.two-then-one {
+    grid-template-areas:
+            "m1 m2"
+            "m3 m3";
+    grid-template-columns: 1fr 1fr;
 }
 
 .title {
