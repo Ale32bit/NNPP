@@ -1,6 +1,6 @@
 ﻿namespace NNPP.Models.Inputs;
 
-public class ScramButton
+public class AuthButton
 {
     public event Action? Engaged;
     

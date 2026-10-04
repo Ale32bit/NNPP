@@ -1,5 +1,5 @@
-﻿.scram {
-    display: grid;
+﻿.frame {
+    display: inline-grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr;
     gap: 4px;
@@ -10,7 +10,7 @@
     background-color: #756750;
 }
 
-.scram-button {
+.body {
     width: 50px;
     height: 50px;
     background: red repeating-linear-gradient(
@@ -22,10 +22,10 @@
     );
 }
 
-.scram-button .button {
+.body .button {
     margin: 5px;
-    width: 40px;
-    height: 40px;
+    width: 39px;
+    height: 39px;
     background-color: red;
     border: 1px solid black;
     border-radius: 4px;

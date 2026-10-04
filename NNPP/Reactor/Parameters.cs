@@ -23,6 +23,7 @@ public static class Parameters
         public const double MeltdownTemperature = 3120;
         public const double MeltdownExtraHeat = 17.9;
         public const double RodSpeedScram = 0.08;
+        public const double IgnitionRate = 7.604651163;
     }
 
     public static class Feedwater

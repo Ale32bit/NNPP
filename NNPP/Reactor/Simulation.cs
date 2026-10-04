@@ -3,6 +3,7 @@ using NNPP.Models.Inputs;
 using NNPP.Models.Metrics;
 using NNPP.Pages.Components;
 using NNPP.Reactor.Components;
+using AuthButton = NNPP.Models.Inputs.AuthButton;
 
 namespace NNPP.Reactor;
 
@@ -11,8 +12,8 @@ public class Simulation : IAsyncDisposable
     private AudioManager Audio { get; set; }
 
     // COMPONENTS and VARIABLES
-    public bool Running { get; set; } = true;
-    public bool Igniting { get; set; } = false;
+    public bool Running { get; set; } = false;
+    public bool Ignited { get; set; } = false;
 
     public MetricEnum<ReactorStatus> ReactorStatus { get; } = new("Reactor Status", Models.ReactorStatus.Stalled);
 
@@ -55,8 +56,14 @@ public class Simulation : IAsyncDisposable
     public Turbine Turbine1 { get; } = new();
     public Turbine Turbine2 { get; } = new();
 
+    public AuthButton ScramButton { get; } = new();
 
-    public ScramButton ScramButton { get; } = new();
+    public MetricBool AuthBravo8 { get; } = new("Auth Bravo-8", false, "Authorized", "Unauthorized");
+    public MetricBool AuthShutdownPumps { get; } = new("Shutdown Pumps", false, "Enabled", "Disabled");
+
+    public AuthButton IgnitionButton { get; } = new();
+    public TriggerSwitch IgnitionAuthBravo8 { get; } = new();
+    public TriggerSwitch IgnitionShutdownPumps { get; } = new();
 
     public bool Stalled { get; set; } = false;
 
@@ -85,6 +92,9 @@ public class Simulation : IAsyncDisposable
     private bool _notgreatnotterrible = false;
     private bool _forceMeltdown = false;
 
+    private double _ignitionTime = 0;
+    private bool _igniting = false;
+
     // EVENTS
     public event EventHandler<KeyPressEventArgs>? KeyPress;
     public event EventHandler<double>? OnUpdate;
@@ -106,6 +116,10 @@ public class Simulation : IAsyncDisposable
         Turbine2.SyncSwitch.Triggered += (sender, value) => AttemptTurbineSync(Turbine2);
 
         ScramButton.Engaged += OnScramEngage;
+
+        IgnitionAuthBravo8.Triggered += (_, value) => OnIgnitionButtons(IgnitionAuthBravo8, value);
+        IgnitionShutdownPumps.Triggered += (_, value) => OnIgnitionButtons(IgnitionShutdownPumps, value);
+        IgnitionButton.Engaged += AttemptIgnition;
 
         KeyPress += (_, key) =>
         {
@@ -135,7 +149,12 @@ public class Simulation : IAsyncDisposable
             _firstTick = false;
         }
 
-        if (_meltdown)
+
+        if (_igniting)
+        {
+            ReactorStatus.Value = Models.ReactorStatus.Igniting;
+        }
+        else if (_meltdown)
         {
             if (_notgreatnotterrible)
             {
@@ -155,13 +174,20 @@ public class Simulation : IAsyncDisposable
         }
         else
         {
-            ReactorStatus.Value = ReactorTemperature.Value switch
+            if (Running)
             {
-                <= 323 => Models.ReactorStatus.Stalled,
-                > 323 and < 2400 => Models.ReactorStatus.Running,
-                >= 2400 => Models.ReactorStatus.Overheat,
-                _ => Models.ReactorStatus.Error,
-            };
+                ReactorStatus.Value = ReactorTemperature.Value switch
+                {
+                    <= 323 => Models.ReactorStatus.Stalled,
+                    > 323 and < 2400 => Models.ReactorStatus.Running,
+                    >= 2400 => Models.ReactorStatus.Overheat,
+                    _ => Models.ReactorStatus.Error,
+                };
+            }
+            else
+            {
+                ReactorStatus.Value = Models.ReactorStatus.Offline;
+            }
         }
 
         // coolant
@@ -376,6 +402,7 @@ public class Simulation : IAsyncDisposable
                 if (_meltdownTime >= 44 && !ScramButton.Available && _meltdownStage < MeltdownStage.EnableScram)
                 {
                     _meltdownStage = MeltdownStage.EnableScram;
+                    Audio.PlaySfxAsync(AudioKeys.Sfx.RedTrigger);
                     ScramButton.Available = true;
                 }
 
@@ -430,6 +457,13 @@ public class Simulation : IAsyncDisposable
                 }
             }
         }
+        else if (Ignited && _igniting)
+        {
+            _ignitionTime += dt;
+            ReactorTemperature.Value =
+                Math.Clamp(Parameters.Core.IgnitionRate * _ignitionTime + Parameters.Core.StallTemp,
+                    Parameters.Core.StallTemp, 650);
+        }
         else
         {
             ReactorTemperature.Value = Parameters.Core.StallTemp;
@@ -445,12 +479,13 @@ public class Simulation : IAsyncDisposable
 
     private void OnFirstTick()
     {
+        RodControl.Locked = true;
+
         Audio.PreloadAsync(AudioKeys.Sfx.MetalCry, AudioKeys.Sfx.ReactorExplosion);
         Audio.PreloadAsync(AudioKeys.Music.Overheat, AudioKeys.Music.Shutdown, AudioKeys.Music.Evacuate,
             AudioKeys.Music.Meltdown);
 
         Notify(new Notification("Welcome to NNPPRS", "Please report any bug!", Silent: true));
-        Notify(new Notification("Reactor ignition", "Reactor online. Code Bravo-8 is now in effect."));
     }
 
     public double GetCoolantRate()
@@ -482,6 +517,66 @@ public class Simulation : IAsyncDisposable
         }
     }
 
+    public void OnIgnitionButtons(TriggerSwitch el, bool value)
+    {
+        if (Ignited)
+        {
+            Audio.PlaySfxAsync(AudioKeys.Sfx.ControlDenied);
+            el.RawSet(true);
+            return;
+        }
+
+        if (value)
+        {
+            Audio.PlaySfxAsync(AudioKeys.Sfx.Authorize);
+        }
+
+        if (el == IgnitionAuthBravo8)
+        {
+            AuthBravo8.Value = value;
+        }
+        else if (el == IgnitionShutdownPumps)
+        {
+            AuthShutdownPumps.Value = value;
+        }
+
+        IgnitionButton.Available = IgnitionAuthBravo8.Value && IgnitionShutdownPumps.Value;
+    }
+
+    public void AttemptIgnition()
+    {
+        if (Running)
+        {
+            Audio.PlaySfxAsync(AudioKeys.Sfx.ControlDenied);
+            return;
+        }
+
+        if (IgnitionAuthBravo8.Value && IgnitionShutdownPumps.Value)
+        {
+            Ignited = true;
+            Audio.PlaySfxAsync(AudioKeys.Sfx.RedTrigger);
+
+            Task.Run(async () =>
+            {
+                await Audio.PlaySfxAsync(AudioKeys.Music.Ignition);
+                await Task.Delay(TimeSpan.FromSeconds(8.6));
+                Notify(new Notification("Reactor Ignition",
+                    "The Facility Reactor is currently being ignited. Standby"));
+                await Task.Delay(TimeSpan.FromSeconds(2.4));
+                _igniting = true;
+                await Task.Delay(TimeSpan.FromSeconds(43));
+                Notify(new Notification("Reactor ignition", "Reactor online. Code Bravo-8 is now in effect."));
+                RodControl.Locked = false;
+                Running = true;
+                _igniting = false;
+            });
+        }
+        else
+        {
+            Audio.PlaySfxAsync(AudioKeys.Sfx.ControlDenied);
+        }
+    }
+
     public void Notify(Notification notification)
     {
         OnNotification?.Invoke(this, notification);
@@ -508,7 +603,6 @@ public class Simulation : IAsyncDisposable
     {
         _forceMeltdown = true;
     }
-
 
     public async ValueTask DisposeAsync()
     {

@@ -7,5 +7,6 @@ public enum ReactorStatus
     Overheat, // >2400
     Critical, // During meltdown
     Error, // Shutdown failure
-    Offline, // Reactor is offline, shutdown successful
+    Offline, // Reactor is offline, shutdown successful, or not yet ignited
+    Igniting, // Igniting
 }

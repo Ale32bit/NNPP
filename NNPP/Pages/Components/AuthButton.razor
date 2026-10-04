@@ -1,15 +1,17 @@
 ﻿@using NNPP.Models.Inputs
 
-<div title="SHUTOFF - Drop control rods" class="scram">
-    <div class="scram-button">
+<div title="@Tooltip" class="frame">
+    <div class="body">
         <div role="button" class="button" @onclick="() => Button.Enable()"></div>
     </div>
     <div class="status" style="--status-color: @GetStatusColor()"></div>
-    <div class="label"><span>Reactor Scram</span></div>
+    <div class="label"><span>@Label</span></div>
 </div>
 
 @code {
-    [Parameter, EditorRequired] public required ScramButton Button { get; set; }
+    [Parameter, EditorRequired] public required Models.Inputs.AuthButton Button { get; set; }
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Tooltip { get; set; } = "";
 
     public string GetStatusColor()
     {

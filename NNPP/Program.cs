@@ -23,11 +23,14 @@ builder.Services.AddSingleton(sp => new AudioManager(sp.GetRequiredService<IJSRu
     .Register(AudioKeys.Sfx.RodControl, "audio/rodcontrol.ogg")
     .Register(AudioKeys.Sfx.ControlInteract, "audio/controlinteract.ogg")
     .Register(AudioKeys.Sfx.ControlDenied, "audio/controldenied.ogg")
+    .Register(AudioKeys.Sfx.RedTrigger, "audio/redtrigger.ogg")
+    .Register(AudioKeys.Sfx.Authorize, "audio/authorize.ogg")
     
     .Register(AudioKeys.Music.Overheat, "audio/overheat.ogg")
     .Register(AudioKeys.Music.Meltdown, "audio/meltdown.ogg")
     .Register(AudioKeys.Music.Evacuate, "audio/evacuate.ogg")
     .Register(AudioKeys.Music.Shutdown, "audio/shutdown.ogg")
+    .Register(AudioKeys.Music.Ignition, "audio/ignition.ogg")
 );
 
 var app = builder.Build();

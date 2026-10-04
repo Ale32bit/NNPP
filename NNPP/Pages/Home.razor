@@ -8,7 +8,7 @@
 
 <KeyListener Simulation="Sim"/>
 
-<NotificationManager />
+<NotificationManager/>
 
 <section class="overview">
     <OverviewDisplay Parameter="Sim.CoolantValveMetric" Color="#47a1af" Label="Coolant"/>
@@ -97,10 +97,10 @@
             </Panel>
         </Board>
     </section>
-    
+
     <section class="cr">
-        <h2>Emergency Shutdown</h2>
-        
+        <h2>Emergency Shutdown & Ignition</h2>
+
         <Board>
             <Panel>
                 <Display Title="Facility Overview">
@@ -108,10 +108,25 @@
                     <MetricDisplay Index="2" Parameter="Sim.RodInsertion"/>
                 </Display>
 
-                <Scram Button="Sim.ScramButton"/>
+                <AuthButton Button="Sim.ScramButton" Label="Reactor Scram" Tooltip="SHUTOFF - Drop control rods"/>
+
+            </Panel>
+
+            <Panel>
+                <Display Title="Reactor Ignition">
+                    <MetricDisplay Index="1" Parameter="Sim.AuthBravo8"/>
+                    <MetricDisplay Index="2" Parameter="Sim.AuthShutdownPumps"/>
+                </Display>
+
+                <div class="ignition-controls">
+                    <AuthButton Button="Sim.IgnitionButton" Label="Reactor Ignition"
+                                Tooltip="IGNITION - Raise Control Rods"/>
+                        <ToggleSwitch Switch="Sim.IgnitionShutdownPumps"/>
+                        <ToggleSwitch Switch="Sim.IgnitionAuthBravo8"/>
+                </div>
             </Panel>
         </Board>
-        
+
     </section>
 </div>
 
