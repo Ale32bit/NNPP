@@ -65,6 +65,46 @@ public class Simulation : IAsyncDisposable
     public TriggerSwitch IgnitionAuthBravo8 { get; } = new();
     public TriggerSwitch IgnitionShutdownPumps { get; } = new();
 
+    public Metric GridTotalOutput { get; } = new("Total Output", 0, "kW")
+    {
+        DecimalPlaces = 0,
+    };
+    
+    public Metric GridExcessOutput { get; } = new("Excess", 0, "kW")
+    {
+        DecimalPlaces = 0,
+    };
+
+    public Metric PowerOrderDemand { get; } = new("Current Power Order", 0, "kW")
+    {
+        DecimalPlaces = 0,
+    };
+    
+    public Metric PowerOrderMargin { get; } = new("Margin For Error", 0)
+    {
+        DecimalPlaces = 0,
+    };
+
+    public Metric PowerOrderHold { get; } = new("Hold For", 0, "seconds")
+    {
+        ShowUnit = false,
+    };
+    
+    public Metric ShiftOrders { get; } = new("Orders Completed", 0)
+    {
+        DecimalPlaces = 0,
+    };
+    
+    public Metric ShiftTier { get; } = new("Tier", 1)
+    {
+        DecimalPlaces = 0,
+    };
+    
+    public Metric ShiftTimeLeft { get; } = new("Time Until Shift End", 0, "seconds")
+    {
+        DecimalPlaces = 0,
+    };
+
     public bool Stalled { get; set; } = false;
 
     public enum MeltdownStage
@@ -126,6 +166,21 @@ public class Simulation : IAsyncDisposable
             if (key.Key == "m")
             {
                 _forceMeltdown = true;
+            }
+
+            if (key.Key == "n")
+            {
+                Turbine1.Phase = 0;
+                Turbine1.FlowRate.Value = 3.61;
+                Turbine1.Valve.Value = 1;
+                Turbine1.Rpm.Value = 3000;
+                AttemptTurbineSync(Turbine1);
+                
+                Turbine2.Phase = 0;
+                Turbine2.FlowRate.Value = 3.61;
+                Turbine2.Valve.Value = 1;
+                Turbine2.Rpm.Value = 3000;
+                AttemptTurbineSync(Turbine2);
             }
         };
     }
@@ -307,6 +362,9 @@ public class Simulation : IAsyncDisposable
         {
             Turbine2.Phase = (Turbine2.Phase + 6 * (Turbine2.Rpm.Value - Parameters.Turbine.SyncRpm) * dt) % 360;
         }
+        
+        GridTotalOutput.Value = GetTurbineOutput();
+        GridExcessOutput.Value = GetExcessOutput();
 
         if (Running)
         {
@@ -592,6 +650,27 @@ public class Simulation : IAsyncDisposable
         RodControl.Locked = true;
         Audio.PlaySfxLoopAsync(AudioKeys.Sfx.ScramActive);
         Notify(new Notification("Reactor scram", "SCRAM sequence engaged.", true));
+    }
+
+    public double GetTurbineOutput()
+    {
+        var output1 = Math.Max(0, Parameters.TurbineOutput(Turbine1.FlowRate.Value));
+        var output2 = Math.Max(0, Parameters.TurbineOutput(Turbine2.FlowRate.Value));
+        var output = 0d;
+        output += Turbine1.Status.Value == Turbine.TurbineStatus.Synced 
+            ? output1
+            : 0;
+        
+        output += Turbine2.Status.Value == Turbine.TurbineStatus.Synced 
+            ? output2
+            : 0;
+        
+        return output;
+    }
+
+    public double GetExcessOutput()
+    {
+        return GetTurbineOutput();
     }
 
     public void OnKeyPress(KeyPressEventArgs args)

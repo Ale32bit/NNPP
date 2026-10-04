@@ -59,7 +59,7 @@ public static class Parameters
         public const double RpmRate = 100;
         public const double CoolingPerPump = 5;
     }
-    
+
     public static class ReliefValve
     {
         public const double Runtime = 10;
@@ -78,8 +78,8 @@ public static class Parameters
         public const double TauSlow = 52.5;
         public const double TauBroken = 12;
         public const double FlowMin = 1.5;
-        
         public const double SyncRpmTolerance = 50; // made up
+        public const double PowerPerFlow = 5512.6; // minus 3.61 for base flow
 
         // the following vibration values are arbitrary. i need to research more
         public const double VibPerAccel = 2;
@@ -198,10 +198,11 @@ public static class Parameters
     public static double FeedwaterPumpStepRpm(double rpm, double utilization, bool running, double dt)
     {
         double goal = running ? Feedwater.MaxRpm * utilization : 0;
-        return goal > rpm ? Math.Min(goal, rpm + Feedwater.RpmRiseRate * dt)
+        return goal > rpm
+            ? Math.Min(goal, rpm + Feedwater.RpmRiseRate * dt)
             : Math.Max(goal, rpm - Feedwater.RpmFallRate * dt);
     }
-    
+
     public static double SteamPressure(double temp, double level) =>
         Pressure.Atm + (FullPressure(temp) - Pressure.Atm) * level;
 
@@ -252,8 +253,9 @@ public static class Parameters
         Math.Max(VibrationBase(flow), Turbine.VibPerAccel * (Math.Abs(accel) - Turbine.VibAccel0));
 
     public static double StepVibration(double vib, double target, double dt) =>
-        target > vib ? vib + (target - vib) * Math.Min(1, dt / Turbine.VibRiseTau)
+        target > vib
+            ? vib + (target - vib) * Math.Min(1, dt / Turbine.VibRiseTau)
             : target;
 
-
+    public static double TurbineOutput(double flow) => (flow - Turbine.SyncFlow) * Turbine.PowerPerFlow;
 }

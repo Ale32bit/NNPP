@@ -41,3 +41,12 @@ h2 {
     grid-template-columns: 2fr 1fr 1fr;
     gap: 10px;
 }
+
+.overview-section {
+    display: inline-block;
+    height: 100%;
+}
+
+.overview-subsection {
+    margin: 4px
+}

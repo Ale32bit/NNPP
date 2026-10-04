@@ -11,16 +11,39 @@
 <NotificationManager/>
 
 <section class="overview">
-    <OverviewDisplay Parameter="Sim.CoolantValveMetric" Color="#47a1af" Label="Coolant"/>
-    <OverviewDisplay Parameter="Sim.FeedwaterOverview" Color="#7117c0"/>
-    <OverviewDisplay Parameter="Sim.Fuel" Color="#ea0406"/>
-
-    <div>
+    <div class="overview-section">
         <h2>Reactor Overview</h2>
-        <OverviewDisplay Parameter="Sim.ReactorStatus" Color="#ea0406"/>
-        <OverviewDisplay Parameter="Sim.Pressure" Color="#fa8500"/>
-        <OverviewDisplay Parameter="Sim.ReactorTemperature" Color="#2d6f25"/>
-        <OverviewDisplay Parameter="Sim.RodInsertion" Color="#fc1f09"/>
+        <div class="overview-subsection">
+            <OverviewDisplay Parameter="Sim.CoolantValveMetric" Color="#47a1af" Label="Coolant"/>
+            <OverviewDisplay Parameter="Sim.FeedwaterOverview" Color="#7117c0"/>
+            <OverviewDisplay Parameter="Sim.Fuel" Color="#ea0406"/>
+        </div>
+        <div class="overview-subsection">
+            <OverviewDisplay Parameter="Sim.ReactorStatus" Color="#ea0406"/>
+            <OverviewDisplay Parameter="Sim.Pressure" Color="#fa8500"/>
+            <OverviewDisplay Parameter="Sim.ReactorTemperature" Color="#2d6f25"/>
+            <OverviewDisplay Parameter="Sim.RodInsertion" Color="#fc1f09"/>
+        </div>
+    </div>
+
+    @* Grid *@
+    <div class="overview-section">
+        <h2>Facility Grid Overview</h2>
+
+        <div class="overview-subsection">
+            <OverviewDisplay Parameter="Sim.GridTotalOutput" Color="#c5bc89" Label="Total Output"/>
+            <OverviewDisplay Parameter="Sim.GridExcessOutput" Color="#cd3f2a" Label="Excess"/>
+            <OverviewDisplay Parameter="Sim.ShiftOrders" Label="Shift Orders"/>
+            <OverviewDisplay Parameter="Sim.ShiftTier"Label="Shift Tier"/>
+            
+        </div>
+
+        <div class="overview-subsection">
+            <OverviewDisplay Parameter="Sim.PowerOrderDemand" Color="#cd3f2a" Label="Demand"/>
+            <OverviewDisplay Parameter="Sim.PowerOrderHold" Color="#c5bc89" Label="Hold For (s)"/>
+            <OverviewDisplay Parameter="Sim.PowerOrderMargin" Color="#c5bc89" Label="Margin"/>
+            <OverviewDisplay Parameter="Sim.ShiftTimeLeft" Label="Shift Time Left"/>
+        </div>
     </div>
 </section>
 
@@ -121,8 +144,8 @@
                 <div class="ignition-controls">
                     <AuthButton Button="Sim.IgnitionButton" Label="Reactor Ignition"
                                 Tooltip="IGNITION - Raise Control Rods"/>
-                        <ToggleSwitch Switch="Sim.IgnitionShutdownPumps"/>
-                        <ToggleSwitch Switch="Sim.IgnitionAuthBravo8"/>
+                    <ToggleSwitch Switch="Sim.IgnitionShutdownPumps"/>
+                    <ToggleSwitch Switch="Sim.IgnitionAuthBravo8"/>
                 </div>
             </Panel>
         </Board>
