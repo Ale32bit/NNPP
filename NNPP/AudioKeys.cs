@@ -10,7 +10,11 @@ public static class AudioKeys
         public const string ReactorExplosion = "sfx.reactorExplosion";
         public const string AnnouncerMeltdown = "sfx.announcerMeltdown";
         public const string MeltdownAlarm = "sfx.meltdownAlarm";
+        public const string MeltdownExplosion = "sfx.meltdownExplosion";
         public const string ScramActive = "sfx.scramActive";
+        public const string RodControl = "sfx.rodControl";
+        public const string ControlInteract = "sfx.controlInteract";
+        public const string ControlDenied = "sfx.controlDenied";
     }
     
     public static class Music

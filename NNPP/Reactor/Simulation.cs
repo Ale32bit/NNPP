@@ -301,7 +301,6 @@ public class Simulation : IAsyncDisposable
                 if (_meltdownStage < MeltdownStage.Start)
                 {
                     _meltdownStage = MeltdownStage.Start;
-                    // play announcer "warning! core overheating! meltdown....", and alarm too
                     Audio.PlaySfxLoopAsync(AudioKeys.Sfx.MeltdownAlarm);
                     Audio.PlaySfxAsync(AudioKeys.Sfx.AnnouncerMeltdown);
                 }
@@ -317,7 +316,7 @@ public class Simulation : IAsyncDisposable
                 if (_meltdownTime >= 10 && _meltdownStage < MeltdownStage.Explosion1)
                 {
                     _meltdownStage = MeltdownStage.Explosion1;
-                    // play explosion sfx
+                    Audio.PlaySfxAsync(AudioKeys.Sfx.MeltdownExplosion);
                 }
 
                 if (_meltdownTime >= 19 && !ScramButton.Enabled && _meltdownStage < MeltdownStage.MeltdownNotify)
@@ -440,6 +439,7 @@ public class Simulation : IAsyncDisposable
         else
         {
             turbine.SyncSwitch.RawSet(false);
+            Audio.PlaySfxAsync(AudioKeys.Sfx.ControlDenied);
         }
     }
 

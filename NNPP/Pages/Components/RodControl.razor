@@ -1,5 +1,6 @@
 ﻿@using NNPP.Models.Inputs
 @using NNPP.Reactor
+@inject AudioManager Audio
 
 <div class="rods">
     <button class="action" @onclick="StepUp">RAISE (Q)</button>
@@ -16,6 +17,8 @@
 @code {
     [Parameter, EditorRequired] public required RodController Control { get; set; }
     [Parameter, EditorRequired] public required Simulation Simulation { get; set; }
+
+    private DateTime _lastUsage = DateTime.MinValue;
 
     private int Value => (int)Control.Position;
 
@@ -37,30 +40,38 @@
 
     private void StepUp()
     {
-        if (!Control.Locked)
+        if (Control.Locked || _lastUsage.AddSeconds(0.5) > DateTime.Now)
         {
-            Control.Position = Control.Position switch
-            {
-                RodController.ControlPosition.Lowering => RodController.ControlPosition.Neutral,
-                RodController.ControlPosition.Neutral => RodController.ControlPosition.Raising,
-                _ => Control.Position
-            };
-
-            
+            return;
         }
+
+        Control.Position = Control.Position switch
+        {
+            RodController.ControlPosition.Lowering => RodController.ControlPosition.Neutral,
+            RodController.ControlPosition.Neutral => RodController.ControlPosition.Raising,
+            _ => Control.Position
+        };
+
+        Audio.PlaySfxAsync(AudioKeys.Sfx.RodControl);
+        _lastUsage = DateTime.Now;
     }
 
     private void StepDown()
     {
-        if (!Control.Locked)
+        if (Control.Locked || _lastUsage.AddSeconds(0.5) > DateTime.Now)
         {
-            Control.Position = Control.Position switch
-            {
-                RodController.ControlPosition.Raising => RodController.ControlPosition.Neutral,
-                RodController.ControlPosition.Neutral => RodController.ControlPosition.Lowering,
-                _ => Control.Position
-            };
+            return;
         }
+
+        Control.Position = Control.Position switch
+        {
+            RodController.ControlPosition.Raising => RodController.ControlPosition.Neutral,
+            RodController.ControlPosition.Neutral => RodController.ControlPosition.Lowering,
+            _ => Control.Position
+        };
+
+        Audio.PlaySfxAsync(AudioKeys.Sfx.RodControl);
+        _lastUsage = DateTime.Now;
     }
 
 }

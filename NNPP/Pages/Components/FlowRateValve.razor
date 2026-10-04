@@ -1,6 +1,7 @@
 ﻿@using System.Drawing
 @using NNPP.Models.Inputs
 @inject IJSRuntime JS
+@inject AudioManager Audio
 
 <div class="switch">
     <span style="--a:-60deg">––</span>
@@ -41,6 +42,6 @@
         Switch.Position = (RateSwitch.SwitchPosition)value;
 
         _transform = $"rotate({value * 30}deg)";
-
+        Audio.Interact();
     }
 }
