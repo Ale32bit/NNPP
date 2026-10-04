@@ -310,6 +310,8 @@ public class Simulation : IAsyncDisposable
                 {
                     _meltdownStage = MeltdownStage.Overheating;
                     Audio.PlayMusicAsync(AudioKeys.Music.Meltdown, 1, loop: false);
+                    Notify(new("Reactor overheat",
+                        "The Reactor is above safe operating parameters. Lower temperature immediately.", true));
                 }
 
                 if (_meltdownTime >= 10 && _meltdownStage < MeltdownStage.Explosion1)
