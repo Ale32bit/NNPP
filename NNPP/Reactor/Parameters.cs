@@ -76,6 +76,7 @@ public static class Parameters
         public const double TauMedium = 26.5;
         public const double TauSlow = 52.5;
         public const double TauBroken = 12;
+        public const double FlowMin = 1.5;
         
         public const double SyncRpmTolerance = 50; // made up
 

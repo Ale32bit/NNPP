@@ -228,6 +228,10 @@ public class Simulation : IAsyncDisposable
         if (Turbine1.IsSynced())
         {
             Turbine1.Phase = 0;
+            if (Turbine1.FlowRate.Value < Parameters.Turbine.FlowMin)
+            {
+                Turbine1.SyncSwitch.Value = false;
+            }
         }
         else
         {
@@ -237,6 +241,10 @@ public class Simulation : IAsyncDisposable
         if (Turbine2.IsSynced())
         {
             Turbine2.Phase = 0;
+            if (Turbine2.FlowRate.Value < Parameters.Turbine.FlowMin)
+            {
+                Turbine2.SyncSwitch.Value = false;
+            }
         }
         else
         {
