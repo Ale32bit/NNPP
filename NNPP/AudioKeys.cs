@@ -8,6 +8,9 @@ public static class AudioKeys
         public const string NotificationCritical = "sfx.notificationCritical";
         public const string MetalCry = "sfx.metalcry";
         public const string ReactorExplosion = "sfx.reactorExplosion";
+        public const string AnnouncerMeltdown = "sfx.announcerMeltdown";
+        public const string MeltdownAlarm = "sfx.meltdownAlarm";
+        public const string ScramActive = "sfx.scramActive";
     }
     
     public static class Music

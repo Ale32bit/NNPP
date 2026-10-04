@@ -58,15 +58,29 @@ public class Simulation : IAsyncDisposable
 
     public bool Stalled { get; set; } = false;
 
+    public enum MeltdownStage
+    {
+        None,
+        Start,
+        Overheating,
+        Explosion1,
+        MeltdownNotify,
+        ShutdownNotify,
+        EnableScram,
+        TemperatureCheck,
+    }
 
     private bool _reactorOverheat = false;
     private double _extraHeat = 0;
     private bool _meltdown = false;
     private double _meltdownTime = 0;
-    private int _meltdownStage = 0;
+    private MeltdownStage _meltdownStage = MeltdownStage.Start;
     private bool _scramRodWillFail = false;
+
     private bool _scramRodFailed = false;
-    private bool _notgreatnotbad = false;
+
+    // it's anrover :pray:
+    private bool _notgreatnotterrible = false;
     private bool _forceMeltdown = false;
 
     // EVENTS
@@ -155,7 +169,7 @@ public class Simulation : IAsyncDisposable
         // Pressure
 
         Pressure.Value = Parameters.SteamPressure(ReactorTemperature.Value, FeedwaterLevel.Value);
-        if (_notgreatnotbad)
+        if (_notgreatnotterrible)
         {
             Pressure.Value = 0;
         }
@@ -277,27 +291,52 @@ public class Simulation : IAsyncDisposable
             if ((ReactorTemperature.Value >= Parameters.Core.MeltdownTemperature || _forceMeltdown) && !_meltdown)
             {
                 _meltdown = true;
-                _meltdownStage = 0;
-                Audio.PlayMusicAsync(AudioKeys.Music.Meltdown, 0.3, loop: false);
+                _meltdownStage = MeltdownStage.None;
             }
 
             if (_meltdown)
             {
                 _meltdownTime += dt;
 
-                if (_meltdownTime >= 19 && !ScramButton.Enabled && _meltdownStage < 1)
+                if (_meltdownStage < MeltdownStage.Start)
                 {
-                    _meltdownStage = 1;
+                    _meltdownStage = MeltdownStage.Start;
+                    // play announcer "warning! core overheating! meltdown....", and alarm too
+                    Audio.PlaySfxLoopAsync(AudioKeys.Sfx.MeltdownAlarm);
+                    Audio.PlaySfxAsync(AudioKeys.Sfx.AnnouncerMeltdown);
+                }
+
+                if (_meltdownTime >= 3 && _meltdownStage < MeltdownStage.Overheating)
+                {
+                    _meltdownStage = MeltdownStage.Overheating;
+                    Audio.PlayMusicAsync(AudioKeys.Music.Meltdown, 1, loop: false);
+                }
+
+                if (_meltdownTime >= 10 && _meltdownStage < MeltdownStage.Explosion1)
+                {
+                    _meltdownStage = MeltdownStage.Explosion1;
+                    // play explosion sfx
+                }
+
+                if (_meltdownTime >= 19 && !ScramButton.Enabled && _meltdownStage < MeltdownStage.MeltdownNotify)
+                {
+                    _meltdownStage = MeltdownStage.MeltdownNotify;
                     _extraHeat = Parameters.Core.MeltdownExtraHeat;
+                    Audio.StopSfxAsync(AudioKeys.Sfx.MeltdownAlarm);
                     Notify(new("Reactor meltdown", "All Non-Reactor Operations staff are to evacuate.", true));
                 }
 
-                if (_meltdownTime >= 45 && !ScramButton.Available && _meltdownStage < 2)
+                if (_meltdownTime >= 29 && _meltdownStage < MeltdownStage.ShutdownNotify)
                 {
-                    _meltdownStage = 2;
-                    ScramButton.Available = true;
+                    _meltdownStage = MeltdownStage.ShutdownNotify;
                     Notify(new("Reactor shutdown",
                         "An official emergency has been declared. Emergency options are now available.", true));
+                }
+
+                if (_meltdownTime >= 44 && !ScramButton.Available && _meltdownStage < MeltdownStage.EnableScram)
+                {
+                    _meltdownStage = MeltdownStage.EnableScram;
+                    ScramButton.Available = true;
                 }
 
                 if (ScramButton.Enabled && RodInsertion.Value < 1)
@@ -324,29 +363,28 @@ public class Simulation : IAsyncDisposable
                     }
                 }
 
-                if (_meltdownTime >= 235 && _meltdownStage < 3)
+                if (_meltdownTime >= 234 && _meltdownStage < MeltdownStage.TemperatureCheck)
                 {
-                    _meltdownStage = 3;
+                    _meltdownStage = MeltdownStage.TemperatureCheck;
 
                     if (ReactorTemperature.Value < 900)
                     {
                         Notify(new("Reactor shutdown",
                             "Temperature has returned to safe operating parameters. Full shutdown in progress.", true));
-                        Audio.PlayMusicAsync(AudioKeys.Music.Shutdown, 0.3, loop: false);
+                        Audio.PlayMusicAsync(AudioKeys.Music.Shutdown, 1, loop: false);
                     }
                     else
                     {
                         Task.Run(async () =>
                         {
                             await Audio.PlaySfxAsync(AudioKeys.Sfx.MetalCry);
-                            await Task.Delay(3000);
+                            await Audio.PlayMusicAsync(AudioKeys.Music.Evacuate, 1, loop: false);
+                            await Task.Delay(6000);
                             await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion);
-                            await Task.Delay(1000);
                             Notify(new("Reactor meltdown",
                                 "Reactor continues to be in a critical state. Full Evacuation in progress.", true));
                             _extraHeat = 57;
-                            _notgreatnotbad = true;
-                            await Audio.PlayMusicAsync(AudioKeys.Music.Evacuate, 0.3, loop: false);
+                            _notgreatnotterrible = true;
                         });
                     }
                 }
@@ -412,6 +450,7 @@ public class Simulation : IAsyncDisposable
     {
         _extraHeat = 0;
         RodControl.Locked = true;
+        Audio.PlaySfxLoopAsync(AudioKeys.Sfx.ScramActive);
         Notify(new Notification("Reactor scram", "SCRAM sequence engaged.", true));
     }
 

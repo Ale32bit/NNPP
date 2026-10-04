@@ -16,6 +16,10 @@ builder.Services.AddSingleton(sp => new AudioManager(sp.GetRequiredService<IJSRu
     .Register(AudioKeys.Sfx.NotificationCritical, "audio/notificationcritical.ogg")
     .Register(AudioKeys.Sfx.MetalCry, "audio/metalcry.ogg")
     .Register(AudioKeys.Sfx.ReactorExplosion, "audio/reactorexplosion.ogg")
+    .Register(AudioKeys.Sfx.AnnouncerMeltdown, "audio/announcermeltdown.ogg")
+    .Register(AudioKeys.Sfx.MeltdownAlarm, "audio/meltdownalarm.ogg")
+    .Register(AudioKeys.Sfx.ScramActive, "audio/scramactive.ogg")
+    
     .Register(AudioKeys.Music.Overheat, "audio/overheat.ogg")
     .Register(AudioKeys.Music.Meltdown, "audio/meltdown.ogg")
     .Register(AudioKeys.Music.Evacuate, "audio/evacuate.ogg")
