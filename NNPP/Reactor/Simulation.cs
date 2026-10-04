@@ -14,6 +14,8 @@ public class Simulation : IAsyncDisposable
     public bool Running { get; set; } = true;
     public bool Igniting { get; set; } = false;
 
+    public MetricEnum<ReactorStatus> ReactorStatus { get; } = new("Reactor Status", Models.ReactorStatus.Stalled);
+
     public Metric ReactorTemperature { get; } = new("Reactor Temp", Parameters.Core.StallTemp, "K");
     public Metric Pressure { get; } = new("Pressure", Parameters.Pressure.Atm, "kPa");
     public MetricPercentage Fuel { get; } = new("Fuel", 1);
@@ -131,6 +133,35 @@ public class Simulation : IAsyncDisposable
         {
             OnFirstTick();
             _firstTick = false;
+        }
+
+        if (_meltdown)
+        {
+            if (_notgreatnotterrible)
+            {
+                ReactorStatus.Value = Models.ReactorStatus.Error;
+            }
+            else
+            {
+                if (ReactorTemperature.Value <= 323)
+                {
+                    ReactorStatus.Value = Models.ReactorStatus.Offline;
+                }
+                else
+                {
+                    ReactorStatus.Value = Models.ReactorStatus.Critical;
+                }
+            }
+        }
+        else
+        {
+            ReactorStatus.Value = ReactorTemperature.Value switch
+            {
+                <= 323 => Models.ReactorStatus.Stalled,
+                > 323 and < 2400 => Models.ReactorStatus.Running,
+                >= 2400 => Models.ReactorStatus.Overheat,
+                _ => Models.ReactorStatus.Error,
+            };
         }
 
         // coolant
@@ -458,7 +489,11 @@ public class Simulation : IAsyncDisposable
 
     public void OnScramEngage()
     {
-        _extraHeat = 0;
+        if (!_notgreatnotterrible)
+        {
+            _extraHeat = 0;
+        }
+
         RodControl.Locked = true;
         Audio.PlaySfxLoopAsync(AudioKeys.Sfx.ScramActive);
         Notify(new Notification("Reactor scram", "SCRAM sequence engaged.", true));
