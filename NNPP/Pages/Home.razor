@@ -8,6 +8,8 @@
 
 <KeyListener Simulation="Sim"/>
 
+<NotificationManager />
+
 <section class="overview">
     <OverviewDisplay Parameter="Sim.CoolantValveMetric" Color="#47a1af" Label="Coolant"/>
     <OverviewDisplay Parameter="Sim.FeedwaterOverview" Color="#7117c0"/>
@@ -21,132 +23,152 @@
     </div>
 </section>
 
-<section class="cr">
-    <h2>Reactor Primary</h2>
+<div>
+    <section class="cr">
+        <h2>Reactor Primary</h2>
 
-    <Board>
-        <Panel>
-            <Display Title="Feedwater Pump 2" Grid="Display.GridType.TwoThenOne">
-                <MetricDisplay Index="1" Parameter="Sim.FeedwaterPump2.Utilization"></MetricDisplay>
-                <MetricDisplay Index="2" Parameter="Sim.FeedwaterPump2.Rpm"></MetricDisplay>
-                <MetricDisplay Index="3" Parameter="Sim.FeedwaterPump2.Flow"></MetricDisplay>
-            </Display>
+        <Board>
+            <Panel>
+                <Display Title="Feedwater Pump 2" Grid="Display.GridType.TwoThenOne">
+                    <MetricDisplay Index="1" Parameter="Sim.FeedwaterPump2.Utilization"></MetricDisplay>
+                    <MetricDisplay Index="2" Parameter="Sim.FeedwaterPump2.Rpm"></MetricDisplay>
+                    <MetricDisplay Index="3" Parameter="Sim.FeedwaterPump2.Flow"></MetricDisplay>
+                </Display>
 
-            <FlowRateValve Switch="Sim.FeedwaterPump2.Switch"/>
-        </Panel>
+                <FlowRateValve Switch="Sim.FeedwaterPump2.Switch"/>
+            </Panel>
 
-        <Panel>
-            <Display Title="Feedwater Pump 1" Grid="Display.GridType.TwoThenOne">
-                <MetricDisplay Index="1" Parameter="Sim.FeedwaterPump1.Utilization"></MetricDisplay>
-                <MetricDisplay Index="2" Parameter="Sim.FeedwaterPump1.Rpm"></MetricDisplay>
-                <MetricDisplay Index="3" Parameter="Sim.FeedwaterPump1.Flow"></MetricDisplay>
-            </Display>
+            <Panel>
+                <Display Title="Feedwater Pump 1" Grid="Display.GridType.TwoThenOne">
+                    <MetricDisplay Index="1" Parameter="Sim.FeedwaterPump1.Utilization"></MetricDisplay>
+                    <MetricDisplay Index="2" Parameter="Sim.FeedwaterPump1.Rpm"></MetricDisplay>
+                    <MetricDisplay Index="3" Parameter="Sim.FeedwaterPump1.Flow"></MetricDisplay>
+                </Display>
 
-            <FlowRateValve Switch="Sim.FeedwaterPump1.Switch"/>
-        </Panel>
+                <FlowRateValve Switch="Sim.FeedwaterPump1.Switch"/>
+            </Panel>
 
-        <Panel>
-            <Display Title="Feedwater Overview">
-                <MetricDisplay Index="1" Parameter="Sim.FeedwaterLevel"></MetricDisplay>
-                <MetricDisplay Index="2" Parameter="Sim.TotalFeedwaterFlow"></MetricDisplay>
-            </Display>
+            <Panel>
+                <Display Title="Feedwater Overview">
+                    <MetricDisplay Index="1" Parameter="Sim.FeedwaterLevel"></MetricDisplay>
+                    <MetricDisplay Index="2" Parameter="Sim.TotalFeedwaterFlow"></MetricDisplay>
+                </Display>
 
-            <ToggleSwitch Switch="Sim.FeedwaterValve"/>
-        </Panel>
-    </Board>
+                <ToggleSwitch Switch="Sim.FeedwaterValve"/>
+            </Panel>
+        </Board>
 
-    <Board>
-        <Panel>
-            <Display Title="Facility Overview">
-                <MetricDisplay Index="1" Parameter="Sim.ReactorTemperature"/>
-                <MetricDisplay Index="2" Parameter="Sim.RodInsertion"/>
-            </Display>
+        <Board>
+            <Panel>
+                <Display Title="Facility Overview">
+                    <MetricDisplay Index="1" Parameter="Sim.ReactorTemperature"/>
+                    <MetricDisplay Index="2" Parameter="Sim.RodInsertion"/>
+                </Display>
 
-            <RodControl Control="Sim.RodControl" Simulation="Sim"/>
-        </Panel>
-    </Board>
+                <RodControl Control="Sim.RodControl" Simulation="Sim"/>
+            </Panel>
+        </Board>
 
-    <Board>
-        <Panel>
-            <Display Title="Coolant Overview">
-                <MetricDisplay Index="1" Parameter="Sim.CoolantPumpsStatus"/>
-                <MetricDisplay Index="2" Parameter="Sim.CoolantValveMetric"/>
-            </Display>
+        <Board>
+            <Panel>
+                <Display Title="Coolant Overview">
+                    <MetricDisplay Index="1" Parameter="Sim.CoolantPumpsStatus"/>
+                    <MetricDisplay Index="2" Parameter="Sim.CoolantValveMetric"/>
+                </Display>
 
-            <ToggleSwitch Switch="Sim.CoolantValve"/>
-        </Panel>
-    </Board>
+                <ToggleSwitch Switch="Sim.CoolantValve"/>
+            </Panel>
+        </Board>
 
-    <Board>
-        <Panel>
-            <Display Title="Relief Valve Overview">
-                <MetricDisplay Index="1" Parameter="Sim.ReactorTemperature"/>
-                <MetricDisplay Index="2" Parameter="Sim.ReliefValveStatus"/>
-            </Display>
+        <Board>
+            <Panel>
+                <Display Title="Relief Valve Overview">
+                    <MetricDisplay Index="1" Parameter="Sim.ReactorTemperature"/>
+                    <MetricDisplay Index="2" Parameter="Sim.ReliefValveStatus"/>
+                </Display>
 
-            <div class="relief-valves">
-                <ReliefValve Valve="Sim.ReliefValves[0]"/>
-                <ReliefValve Valve="Sim.ReliefValves[1]"/>
-                <ReliefValve Valve="Sim.ReliefValves[2]"/>
-                <ReliefValve Valve="Sim.ReliefValves[3]"/>
-            </div>
-        </Panel>
-    </Board>
-</section>
-
-<section class="cr">
-    <h2>Grid</h2>
+                <div class="relief-valves">
+                    <ReliefValve Valve="Sim.ReliefValves[0]"/>
+                    <ReliefValve Valve="Sim.ReliefValves[1]"/>
+                    <ReliefValve Valve="Sim.ReliefValves[2]"/>
+                    <ReliefValve Valve="Sim.ReliefValves[3]"/>
+                </div>
+            </Panel>
+        </Board>
+    </section>
     
-    <Board>
-        <Panel>
-            <Display Title="Steam Turbine 2">
-                <MetricDisplay Index="1" Parameter="Sim.Turbine2.Valve"/>
-                <MetricDisplay Index="2" Parameter="Sim.Turbine2.FlowRate"/>
-            </Display>
+    <section class="cr">
+        <h2>Emergency Shutdown</h2>
+        
+        <Board>
+            <Panel>
+                <Display Title="Facility Overview">
+                    <MetricDisplay Index="1" Parameter="Sim.ReactorTemperature"/>
+                    <MetricDisplay Index="2" Parameter="Sim.RodInsertion"/>
+                </Display>
 
-            <div class="turbine-controls">
-                <FlowRateValve Switch="Sim.Turbine2.RateSwitch"/>
-                <AccelerationValve Switch="Sim.Turbine2.AccelerationSwitch"/>
-                <ToggleSwitch Switch="Sim.Turbine2.SyncSwitch"/>
-            </div>
-        </Panel>
+                <Scram Button="Sim.ScramButton"/>
+            </Panel>
+        </Board>
+        
+    </section>
+</div>
 
-        <Panel>
-            <Display Title="Steam Turbine 2" Grid="Display.GridType.OneThenTwo">
-                <MetricDisplay Index="1" Parameter="Sim.Turbine2.Status"/>
-                <MetricDisplay Index="2" Parameter="Sim.Turbine2.Rpm" ShowLabelUnit="false"/>
-                <MetricDisplay Index="3" Parameter="Sim.Turbine2.Vibration" ShowLabelUnit="false"/>
-            </Display>
+<div>
+    <section class="cr">
+        <h2>Grid</h2>
 
-            <Synchroscope Turbine="Sim.Turbine2"></Synchroscope>
-        </Panel>
-    </Board>
-    
-    <Board>
-        <Panel>
-            <Display Title="Steam Turbine 1">
-                <MetricDisplay Index="1" Parameter="Sim.Turbine1.Valve"/>
-                <MetricDisplay Index="2" Parameter="Sim.Turbine1.FlowRate"/>
-            </Display>
-            
-            <div class="turbine-controls">
-                <FlowRateValve Switch="Sim.Turbine1.RateSwitch"/>
-                <AccelerationValve Switch="Sim.Turbine1.AccelerationSwitch"/>
-                <ToggleSwitch Switch="Sim.Turbine1.SyncSwitch"/>
-            </div>
-        </Panel>
+        <Board>
+            <Panel>
+                <Display Title="Steam Turbine 2">
+                    <MetricDisplay Index="1" Parameter="Sim.Turbine2.Valve"/>
+                    <MetricDisplay Index="2" Parameter="Sim.Turbine2.FlowRate"/>
+                </Display>
 
-        <Panel>
-            <Display Title="Steam Turbine 1" Grid="Display.GridType.OneThenTwo">
-                <MetricDisplay Index="1" Parameter="Sim.Turbine1.Status"/>
-                <MetricDisplay Index="2" Parameter="Sim.Turbine1.Rpm" ShowLabelUnit="false"/>
-                <MetricDisplay Index="3" Parameter="Sim.Turbine1.Vibration" ShowLabelUnit="false"/>
-            </Display>
+                <div class="turbine-controls">
+                    <FlowRateValve Switch="Sim.Turbine2.RateSwitch"/>
+                    <AccelerationValve Switch="Sim.Turbine2.AccelerationSwitch"/>
+                    <ToggleSwitch Switch="Sim.Turbine2.SyncSwitch"/>
+                </div>
+            </Panel>
 
-            <Synchroscope Turbine="Sim.Turbine1"></Synchroscope>
-        </Panel>
-    </Board>
-</section>
+            <Panel>
+                <Display Title="Steam Turbine 2" Grid="Display.GridType.OneThenTwo">
+                    <MetricDisplay Index="1" Parameter="Sim.Turbine2.Status"/>
+                    <MetricDisplay Index="2" Parameter="Sim.Turbine2.Rpm" ShowLabelUnit="false"/>
+                    <MetricDisplay Index="3" Parameter="Sim.Turbine2.Vibration" ShowLabelUnit="false"/>
+                </Display>
+
+                <Synchroscope Turbine="Sim.Turbine2"></Synchroscope>
+            </Panel>
+        </Board>
+
+        <Board>
+            <Panel>
+                <Display Title="Steam Turbine 1">
+                    <MetricDisplay Index="1" Parameter="Sim.Turbine1.Valve"/>
+                    <MetricDisplay Index="2" Parameter="Sim.Turbine1.FlowRate"/>
+                </Display>
+
+                <div class="turbine-controls">
+                    <FlowRateValve Switch="Sim.Turbine1.RateSwitch"/>
+                    <AccelerationValve Switch="Sim.Turbine1.AccelerationSwitch"/>
+                    <ToggleSwitch Switch="Sim.Turbine1.SyncSwitch"/>
+                </div>
+            </Panel>
+
+            <Panel>
+                <Display Title="Steam Turbine 1" Grid="Display.GridType.OneThenTwo">
+                    <MetricDisplay Index="1" Parameter="Sim.Turbine1.Status"/>
+                    <MetricDisplay Index="2" Parameter="Sim.Turbine1.Rpm" ShowLabelUnit="false"/>
+                    <MetricDisplay Index="3" Parameter="Sim.Turbine1.Vibration" ShowLabelUnit="false"/>
+                </Display>
+
+                <Synchroscope Turbine="Sim.Turbine1"></Synchroscope>
+            </Panel>
+        </Board>
+    </section>
+</div>
 
 @code {
     protected override void OnInitialized() => Sim.Ticked += OnTick;

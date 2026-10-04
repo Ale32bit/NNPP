@@ -1,0 +1,85 @@
+﻿@using NNPP.Models
+@using NNPP.Reactor
+@implements IDisposable
+@inject Simulation Sim
+@inject AudioManager Audio
+
+<div class="notifications">
+    @foreach (var entry in _notifications)
+    {
+        <div class="notification" @key="entry">
+            <div class="data">
+                <h3>@entry.Data.Title</h3>
+                <p>@entry.Data.Message</p>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+
+    private sealed class Entry(Notification notification)
+    {
+        public Notification Data { get; set; } = notification;
+    }
+
+    private List<Entry> _notifications = [];
+    private readonly CancellationTokenSource _cts = new();
+
+    protected override void OnInitialized()
+    {
+        Sim.OnNotification += OnNotification;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Audio.PreloadAsync(AudioKeys.Sfx.Notification, AudioKeys.Sfx.NotificationCritical);
+        }
+    }
+
+    private void OnNotification(object? sender, Notification e)
+    {
+        InvokeAsync(() => Add(e));
+    }
+
+    private async Task Add(Notification notification)
+    {
+        var entry = new Entry(notification);
+        _notifications.Add(entry);
+        StateHasChanged();
+
+        if (!notification.Silent)
+        {
+            if (notification.Critical)
+            {
+                await Audio.PlaySfxAsync(AudioKeys.Sfx.NotificationCritical);
+            }
+            else
+            {
+                await Audio.PlaySfxAsync(AudioKeys.Sfx.Notification);
+            }
+        }
+
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(10), _cts.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        _notifications.Remove(entry);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        Sim.OnNotification -= OnNotification;
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+
+}

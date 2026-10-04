@@ -1,12 +1,15 @@
 ﻿using NNPP.Models;
 using NNPP.Models.Inputs;
 using NNPP.Models.Metrics;
+using NNPP.Pages.Components;
 using NNPP.Reactor.Components;
 
 namespace NNPP.Reactor;
 
 public class Simulation : IAsyncDisposable
 {
+    private AudioManager Audio { get; set; }
+
     // COMPONENTS and VARIABLES
     public bool Running { get; set; } = true;
     public bool Igniting { get; set; } = false;
@@ -50,30 +53,51 @@ public class Simulation : IAsyncDisposable
     public Turbine Turbine1 { get; } = new();
     public Turbine Turbine2 { get; } = new();
 
-    public bool Scramming { get; set; } = false;
+
+    public ScramButton ScramButton { get; } = new();
 
     public bool Stalled { get; set; } = false;
 
 
-    private double _extraHeat = 0; // meltdown. todo
-
+    private bool _reactorOverheat = false;
+    private double _extraHeat = 0;
+    private bool _meltdown = false;
+    private double _meltdownTime = 0;
+    private int _meltdownStage = 0;
+    private bool _scramRodWillFail = false;
+    private bool _scramRodFailed = false;
+    private bool _notgreatnotbad = false;
+    private bool _forceMeltdown = false;
 
     // EVENTS
     public event EventHandler<KeyPressEventArgs>? KeyPress;
     public event EventHandler<double>? OnUpdate;
+    public event EventHandler<Notification>? OnNotification;
 
     public event Action? Ticked;
     private readonly GameLoop _loop;
     private bool _started;
+    private bool _firstTick = true;
 
-    public Simulation()
+    public Simulation(AudioManager audioManager)
     {
+        Audio = audioManager;
         _loop = new GameLoop(20, Update, () => Ticked?.Invoke());
 
         CoolantValveMetric = new(CoolantValve, "Coolant Valves", "OPEN", "CLOSED");
 
         Turbine1.SyncSwitch.Triggered += (sender, value) => AttemptTurbineSync(Turbine1);
         Turbine2.SyncSwitch.Triggered += (sender, value) => AttemptTurbineSync(Turbine2);
+
+        ScramButton.Engaged += OnScramEngage;
+
+        KeyPress += (_, key) =>
+        {
+            if (key.Key == "m")
+            {
+                _forceMeltdown = true;
+            }
+        };
     }
 
     public void Start()
@@ -89,6 +113,12 @@ public class Simulation : IAsyncDisposable
 
     public void Update(double dt)
     {
+        if (_firstTick)
+        {
+            OnFirstTick();
+            _firstTick = false;
+        }
+
         // coolant
         CoolantPumpAlpha.Rpm.Value =
             Parameters.StepCoolantRpm(CoolantPumpAlpha.Rpm.Value, CoolantPumpAlpha.Running, dt);
@@ -125,6 +155,10 @@ public class Simulation : IAsyncDisposable
         // Pressure
 
         Pressure.Value = Parameters.SteamPressure(ReactorTemperature.Value, FeedwaterLevel.Value);
+        if (_notgreatnotbad)
+        {
+            Pressure.Value = 0;
+        }
 
         // Fuel
 
@@ -197,15 +231,15 @@ public class Simulation : IAsyncDisposable
 
         if (Running)
         {
-            Stalled = RodInsertion.Value >= 1 && ReactorTemperature.Value <= Parameters.Core.StallTemp;
+            Stalled = (RodInsertion.Value >= 1 && ReactorTemperature.Value <= Parameters.Core.StallTemp) && !_meltdown;
             if (!Stalled)
             {
                 // heat rate
                 ReactorTemperature.Value += Parameters.TemperatureRate(Fuel.Value, RodInsertion.Value, _extraHeat,
-                    FeedwaterLevel.Value, GetCoolantRate(), GetRunningReliefValves(), Scramming) * dt;
+                    FeedwaterLevel.Value, GetCoolantRate(), GetRunningReliefValves(), ScramButton.Enabled) * dt;
             }
 
-            if (RodControl.Position != RodController.ControlPosition.Neutral)
+            if (RodControl.Position != RodController.ControlPosition.Neutral && !_scramRodFailed)
             {
                 var sign = (int)RodControl.Position;
                 var delta = Parameters.Core.RodSpeed * dt * sign;
@@ -221,6 +255,102 @@ public class Simulation : IAsyncDisposable
                     RodInsertion.Value = 0;
                 }
             }
+
+            if (ReactorTemperature.Value >= 2400 && !_reactorOverheat && !_meltdown)
+            {
+                Audio.PlayMusicAsync(AudioKeys.Music.Overheat, 0.25);
+                _reactorOverheat = true;
+                Notify(new("Reactor overheat",
+                    "The Reactor is above safe operating parameters. Lower temperature immediately.", true));
+            }
+
+            if (ReactorTemperature.Value < 2000 && _reactorOverheat)
+            {
+                if (!_meltdown)
+                {
+                    Audio.StopMusicAsync();
+                }
+
+                _reactorOverheat = false;
+            }
+
+            if ((ReactorTemperature.Value >= Parameters.Core.MeltdownTemperature || _forceMeltdown) && !_meltdown)
+            {
+                _meltdown = true;
+                _meltdownStage = 0;
+                Audio.PlayMusicAsync(AudioKeys.Music.Meltdown, 0.3, loop: false);
+            }
+
+            if (_meltdown)
+            {
+                _meltdownTime += dt;
+
+                if (_meltdownTime >= 19 && !ScramButton.Enabled && _meltdownStage < 1)
+                {
+                    _meltdownStage = 1;
+                    _extraHeat = Parameters.Core.MeltdownExtraHeat;
+                    Notify(new("Reactor meltdown", "All Non-Reactor Operations staff are to evacuate.", true));
+                }
+
+                if (_meltdownTime >= 45 && !ScramButton.Available && _meltdownStage < 2)
+                {
+                    _meltdownStage = 2;
+                    ScramButton.Available = true;
+                    Notify(new("Reactor shutdown",
+                        "An official emergency has been declared. Emergency options are now available.", true));
+                }
+
+                if (ScramButton.Enabled && RodInsertion.Value < 1)
+                {
+                    if (RodInsertion.Value < 0.8)
+                    {
+                        _scramRodWillFail = true;
+                    }
+
+                    if (!_scramRodFailed)
+                    {
+                        RodInsertion.Value += Parameters.Core.RodSpeedScram * dt;
+                    }
+
+
+                    if (_scramRodWillFail && RodInsertion.Value >= 0.8)
+                    {
+                        _scramRodFailed = true;
+                        RodInsertion.Value = 0;
+                        RodInsertion.ValueOverride = "ERR";
+                        _extraHeat = 57;
+                        Notify(new("Reactor SCRAM", "Control rods have sustained damage. SCRAM sequence has failed.",
+                            true));
+                    }
+                }
+
+                if (_meltdownTime >= 235 && _meltdownStage < 3)
+                {
+                    _meltdownStage = 3;
+
+                    if (ReactorTemperature.Value < 900)
+                    {
+                        Notify(new("Reactor shutdown",
+                            "Temperature has returned to safe operating parameters. Full shutdown in progress.", true));
+                        Audio.PlayMusicAsync(AudioKeys.Music.Shutdown, 0.3, loop: false);
+                    }
+                    else
+                    {
+                        Task.Run(async () =>
+                        {
+                            await Audio.PlaySfxAsync(AudioKeys.Sfx.MetalCry);
+                            await Task.Delay(3000);
+                            await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion);
+                            await Task.Delay(1000);
+                            Notify(new("Reactor meltdown",
+                                "Reactor continues to be in a critical state. Full Evacuation in progress.", true));
+                            _extraHeat = 57;
+                            _notgreatnotbad = true;
+                            await Audio.PlayMusicAsync(AudioKeys.Music.Evacuate, 0.3, loop: false);
+                        });
+                    }
+                }
+            }
         }
         else
         {
@@ -233,6 +363,16 @@ public class Simulation : IAsyncDisposable
         }
 
         OnUpdate?.Invoke(this, dt);
+    }
+
+    private void OnFirstTick()
+    {
+        Audio.PreloadAsync(AudioKeys.Sfx.MetalCry, AudioKeys.Sfx.ReactorExplosion);
+        Audio.PreloadAsync(AudioKeys.Music.Overheat, AudioKeys.Music.Shutdown, AudioKeys.Music.Evacuate,
+            AudioKeys.Music.Meltdown);
+
+        Notify(new Notification("Welcome to NNPPRS", "Please report any bug!", Silent: true));
+        Notify(new Notification("Reactor ignition", "Reactor online. Code Bravo-8 is now in effect."));
     }
 
     public double GetCoolantRate()
@@ -263,9 +403,26 @@ public class Simulation : IAsyncDisposable
         }
     }
 
+    public void Notify(Notification notification)
+    {
+        OnNotification?.Invoke(this, notification);
+    }
+
+    public void OnScramEngage()
+    {
+        _extraHeat = 0;
+        RodControl.Locked = true;
+        Notify(new Notification("Reactor scram", "SCRAM sequence engaged.", true));
+    }
+
     public void OnKeyPress(KeyPressEventArgs args)
     {
         KeyPress?.Invoke(this, args);
+    }
+
+    public void TriggerMeltdown()
+    {
+        _forceMeltdown = true;
     }
 
 

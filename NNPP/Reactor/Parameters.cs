@@ -20,6 +20,9 @@ public static class Parameters
         public const double RvCoolingRate = 7;
         public const double FuelBurnRate = 0.000474;
         public const double RodSpeed = 0.02;
+        public const double MeltdownTemperature = 3120;
+        public const double MeltdownExtraHeat = 17.9;
+        public const double RodSpeedScram = 0.08;
     }
 
     public static class Feedwater

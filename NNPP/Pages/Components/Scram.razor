@@ -1,0 +1,29 @@
+﻿@using NNPP.Models.Inputs
+
+<div title="SHUTOFF - Drop control rods" class="scram">
+    <div class="scram-button">
+        <div role="button" class="button" @onclick="() => Button.Enable()"></div>
+    </div>
+    <div class="status" style="--status-color: @GetStatusColor()"></div>
+    <div class="label"><span>Reactor Scram</span></div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required ScramButton Button { get; set; }
+
+    public string GetStatusColor()
+    {
+        if (Button.Enabled)
+        {
+            return "#00FF00";
+        }
+
+        if (Button.Available)
+        {
+            return "#FF0000";
+        }
+
+        return "#000000";
+    }
+
+}
