@@ -1,5 +1,24 @@
 @import url('https://cdn.jsdelivr.net/npm/@fontsource-variable/noto-sans@5.3.0/index.css');
 
+html {
+    min-height: 100%;
+    background: radial-gradient(at 15% 10%, #5e5e5e 0%, transparent 55%),
+    radial-gradient(at 85% 90%, #606060 0%, transparent 55%),
+    #737373 fixed;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.15;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    filter: sepia(1) saturate(1.5);
+}
+
 html, body {
     font-family: 'Noto Sans Variable', sans-serif;
     font-weight: 400;
@@ -96,9 +115,21 @@ footer {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    width: 99vw; /* dont ask */
+    color: white;
+    background-color: #1f1f17;
+    padding: 5px;
+    margin-top: 5px;
+    
+    border: 5px solid #bab183;
+    border-radius: 6px;
+    
+}
+
+footer a {
+    color: lightblue;
 }
 
 footer p {
+    margin: 0;
     display: inline-block;
 }
