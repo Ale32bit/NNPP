@@ -91,7 +91,7 @@
                 </div>
 
                 <div class="bottom">
-                    <ToggleSwitch Switch="Sim.FeedwaterValve"/>
+                    <ToggleSwitch Switch="Sim.FeedwaterValve" Label="FEEDWATER"/>
                 </div>
             </div>
         </div>
@@ -121,7 +121,7 @@
                 </div>
 
                 <div class="bottom">
-                    <ToggleSwitch Switch="Sim.CoolantValve"/>
+                    <ToggleSwitch Switch="Sim.CoolantValve" Label="COOLANT"/>
                 </div>
             </div>
         </div>
@@ -152,7 +152,7 @@
     <div class="label">
         <h3>Emergency Shutdown & Ignition</h3>
     </div>
-    
+
     <div class="sections">
         <div class="section">
             <div class="station">
@@ -162,13 +162,13 @@
                         <MetricDisplay Index="2" Parameter="Sim.RodInsertion"/>
                     </Display>
                 </div>
-                
+
                 <div class="bottom">
                     <AuthButton Button="Sim.ScramButton" Label="Reactor Scram" Tooltip="SHUTOFF - Drop control rods"/>
                 </div>
             </div>
         </div>
-        
+
         <div class="section">
             <div class="station">
                 <div class="top">
@@ -177,14 +177,13 @@
                         <MetricDisplay Index="2" Parameter="Sim.AuthShutdownPumps"/>
                     </Display>
                 </div>
-                
+
                 <div class="bottom">
-                    <div class="ignition-controls">
-                        <AuthButton Button="Sim.IgnitionButton" Label="Reactor Ignition"
-                                    Tooltip="IGNITION - Raise Control Rods"/>
-                        <ToggleSwitch Switch="Sim.IgnitionShutdownPumps"/>
-                        <ToggleSwitch Switch="Sim.IgnitionAuthBravo8"/>
-                    </div>
+                    @* <div class="ignition-controls"> *@
+                    <AuthButton Button="Sim.IgnitionButton" Label="Reactor Ignition"
+                                Tooltip="IGNITION - Raise Control Rods"/>
+                    <ToggleSwitch Switch="Sim.IgnitionShutdownPumps" Label="SHUTDOWN PUMPS"/>
+                    @* </div> *@
                 </div>
             </div>
         </div>
@@ -196,7 +195,7 @@
     <div class="label">
         <h3>Facility Grid</h3>
     </div>
-    
+
     <div class="sections">
         <div class="section">
             <div class="station">
@@ -206,12 +205,14 @@
                         <MetricDisplay Index="2" Parameter="Sim.Turbine2.FlowRate"/>
                     </Display>
                 </div>
-                
+
                 <div class="bottom">
                     <div class="turbine-controls">
                         <FlowRateValve Switch="Sim.Turbine2.RateSwitch"/>
                         <AccelerationValve Switch="Sim.Turbine2.AccelerationSwitch"/>
-                        <ToggleSwitch Switch="Sim.Turbine2.SyncSwitch"/>
+                        <div class="sync-switch">
+                            <ToggleSwitch Switch="Sim.Turbine2.SyncSwitch" Label="SYNC"/>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -224,13 +225,13 @@
                         <MetricDisplay Index="3" Parameter="Sim.Turbine2.Vibration" ShowLabelUnit="false"/>
                     </Display>
                 </div>
-                
+
                 <div class="bottom">
                     <Synchroscope Turbine="Sim.Turbine2"></Synchroscope>
                 </div>
             </div>
         </div>
-        
+
         <div class="section">
             <div class="station">
                 <div class="top">
@@ -239,12 +240,14 @@
                         <MetricDisplay Index="2" Parameter="Sim.Turbine1.FlowRate"/>
                     </Display>
                 </div>
-                
+
                 <div class="bottom">
                     <div class="turbine-controls">
                         <FlowRateValve Switch="Sim.Turbine1.RateSwitch"/>
                         <AccelerationValve Switch="Sim.Turbine1.AccelerationSwitch"/>
-                        <ToggleSwitch Switch="Sim.Turbine1.SyncSwitch"/>
+                        <div class="sync-switch">
+                            <ToggleSwitch Switch="Sim.Turbine1.SyncSwitch" Label="SYNC"/>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -257,9 +260,49 @@
                         <MetricDisplay Index="3" Parameter="Sim.Turbine1.Vibration" ShowLabelUnit="false"/>
                     </Display>
                 </div>
-                
+
                 <div class="bottom">
                     <Synchroscope Turbine="Sim.Turbine1"></Synchroscope>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="board">
+    <div class="label">
+        <h3>Shift Manager</h3>
+    </div>
+
+    <div class="sections">
+        <div class="section">
+            <div class="station">
+                <div class="top">
+                    <Display Title="Shift">
+                        <MetricDisplay Index="1" Parameter="Sim.ShiftTier"/>
+                        <MetricDisplay Index="2" Parameter="Sim.ShiftOrders"/>
+                    </Display>
+                </div>
+
+                <div class="bottom">
+                    <ToggleSwitch Switch="Sim.IgnitionAuthBravo8" Label="BRAVO-8"/>
+                    <ToggleSwitch Switch="Sim.ShiftOrderSwitch" Label="Enable Orders"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="station">
+                <div class="top">
+                    <Display Title="Policies">
+                        <MetricDisplay Index="1" Parameter="Sim.ShiftEfficiencyAct"/>
+                        <MetricDisplay Index="2" Parameter="Sim.ShiftHazardPay"/>
+                    </Display>
+                </div>
+
+                <div class="bottom">
+                    <ToggleSwitch Switch="Sim.ShiftEfficiencyActSwitch" Label="Efficiency Act"/>
+                    <ToggleSwitch Switch="Sim.ShiftHazardPaySwitch" Label="Hazard Pay"/>
                 </div>
             </div>
         </div>

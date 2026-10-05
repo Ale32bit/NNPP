@@ -32,7 +32,7 @@ public class Simulation : IAsyncDisposable
     public CoolantPump CoolantPumpAlpha { get; } = new();
     public CoolantPump CoolantPumpBeta { get; } = new();
     public Switch CoolantValve { get; } = new();
-    public SwitchBoundMetric CoolantValveMetric { get; init; }
+    public SwitchBoundMetric CoolantValveMetric { get; }
     public MetricText CoolantPumpsStatus { get; } = new("Coolant Pumps Status", "0/2");
 
     public FeedwaterPump FeedwaterPump1 { get; } = new();
@@ -103,7 +103,15 @@ public class Simulation : IAsyncDisposable
     public Metric ShiftTimeLeft { get; } = new("Time Until Shift End", 0, "seconds")
     {
         DecimalPlaces = 0,
+        ShowUnit = false,
     };
+
+    public SwitchBoundMetric ShiftEfficiencyAct { get; }
+    public SwitchBoundMetric ShiftHazardPay { get; }
+
+    public Switch ShiftOrderSwitch { get; } = new(false);
+    public TriggerSwitch ShiftEfficiencyActSwitch { get; } = new(false);
+    public TriggerSwitch ShiftHazardPaySwitch { get; } = new(false);
 
     public bool Stalled { get; set; } = false;
 
@@ -121,6 +129,8 @@ public class Simulation : IAsyncDisposable
     private double _ignitionTime = 0;
     private bool _igniting = false;
 
+    private bool _enableTier4 = false;
+
     // EVENTS
     public event EventHandler<KeyPressEventArgs>? KeyPress;
     public event EventHandler<double>? OnUpdate;
@@ -137,6 +147,8 @@ public class Simulation : IAsyncDisposable
         _loop = new GameLoop(20, Update, () => Ticked?.Invoke());
 
         CoolantValveMetric = new(CoolantValve, "Coolant Valves", "OPEN", "CLOSED");
+        ShiftEfficiencyAct = new(ShiftEfficiencyActSwitch, "PO Efficiency Act", "ACTIVE", "INACTIVE");
+        ShiftHazardPay = new(ShiftHazardPaySwitch, "Hazard Pay Bill", "ACTIVE", "INACTIVE");
 
         Turbine1.SyncSwitch.Triggered += (sender, value) => AttemptTurbineSync(Turbine1);
         Turbine2.SyncSwitch.Triggered += (sender, value) => AttemptTurbineSync(Turbine2);
@@ -146,6 +158,9 @@ public class Simulation : IAsyncDisposable
         IgnitionAuthBravo8.Triggered += (_, value) => OnIgnitionButtons(IgnitionAuthBravo8, value);
         IgnitionShutdownPumps.Triggered += (_, value) => OnIgnitionButtons(IgnitionShutdownPumps, value);
         IgnitionButton.Engaged += AttemptIgnition;
+
+        ShiftEfficiencyActSwitch.Triggered += PoeaSwitchTriggered;
+        ShiftHazardPaySwitch.Triggered += HazardPaySwitchTriggered;
 
         KeyPress += (_, key) =>
         {
@@ -580,8 +595,9 @@ public class Simulation : IAsyncDisposable
 
             await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
             await Sleep(30);
-            Notify(new("SCRAM Qualification", "\"That... Was close.\" Successfully scram the reactor before it explodes. Refresh the page to restart.", Silent: true, Permanent: true));
-            
+            Notify(new("SCRAM Qualification",
+                "\"That... Was close.\" Successfully scram the reactor before it explodes. Refresh the page to restart.",
+                Silent: true, Permanent: true));
         }
         else
         {
@@ -601,7 +617,8 @@ public class Simulation : IAsyncDisposable
 
             await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
             await Sleep(30);
-            Notify(new("Unforeseen Consequences", "Experience a meltdown. Refresh the page to restart.", Silent: true, Permanent: true));
+            Notify(new("Unforeseen Consequences", "Experience a meltdown. Refresh the page to restart.", Silent: true,
+                Permanent: true));
         }
     }
 
@@ -664,6 +681,87 @@ public class Simulation : IAsyncDisposable
         _forceMeltdown = true;
     }
 
+    private void PoeaSwitchTriggered(object? sender, bool active)
+    {
+        if (active)
+        {
+            Notify(new("Power Order Efficiency Act", "Power orders can now be 2x the size, but will give 2x pay."));
+        }
+        else
+        {
+            Notify(new("Power Order Efficiency Act", "Power orders returned to normal size."));
+        }
+    }
+
+    private void HazardPaySwitchTriggered(object? sender, bool active)
+    {
+        if (active)
+        {
+            Notify(new("Hazard Pay Bill",
+                "The higher the temperature is above 2100, the more XP is awarded, and a reduction in XP otherwise."));
+        }
+        else
+        {
+            Notify(new("Hazard Pay Bill", "Hazard temperature bonus inactive."));
+        }
+    }
+    
+    public double GetHazardPayBonus()
+    {
+        if (!ShiftHazardPaySwitch.Value)
+        {
+            return 1d;
+        }
+        
+        var temperature = ReactorTemperature.Value;
+        const double hazardTempBase = 2100;
+        const double maxXpCoef = 0.45;
+        const double minXpCoef = -0.15;
+        var maxDelta = Parameters.Core.MeltdownTemperature - hazardTempBase;
+        var delta = temperature - hazardTempBase;
+        var bonus = (delta / maxDelta) * maxXpCoef;
+        
+        return 1d + Math.Clamp(bonus, minXpCoef, maxXpCoef);
+    }
+    
+    public double GetPowerOrderXp()
+    {
+        var baseXp = 150;
+        if (ShiftEfficiencyActSwitch.Value)
+        {
+            baseXp *= 2;
+        }
+
+        var bonus = GetHazardPayBonus();
+        return baseXp * bonus;
+    }
+
+    public int GetShiftTier()
+    {
+        return ShiftOrders.Value switch
+        {
+            <= 3 => 1,
+            <= 6 => 2,
+            <= 9 => 3,
+            _ when _enableTier4 => 4 , // Should be very hard, even impossible
+            _ => 3
+        };
+    }
+    
+    public double GetShiftXp(int tier)
+    {
+        var baseXp = tier switch
+        {
+            1 => 250,
+            2 => 500,
+            3 => 1500,
+            4 => 3000,
+            _ => 0,
+        };
+        
+        return baseXp * GetHazardPayBonus();
+    }
+    
     public Task Sleep(double seconds)
     {
         return Task.Delay(TimeSpan.FromSeconds(seconds));

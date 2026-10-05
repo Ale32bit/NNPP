@@ -107,6 +107,10 @@ h2 {
     justify-self: center;
 }
 
+.sync-switch {
+    margin-top: -20px;
+}
+
 .ignition-controls {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;

@@ -9,7 +9,7 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 13px;
+    width: 16px;
     margin: 10px 0 0 -8px;
     text-align: center;
     transform: rotate(var(--a)) translateY(-45px) rotate(calc(var(--a) * -1));

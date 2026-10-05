@@ -1,17 +1,28 @@
 ﻿@using NNPP.Models.Inputs
 @inject AudioManager Audio
 
-<div class="switch">
-    <div class="indicator">
-        <span class="light" style="color: @_offLight">•</span>
-        <span class="light" style="color: @_onLight">•</span>
+<div class="frame">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <div class="label">
+            <span>@Label</span>
+        </div>
+    }
+    <div class="switch">
+
+        <div class="indicator">
+            <span class="light" style="color: @_offLight">•</span>
+            <span class="light" style="color: @_onLight">•</span>
+        </div>
+        <div class="knob" style="transform: @_transform;" onclick="@OnClick"></div>
     </div>
-    <div class="knob" style="transform: @_transform;" onclick="@OnClick"></div>
+
 </div>
 
 @code {
-    [Parameter, EditorRequired]
-    public required ISwitch Switch { get; set; }
+    [Parameter, EditorRequired] public required ISwitch Switch { get; set; }
+
+    [Parameter] public string? Label { get; set; }
 
     private string _transform = "";
     private string _offLight = "#F00";
@@ -32,7 +43,8 @@
             _offLight = "#F00";
             _onLight = "#000";
         }
-        
+
         Audio.Interact();
     }
+
 }

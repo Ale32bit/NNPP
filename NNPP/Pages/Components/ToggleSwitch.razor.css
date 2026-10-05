@@ -1,3 +1,8 @@
+.frame {
+    display: grid;
+    justify-items: center;
+}
+
 .switch {
     position: relative;
     width: 46px;
@@ -34,14 +39,21 @@
     transition: transform .2s;
 }
 
-    .knob::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 18px;
-        width: 20px;
-        height: 4px;
-        background: #efd71d;
-    }
+.knob::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 18px;
+    width: 20px;
+    height: 4px;
+    background: #efd71d;
+}
 
-    
+.label {
+    background: white;
+    font-size: 0.6rem;
+    text-align: center;
+    padding: 0 2px;
+    font-weight: 600;
+    user-select: none;
+}

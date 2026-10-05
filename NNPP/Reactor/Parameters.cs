@@ -90,6 +90,11 @@ public static class Parameters
         public static readonly double[] VibValues = [100, 110, 120, 130, 140, 150, 160, 170, 200];
     }
 
+    public static class Shift
+    {
+        
+    }
+
     public static double Lerp(double x, double[] xs, double[] ys)
     {
         if (x <= xs[0]) return ys[0];
