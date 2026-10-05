@@ -8,18 +8,12 @@
     background-color: #cbc4a6;
     border: 2px solid #756c5c;
     border-radius: 6px;
-    margin-top: 4px;
 }
 
 .board > .label {
     flex-basis: 100%;
     contain: inline-size;
     border-bottom: 2px solid #756c5c;
-}
-
-h2 {
-    text-transform: uppercase;
-    margin: 0;
 }
 
 .label h3 {
@@ -50,7 +44,7 @@ h2 {
     display: flex;
     flex-direction: column;
     width: 223px;
-    height: 320px;
+    height: 360px;
 }
 
 .top {
@@ -70,45 +64,3 @@ h2 {
     justify-content: space-around;
 }
 
-.overview {
-    background-color: #1f1f17;
-    color: #fffbe1;
-    padding: 10px;
-    border: 10px solid #bab183;
-    border-radius: 6px;
-    outline: 2px solid #756c5c;
-}
-
-.overview-section {
-    display: inline-block;
-    height: 100%;
-}
-
-.overview-subsection {
-    margin: 4px
-}
-
-.relief-valves {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 10px;
-}
-
-.turbine-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 48px;
-    row-gap: 0;
-}
-
-.turbine-controls ::deep > :last-child {
-    grid-column: 1 / -1;
-    justify-self: center;
-}
-
-.ignition-controls {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 10px;
-}

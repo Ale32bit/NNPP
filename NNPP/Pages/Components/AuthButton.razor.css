@@ -6,7 +6,7 @@
     padding: 4px;
     margin: 10px;
     width: 64px;
-    height: 80px;
+    height: 90px;
     background-color: #756750;
 }
 
@@ -24,8 +24,8 @@
 
 .body .button {
     margin: 5px;
-    width: 39px;
-    height: 39px;
+    width: 38px;
+    height: 38px;
     background-color: red;
     border: 1px solid black;
     border-radius: 4px;
@@ -42,7 +42,7 @@
 .label {
     grid-column: span 2 / span 2;
     text-transform: uppercase;
-    font-size: 0.6rem;
+    font-size: 0.8rem;
     font-weight: bold;
     text-align: center;
     background-color: red;
