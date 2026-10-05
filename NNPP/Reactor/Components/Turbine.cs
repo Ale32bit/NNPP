@@ -6,8 +6,6 @@ namespace NNPP.Reactor.Components;
 
 public class Turbine
 {
-    private static readonly double InitialPhase = Random.Shared.NextDouble() * 360;
-
     public enum TurbineStatus
     {
         Desynced,
@@ -42,7 +40,7 @@ public class Turbine
     public AccelerationSwitch AccelerationSwitch { get; } = new();
     public TriggerSwitch SyncSwitch { get; } = new();
 
-    public double Phase { get; set; } = InitialPhase;
+    public double Phase { get; set; } = Random.Shared.NextDouble() * 360;
     
     public bool IsSyncPossible() => LitDot(Phase) == 0 && !IsDestroyed() && RpmSyncDifference() < Parameters.Turbine.SyncRpmTolerance;
 

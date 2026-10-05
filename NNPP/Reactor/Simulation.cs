@@ -578,8 +578,10 @@ public class Simulation : IAsyncDisposable
                 "Temperature has returned to safe operating parameters. Full shutdown in progress.", true));
             await Audio.PlayMusicAsync(AudioKeys.Music.Shutdown, 1, loop: false);
 
+            await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
             await Sleep(30);
-            Notify(new("SCRAM Qualification", "\"That... Was close.\" Successfully scram the reactor before it explodes.  Refresh the page to restart.", Silent: true, Permanent: true));
+            Notify(new("SCRAM Qualification", "\"That... Was close.\" Successfully scram the reactor before it explodes. Refresh the page to restart.", Silent: true, Permanent: true));
+            
         }
         else
         {
@@ -597,6 +599,7 @@ public class Simulation : IAsyncDisposable
             _extraHeat = 57;
             _notgreatnotterrible = true;
 
+            await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
             await Sleep(30);
             Notify(new("Unforeseen Consequences", "Experience a meltdown. Refresh the page to restart.", Silent: true, Permanent: true));
         }
