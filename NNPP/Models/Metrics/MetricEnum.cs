@@ -8,7 +8,7 @@ public class MetricEnum<T>(string label, T initialValue) : IParameter where T : 
 
     public string GetValue()
     {
-        return Value.ToString();
+        return Value.ToString()?.ToUpperInvariant() ?? "ERROR";
     }
     
     

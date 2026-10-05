@@ -15,7 +15,7 @@ public static class AudioKeys
         public const string RodControl = "sfx.rodControl";
         public const string ControlInteract = "sfx.controlInteract";
         public const string ControlDenied = "sfx.controlDenied";
-        public const string RedTrigger = "sfx.redTrigger"; // I don't have a better name atm
+        public const string AuthTrigger = "sfx.authTrigger";
         public const string Authorize = "sfx.authorize";
     }
     

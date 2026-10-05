@@ -62,6 +62,11 @@
             }
         }
 
+        if (notification.Permanent)
+        {
+            return;
+        }
+
         try
         {
             await Task.Delay(TimeSpan.FromSeconds(10), _cts.Token);

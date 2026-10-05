@@ -5,8 +5,8 @@ public enum ReactorStatus
     Stalled, // 323K
     Running, // >323K
     Overheat, // >2400
-    Critical, // During meltdown
+    Meltdown, // During meltdown
     Error, // Shutdown failure
     Offline, // Reactor is offline, shutdown successful, or not yet ignited
-    Igniting, // Igniting
+    Heating, // Igniting
 }
