@@ -15,6 +15,8 @@ public class Simulation : IAsyncDisposable
     public bool Running { get; set; } = false;
     public bool Ignited { get; set; } = false;
 
+    public bool Started => _started;
+
     public MetricEnum<ReactorStatus> ReactorStatus { get; } = new("Reactor Status", Models.ReactorStatus.Stalled);
 
     public Metric ReactorTemperature { get; } = new("Reactor Temp", Parameters.Core.StallTemp, "K");
@@ -205,7 +207,7 @@ public class Simulation : IAsyncDisposable
         Audio.PreloadAsync(AudioKeys.Music.Overheat, AudioKeys.Music.Shutdown, AudioKeys.Music.Evacuate,
             AudioKeys.Music.Meltdown);
 
-        Notify(new Notification("Welcome to NNPPRS", "Please report any bug!", Silent: true));
+        Notify(new Notification("Welcome to NNPPRS", "Please report any bug!"));
     }
 
     public void Update(double dt)
@@ -529,7 +531,7 @@ public class Simulation : IAsyncDisposable
         if (IgnitionAuthBravo8.Value && IgnitionShutdownPumps.Value)
         {
             Ignited = true;
-            Audio.PlaySfxAsync(AudioKeys.Sfx.AuthTrigger);
+            Audio.PlaySfxAsync(AudioKeys.Sfx.AuthTrigger, 2d);
 
             Task.Run(async () =>
             {
@@ -582,7 +584,7 @@ public class Simulation : IAsyncDisposable
 
         await Sleep(15);
 
-        await Audio.PlaySfxAsync(AudioKeys.Sfx.AuthTrigger);
+        await Audio.PlaySfxAsync(AudioKeys.Sfx.AuthTrigger, 2d);
         ScramButton.Available = true;
 
         await Sleep(190);
@@ -591,6 +593,7 @@ public class Simulation : IAsyncDisposable
         {
             Notify(new("Reactor shutdown",
                 "Temperature has returned to safe operating parameters. Full shutdown in progress.", true));
+            _extraHeat = -57;
             await Audio.PlayMusicAsync(AudioKeys.Music.Shutdown, 1, loop: false);
 
             await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
@@ -673,7 +676,10 @@ public class Simulation : IAsyncDisposable
 
     public void OnKeyPress(KeyPressEventArgs args)
     {
-        KeyPress?.Invoke(this, args);
+        if (_started)
+        {
+            KeyPress?.Invoke(this, args);
+        }
     }
 
     public void TriggerMeltdown()

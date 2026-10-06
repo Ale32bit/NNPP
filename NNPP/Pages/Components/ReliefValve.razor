@@ -6,7 +6,7 @@
         <span class="light" style="color: @_offLight">•</span>
         <span class="light" style="color: @_onLight">•</span>
     </div>
-    <div class="knob" style="transform: @_transform;" onclick="@OnClick"></div>
+    <div class="knob" style="transform: @_transform;" @onclick="OnClick"></div>
 </div>
 
 @code {
@@ -19,7 +19,7 @@
     protected override void OnInitialized()
     {
         Valve.OnStatusChanged += Update;
-        Update();
+        //Update();
     }
 
     private void OnClick()

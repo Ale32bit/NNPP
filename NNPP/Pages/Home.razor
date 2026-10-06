@@ -4,7 +4,23 @@
 @using NNPP.Reactor
 @inject Simulation Sim
 
-<PageTitle>NNPP</PageTitle>
+<PageTitle>NNPPRS</PageTitle>
+
+@if (InIntro)
+{
+    <div class="intro">
+        <div class="overlay">
+        </div>
+        
+        <div class="content">
+            <h1 tabindex="0">Welcome to</h1>
+            <h1 tabindex="0">NNPPRS<sup>*</sup></h1>
+            <p class="disclaimer"><sup>*</sup>Naramo Nuclear Power Plant Reactor Simulator</p>
+            <button class="intro-button" @onclick="Start">Enter the Control Room</button>
+            <p class="footer">NNPPRS &copy; 2026 <a href="https://proto.land">AlexDevs (@@Alex16bits)</a></p>
+        </div>
+    </div>
+}
 
 <KeyListener Simulation="Sim"/>
 
@@ -310,9 +326,17 @@
 </div>
 
 @code {
+    private bool InIntro { get; set; }= true;
+    
     protected override void OnInitialized() => Sim.Ticked += OnTick;
 
     private void OnTick() => InvokeAsync(StateHasChanged);
+
+    private void Start()
+    {
+        InIntro = false;
+        Sim.Start();
+    }
 
     public void Dispose() => Sim.Ticked -= OnTick;
 }

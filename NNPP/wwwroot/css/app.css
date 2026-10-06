@@ -90,27 +90,6 @@ html, body {
     content: var(--blazor-load-percentage-text, "Loading");
 }
 
-button {
-    background-color: #222;
-    border-radius: 10%;
-    border: none;
-    color: white;
-    padding: 4px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #444;
-}
-
-button:active {
-    background: #666;
-}
-
 footer {
     display: flex;
     flex-direction: row;

@@ -52,7 +52,7 @@
             _ => Control.Position
         };
 
-        Audio.PlaySfxAsync(AudioKeys.Sfx.RodControl);
+        Audio.PlaySfxAsync(AudioKeys.Sfx.RodControl, 0.25);
         _lastUsage = DateTime.Now;
     }
 
@@ -70,7 +70,7 @@
             _ => Control.Position
         };
 
-        Audio.PlaySfxAsync(AudioKeys.Sfx.RodControl);
+        Audio.PlaySfxAsync(AudioKeys.Sfx.RodControl, 0.25);
         _lastUsage = DateTime.Now;
     }
 

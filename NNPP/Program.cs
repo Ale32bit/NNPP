@@ -34,5 +34,4 @@ builder.Services.AddSingleton(sp => new AudioManager(sp.GetRequiredService<IJSRu
 );
 
 var app = builder.Build();
-app.Services.GetRequiredService<Simulation>().Start();
 await app.RunAsync();
