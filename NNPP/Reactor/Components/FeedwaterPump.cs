@@ -21,4 +21,7 @@ public class FeedwaterPump
     public bool Alive { get; set; } = true;
 
     public bool Running => Powered && Alive;
+
+    public int GetPowerDemand() => Parameters.FeedwaterPumpPowerDemand(Utilization.Value);
+
 }

@@ -101,6 +101,12 @@ public static class Parameters
         public const int DemandMaxMargin = 1500;
     }
 
+    public static class Grid
+    {
+        public const int CoolantPumpDemand = 6000;
+        public const int FeedwaterPumpMaxDemand = 5000;
+    }
+
     public static double Lerp(double x, double[] xs, double[] ys)
     {
         if (x <= xs[0]) return ys[0];
@@ -269,4 +275,7 @@ public static class Parameters
             : target;
 
     public static double TurbineOutput(double flow) => (flow - Turbine.SyncFlow) * Turbine.PowerPerFlow;
+
+    public static int FeedwaterPumpPowerDemand(double utilization) =>
+        (int)(utilization * utilization * Grid.FeedwaterPumpMaxDemand);
 }

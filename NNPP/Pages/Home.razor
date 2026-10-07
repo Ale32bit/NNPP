@@ -12,7 +12,7 @@
     <div class="intro">
         <div class="overlay">
         </div>
-        
+
         <div class="content">
             <h1 tabindex="0">Welcome to</h1>
             <h1 tabindex="0">NNPPRS<sup>*</sup></h1>
@@ -48,8 +48,8 @@
         <h2>Facility Grid Overview</h2>
 
         <div class="overview-subsection">
-            <OverviewDisplay Parameter="Sim.GridTotalOutput" Color="#c5bc89" Label="Total Output"/>
-            <OverviewDisplay Parameter="Sim.GridExcessOutput" Color="#cd3f2a" Label="Excess"/>
+            <OverviewDisplay Parameter="Sim.GridTotalOutput" Color="#c5bc89" Label="Total Output (kW)"/>
+            <OverviewDisplay Parameter="Sim.GridExcessOutput" Color="#cd3f2a" Label="Excess (kW)"/>
             <OverviewDisplay Parameter="Sim.ShiftOrders" Label="Shift Orders"/>
             <OverviewDisplay Parameter="Sim.ShiftTier" Label="Shift Tier"/>
 
@@ -57,9 +57,9 @@
 
         <div class="overview-subsection">
             <OverviewDisplay Parameter="Sim.ShiftPowerOrderMargin" Color="#c5bc89" Label="Margin"/>
-            <OverviewDisplay Parameter="Sim.ShiftPowerOrderDemand" Color="#cd3f2a" Label="Demand"/>
+            <OverviewDisplay Parameter="Sim.ShiftPowerOrderDemand" Color="#cd3f2a" Label="Demand (kW)"/>
             <OverviewDisplay Parameter="Sim.ShiftPowerOrderHold" Color="#c5bc89" Label="Hold For (s)"/>
-            <OverviewDisplay Parameter="Sim.ShiftTimeLeft" Label="Shift Time Left"/>
+            <OverviewDisplay Parameter="Sim.ShiftTimeLeft" Label="Shift Time Left (s)"/>
         </div>
     </div>
 </section>
@@ -211,7 +211,7 @@
 
 <div class="board">
     <div class="label">
-        <h3>Facility Grid</h3>
+        <h3>Turbines</h3>
     </div>
 
     <div class="sections">
@@ -284,23 +284,49 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="section">
             <div class="station">
                 <div class="top">
                     <Display Title="Grid Overview (Primary)">
-                        <p class="out-of-order">OUT OF ORDER</p>
+                        <MetricDisplay Index="1" Parameter="Sim.GridTurbineOutput"/>
                     </Display>
                 </div>
 
                 <div class="bottom">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="board">
+    <div class="label">
+        <h3>Facility Grid</h3>
+    </div>
+    <div class="sections">
+        <div class="section">
+            <div class="station">
+                <div class="top">
+                    <Display Title="Bus Overview (Primary)" Grid="Display.GridType.OneByThree">
+                        <MetricDisplay Index="1" Parameter="Sim.Grid.PrimaryDemand"/>
+                        <MetricDisplay Index="2" Parameter="Sim.Grid.PrimarySupply"/>
+                        <MetricDisplay Index="3" Parameter="Sim.Grid.Primary" Label="Supplied by"/>
+                    </Display>
+                </div>
+
+                <div class="bottom">
+                    <p class="out-of-order">OUT OF ORDER</p>
                     <Keyboard/>
                 </div>
             </div>
+            
             <div class="station">
                 <div class="top">
-                    <Display Title="Bus Overview (AUX)">
-                        <p class="out-of-order" style="rotate: -5deg; transform: translate(-10px, 23px)">OUT OF ORDER</p>
+                    <Display Title="Bus Overview (Aux)" Grid="Display.GridType.OneByThree">
+                        <MetricDisplay Index="1" Parameter="Sim.Grid.AuxDemand"/>
+                        <MetricDisplay Index="2" Parameter="Sim.Grid.AuxSupply"/>
+                        <MetricDisplay Index="3" Parameter="Sim.Grid.Auxiliary" Label="Supplied by"/>
                     </Display>
                 </div>
 
@@ -352,8 +378,8 @@
 </div>
 
 @code {
-    private bool InIntro { get; set; }= true;
-    
+    private bool InIntro { get; set; } = true;
+
     protected override void OnInitialized() => Sim.Ticked += OnTick;
 
     private void OnTick() => InvokeAsync(StateHasChanged);

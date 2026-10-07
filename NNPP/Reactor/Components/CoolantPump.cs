@@ -10,4 +10,6 @@ public class CoolantPump
     public bool Started { get; set; } = true;
 
     public bool Running => Started && Powered;
+    
+    public int GetPowerDemand() => Parameters.Grid.CoolantPumpDemand;
 }

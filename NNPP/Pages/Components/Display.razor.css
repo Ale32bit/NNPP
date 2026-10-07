@@ -43,6 +43,18 @@
     grid-template-columns: 1fr 1fr;
 }
 
+.one-by-three {
+    grid-template-areas:
+            "m1"
+            "m2"
+            "m3";
+    grid-template-columns: 1fr;
+}
+
+::deep .one-by-three .parameter .value {
+    font-size: 1.2rem;
+}
+
 .title {
     text-align: center;
     font-weight: 300;

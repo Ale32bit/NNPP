@@ -45,7 +45,7 @@ public class Turbine
     public bool IsSyncPossible() => LitDot(Phase) == 0 && !IsDestroyed() && RpmSyncDifference() < Parameters.Turbine.SyncRpmTolerance;
 
     public double RpmSyncDifference() => Math.Abs(Parameters.Turbine.SyncRpm - Rpm.Value);
-
+    
     public static int LitDot(double phase)
     {
         return ((int)Math.Round(phase / 12) % Synchroscope.Dots + Synchroscope.Dots) % Synchroscope.Dots;

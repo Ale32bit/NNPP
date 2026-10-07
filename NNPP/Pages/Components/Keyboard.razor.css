@@ -9,6 +9,8 @@
     border-bottom-color: #1f1c15;
     border-left-color: #1f1c15;
     box-shadow: rgb(50 50 50 / 0.65) 0 3px 3px 1px;
+    
+    cursor: pointer;
 }
 
 .keyboard {
@@ -25,4 +27,5 @@
 .keyboard > div {
     aspect-ratio: 1;
     background: #d7d0ab;
+    width: 9px;
 }

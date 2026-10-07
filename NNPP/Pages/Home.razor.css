@@ -186,6 +186,8 @@ h2 {
 }
 
 .out-of-order {
+    position: absolute;
+    width: 5em;
     display: inline;
     background-color: #b40c2e;
     color: white;

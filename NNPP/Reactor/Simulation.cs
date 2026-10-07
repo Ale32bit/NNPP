@@ -3,6 +3,7 @@ using NNPP.Models;
 using NNPP.Models.Inputs;
 using NNPP.Models.Metrics;
 using NNPP.Reactor.Components;
+using NNPP.Reactor.Grid;
 using AuthButton = NNPP.Models.Inputs.AuthButton;
 
 namespace NNPP.Reactor;
@@ -58,6 +59,8 @@ public class Simulation : IAsyncDisposable
         new(), new(), new(), new()
     ];
 
+    public FacilityGrid Grid { get; }
+
     public Turbine Turbine1 { get; } = new();
     public Turbine Turbine2 { get; } = new();
 
@@ -73,16 +76,25 @@ public class Simulation : IAsyncDisposable
     public Metric GridTotalOutput { get; } = new("Total Output", 0, "kW")
     {
         DecimalPlaces = 0,
+        ShowUnit = false,
+    };
+    
+    public Metric GridTurbineOutput { get; } = new("Turb. Output", 0, "kW")
+    {
+        DecimalPlaces = 0,
+        ShowUnit = false,
     };
 
     public Metric GridExcessOutput { get; } = new("Excess", 0, "kW")
     {
         DecimalPlaces = 0,
+        ShowUnit = false,
     };
 
     public Metric ShiftPowerOrderDemand { get; } = new("Current Power Order", 0, "kW")
     {
         DecimalPlaces = 0,
+        ShowUnit = false,
         ValueOverride = _na,
     };
 
@@ -169,6 +181,8 @@ public class Simulation : IAsyncDisposable
         Storage = storage;
         
         _loop = new GameLoop(20, Update, () => Ticked?.Invoke());
+        
+        Grid = new FacilityGrid(this);
 
         CoolantValveMetric = new(CoolantValve, "Coolant Valves", "OPEN", "CLOSED");
         ShiftEfficiencyAct = new(ShiftEfficiencyActSwitch, "PO Efficiency Act", "ACTIVE", "INACTIVE");
@@ -416,7 +430,8 @@ public class Simulation : IAsyncDisposable
             Turbine2.Phase = (Turbine2.Phase + 6 * (Turbine2.Rpm.Value - Parameters.Turbine.SyncRpm) * dt) % 360;
         }
 
-        GridTotalOutput.Value = GetTurbineOutput();
+        GridTotalOutput.Value = GetTotalOutput();
+        GridTurbineOutput.Value = GetTurbineOutput();
         GridExcessOutput.Value = GetExcessOutput();
 
         if (Running)
@@ -506,6 +521,8 @@ public class Simulation : IAsyncDisposable
         }
 
         PowerOrderCheckLoop(dt);
+        
+        Grid.Update(dt);
 
         OnUpdate?.Invoke(this, dt);
     }
@@ -710,6 +727,11 @@ public class Simulation : IAsyncDisposable
             : 0;
 
         return output;
+    }
+
+    public double GetTotalOutput()
+    {
+        return GetTurbineOutput();
     }
 
     public double GetExcessOutput()

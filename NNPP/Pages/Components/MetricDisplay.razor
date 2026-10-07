@@ -3,11 +3,11 @@
 <div class="parameter" style="grid-area: @GridAreaName">
     @if (Parameter is Metric { Unit: not null } metric && ShowLabelUnit)
     {
-        <p class="label">@metric.Label.ToUpperInvariant() (@metric.Unit)</p>
+        <p class="label">@((Label ?? metric.Label).ToUpperInvariant()) (@metric.Unit)</p>
     }
     else
     {
-        <p class="label">@Parameter.Label.ToUpperInvariant()</p>
+        <p class="label">@((Label ?? Parameter.Label).ToUpperInvariant())</p>
     }
     <p class="value">@Parameter.GetValue()</p>
 </div>
@@ -17,6 +17,11 @@
     [Parameter] public bool ShowLabelUnit { get; set; } = true;
 
     [Parameter] public int Index { get; set; } = 1;
+    
+    /// <summary>
+    /// Override metric label to display
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
     
     private string GridAreaName => $"m{Index}";
 }
