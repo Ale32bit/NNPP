@@ -184,3 +184,16 @@ h2 {
 .intro .footer a {
     color: lightblue;
 }
+
+.out-of-order {
+    display: inline;
+    background-color: #b40c2e;
+    color: white;
+    border: 10px solid white;
+    border-radius: 20px;
+    margin: 0 40px 20px;
+    font-weight: bolder;
+    text-align: center;
+    font-size: 1.4em;
+    rotate: 10deg;
+}
