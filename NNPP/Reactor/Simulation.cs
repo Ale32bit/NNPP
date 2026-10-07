@@ -12,6 +12,8 @@ public class Simulation : IAsyncDisposable
     private AudioManager Audio { get; set; }
     private PersistentStorage Storage { get; set; }
 
+    public Profile Profile { get; set; } = new();
+
     // COMPONENTS and VARIABLES
     public bool Running { get; set; } = false;
     public bool Ignited { get; set; } = false;
@@ -234,6 +236,17 @@ public class Simulation : IAsyncDisposable
         Audio.PreloadAsync(AudioKeys.Music.Overheat, AudioKeys.Music.Shutdown, AudioKeys.Music.Evacuate,
             AudioKeys.Music.Meltdown);
 
+        Storage.GetAsync<Profile>("profile").AsTask().ContinueWith((task) =>
+        {
+            if (task.Result is not null)
+            {
+                Profile = task.Result;
+                PlayerXp.Value = Profile.Experience;
+            }
+
+            return Task.CompletedTask;
+        });
+        
         Notify("Welcome to NNPPRS", "Please report any bug!", silent: true);
 
         Task.Run(OrderRequestInterval);
@@ -961,10 +974,9 @@ public class Simulation : IAsyncDisposable
 
     public async Task AddXpAsync(double xp)
     {
-        PlayerXp.Value += xp;
-        var profile = await Storage.GetAsync<Profile>("profile") ?? new Profile();
-        profile.Experience += (int)xp;
-        await Storage.SetAsync("profile", profile);
+        Profile.Experience += (int)xp;
+        PlayerXp.Value = Profile.Experience;
+        await Storage.SetAsync("profile", Profile);
     }
 
     public void Notify(Notification notification)
