@@ -54,10 +54,12 @@
         {
             if (notification.Critical)
             {
+                await Audio.StopSfxAsync(AudioKeys.Sfx.NotificationCritical);
                 await Audio.PlaySfxAsync(AudioKeys.Sfx.NotificationCritical);
             }
             else
             {
+                await Audio.StopSfxAsync(AudioKeys.Sfx.Notification);
                 await Audio.PlaySfxAsync(AudioKeys.Sfx.Notification);
             }
         }

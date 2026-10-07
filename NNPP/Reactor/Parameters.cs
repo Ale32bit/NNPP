@@ -92,7 +92,13 @@ public static class Parameters
 
     public static class Shift
     {
-        
+        public const int Duration = 900;
+        public const int PowerOrderMinPower = 15000; // 2x if POEA
+        public const int PowerOrderMaxPower = 24500;
+        public static readonly int[] PowerOrderTimes = [15, 20, 25, 30, 35, 40, 45];
+        public const int RequestInterval = 90;
+        public const int DemandMinMargin = 950;
+        public const int DemandMaxMargin = 1500;
     }
 
     public static double Lerp(double x, double[] xs, double[] ys)

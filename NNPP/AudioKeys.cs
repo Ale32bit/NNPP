@@ -17,6 +17,7 @@ public static class AudioKeys
         public const string ControlDenied = "sfx.controlDenied";
         public const string AuthTrigger = "sfx.authTrigger";
         public const string Authorize = "sfx.authorize";
+        public const string PowerOrder = "sfx.powerOrder";
     }
     
     public static class Music

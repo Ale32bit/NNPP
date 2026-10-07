@@ -1,7 +1,7 @@
-﻿using NNPP.Models;
+﻿using System.Security.Cryptography;
+using NNPP.Models;
 using NNPP.Models.Inputs;
 using NNPP.Models.Metrics;
-using NNPP.Pages.Components;
 using NNPP.Reactor.Components;
 using AuthButton = NNPP.Models.Inputs.AuthButton;
 
@@ -10,6 +10,7 @@ namespace NNPP.Reactor;
 public class Simulation : IAsyncDisposable
 {
     private AudioManager Audio { get; set; }
+    private PersistentStorage Storage { get; set; }
 
     // COMPONENTS and VARIABLES
     public bool Running { get; set; } = false;
@@ -77,19 +78,22 @@ public class Simulation : IAsyncDisposable
         DecimalPlaces = 0,
     };
 
-    public Metric PowerOrderDemand { get; } = new("Current Power Order", 0, "kW")
+    public Metric ShiftPowerOrderDemand { get; } = new("Current Power Order", 0, "kW")
     {
         DecimalPlaces = 0,
+        ValueOverride = _na,
     };
 
-    public Metric PowerOrderMargin { get; } = new("Margin For Error", 0)
+    public Metric ShiftPowerOrderMargin { get; } = new("Margin For Error", 0)
     {
         DecimalPlaces = 0,
+        ValueOverride = _na,
     };
 
-    public Metric PowerOrderHold { get; } = new("Hold For", 0, "seconds")
+    public Metric ShiftPowerOrderHold { get; } = new("Hold For", 0, "seconds")
     {
         ShowUnit = false,
+        ValueOverride = _na,
     };
 
     public Metric ShiftOrders { get; } = new("Orders Completed", 0)
@@ -111,9 +115,15 @@ public class Simulation : IAsyncDisposable
     public SwitchBoundMetric ShiftEfficiencyAct { get; }
     public SwitchBoundMetric ShiftHazardPay { get; }
 
-    public Switch ShiftOrderSwitch { get; } = new(false);
+    public TriggerSwitch ShiftOrderSwitch { get; } = new(false);
     public TriggerSwitch ShiftEfficiencyActSwitch { get; } = new(false);
     public TriggerSwitch ShiftHazardPaySwitch { get; } = new(false);
+
+    public Metric PlayerXp { get; } = new("Experience", 0)
+    {
+        Unit = "XP",
+        DecimalPlaces = 0,
+    };
 
     public bool Stalled { get; set; } = false;
 
@@ -132,6 +142,14 @@ public class Simulation : IAsyncDisposable
     private bool _igniting = false;
 
     private bool _enableTier4 = false;
+    private double _shiftRemainingTime = 0;
+    private double _shiftTimeSinceLastOrder = double.MaxValue;
+    private double? _shiftOrderDemand = null;
+    private double? _shiftOrderMargin = null; // met? = demand +- margin
+    private double? _shiftOrderTime = null;
+    private bool _shiftDay = false;
+
+    private const string _na = "N/A";
 
     // EVENTS
     public event EventHandler<KeyPressEventArgs>? KeyPress;
@@ -143,9 +161,11 @@ public class Simulation : IAsyncDisposable
     private bool _started;
     private bool _firstTick = true;
 
-    public Simulation(AudioManager audioManager)
+    public Simulation(AudioManager audioManager, PersistentStorage storage)
     {
         Audio = audioManager;
+        Storage = storage;
+        
         _loop = new GameLoop(20, Update, () => Ticked?.Invoke());
 
         CoolantValveMetric = new(CoolantValve, "Coolant Valves", "OPEN", "CLOSED");
@@ -161,6 +181,13 @@ public class Simulation : IAsyncDisposable
         IgnitionShutdownPumps.Triggered += (_, value) => OnIgnitionButtons(IgnitionShutdownPumps, value);
         IgnitionButton.Engaged += AttemptIgnition;
 
+        ShiftOrderSwitch.Triggered += (_, value) =>
+        {
+            if (value && _shiftTimeSinceLastOrder >= Parameters.Shift.RequestInterval)
+            {
+                AttemptRequestOrder();
+            }
+        };
         ShiftEfficiencyActSwitch.Triggered += PoeaSwitchTriggered;
         ShiftHazardPaySwitch.Triggered += HazardPaySwitchTriggered;
 
@@ -207,7 +234,10 @@ public class Simulation : IAsyncDisposable
         Audio.PreloadAsync(AudioKeys.Music.Overheat, AudioKeys.Music.Shutdown, AudioKeys.Music.Evacuate,
             AudioKeys.Music.Meltdown);
 
-        Notify(new Notification("Welcome to NNPPRS", "Please report any bug!"));
+        Notify("Welcome to NNPPRS", "Please report any bug!", silent: true);
+
+        Task.Run(OrderRequestInterval);
+        Task.Run(RunShiftLoop);
     }
 
     public void Update(double dt)
@@ -407,8 +437,8 @@ public class Simulation : IAsyncDisposable
             {
                 Audio.PlayMusicAsync(AudioKeys.Music.Overheat, 0.25);
                 _reactorOverheat = true;
-                Notify(new("Reactor overheat",
-                    "The Reactor is above safe operating parameters. Lower temperature immediately.", true));
+                Notify("Reactor overheat",
+                    "The Reactor is above safe operating parameters. Lower temperature immediately.", true);
             }
 
             if (ReactorTemperature.Value < 2000 && _reactorOverheat)
@@ -461,6 +491,8 @@ public class Simulation : IAsyncDisposable
         {
             ReactorTemperature.Value = Parameters.Core.StallTemp;
         }
+
+        PowerOrderCheckLoop(dt);
 
         OnUpdate?.Invoke(this, dt);
     }
@@ -537,12 +569,11 @@ public class Simulation : IAsyncDisposable
             {
                 await Audio.PlaySfxAsync(AudioKeys.Music.Ignition);
                 await Sleep(8.6);
-                Notify(new Notification("Reactor Ignition",
-                    "The Facility Reactor is currently being ignited. Standby"));
+                Notify("Reactor Ignition", "The Facility Reactor is currently being ignited. Standby");
                 await Sleep(2.4);
                 _igniting = true;
                 await Sleep(43);
-                Notify(new Notification("Reactor ignition", "Reactor online. Code Bravo-8 is now in effect."));
+                Notify("Reactor ignition", "Reactor online. Code Bravo-8 is now in effect.");
                 RodControl.Locked = false;
                 Running = true;
                 _igniting = false;
@@ -564,8 +595,8 @@ public class Simulation : IAsyncDisposable
         await Sleep(3);
 
         await Audio.PlayMusicAsync(AudioKeys.Music.Meltdown, 1, loop: false);
-        Notify(new("Reactor overheat",
-            "The Reactor is above safe operating parameters. Lower temperature immediately.", true));
+        Notify("Reactor overheat",
+            "The Reactor is above safe operating parameters. Lower temperature immediately.", true);
 
         await Sleep(7);
 
@@ -575,12 +606,12 @@ public class Simulation : IAsyncDisposable
 
         _extraHeat = Parameters.Core.MeltdownExtraHeat;
         await Audio.StopSfxAsync(AudioKeys.Sfx.MeltdownAlarm);
-        Notify(new("Reactor meltdown", "All Non-Reactor Operations staff are to evacuate.", true));
+        Notify("Reactor meltdown", "All Non-Reactor Operations staff are to evacuate.", true);
 
         await Sleep(10);
 
-        Notify(new("Reactor shutdown",
-            "An official emergency has been declared. Emergency options are now available.", true));
+        Notify("Reactor shutdown",
+            "An official emergency has been declared. Emergency options are now available.", true);
 
         await Sleep(15);
 
@@ -591,16 +622,16 @@ public class Simulation : IAsyncDisposable
 
         if (ReactorTemperature.Value < 900)
         {
-            Notify(new("Reactor shutdown",
-                "Temperature has returned to safe operating parameters. Full shutdown in progress.", true));
+            Notify("Reactor shutdown",
+                "Temperature has returned to safe operating parameters. Full shutdown in progress.", true);
             _extraHeat = -57;
             await Audio.PlayMusicAsync(AudioKeys.Music.Shutdown, 1, loop: false);
 
             await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
             await Sleep(30);
-            Notify(new("SCRAM Qualification",
+            Notify("SCRAM Qualification",
                 "\"That... Was close.\" Successfully scram the reactor before it explodes. Refresh the page to restart.",
-                Silent: true, Permanent: true));
+                silent: true, permanent: true);
         }
         else
         {
@@ -612,16 +643,16 @@ public class Simulation : IAsyncDisposable
             await Audio.PlaySfxAsync(AudioKeys.Sfx.MetalCry);
             await Audio.PlayMusicAsync(AudioKeys.Music.Evacuate, 1, loop: false);
             await Sleep(6);
-            await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion);
-            Notify(new("Reactor meltdown",
-                "Reactor continues to be in a critical state. Full Evacuation in progress.", true));
+            await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion, 2d);
+            Notify("Reactor meltdown",
+                "Reactor continues to be in a critical state. Full Evacuation in progress.", true);
             _extraHeat = 57;
             _notgreatnotterrible = true;
 
             await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
             await Sleep(30);
-            Notify(new("Unforeseen Consequences", "Experience a meltdown. Refresh the page to restart.", Silent: true,
-                Permanent: true));
+            Notify("Unforeseen Consequences", "Experience a meltdown. Refresh the page to restart.", silent: true,
+                permanent: true);
         }
     }
 
@@ -635,7 +666,7 @@ public class Simulation : IAsyncDisposable
         RodControl.Position = RodController.ControlPosition.Neutral;
         RodControl.Locked = true;
         Audio.PlaySfxLoopAsync(AudioKeys.Sfx.ScramActive);
-        Notify(new Notification("Reactor scram", "SCRAM sequence engaged.", true));
+        Notify("Reactor scram", "SCRAM sequence engaged.", true);
     }
 
     private void ScramFailRods()
@@ -644,8 +675,7 @@ public class Simulation : IAsyncDisposable
         RodInsertion.Value = 0;
         RodInsertion.ValueOverride = "ERR";
         _extraHeat = 57;
-        Notify(new("Reactor SCRAM", "Control rods have sustained damage. SCRAM sequence has failed.",
-            true));
+        Notify("Reactor SCRAM", "Control rods have sustained damage. SCRAM sequence has failed.", true);
     }
 
     public double GetTurbineOutput()
@@ -662,11 +692,6 @@ public class Simulation : IAsyncDisposable
             : 0;
 
         return output;
-    }
-
-    public void Notify(Notification notification)
-    {
-        OnNotification?.Invoke(this, notification);
     }
 
     public double GetExcessOutput()
@@ -691,11 +716,11 @@ public class Simulation : IAsyncDisposable
     {
         if (active)
         {
-            Notify(new("Power Order Efficiency Act", "Power orders can now be 2x the size, but will give 2x pay."));
+            Notify("Power Order Efficiency Act", "Power orders can now be 2x the size, but will give 2x pay.");
         }
         else
         {
-            Notify(new("Power Order Efficiency Act", "Power orders returned to normal size."));
+            Notify("Power Order Efficiency Act", "Power orders returned to normal size.");
         }
     }
 
@@ -703,43 +728,50 @@ public class Simulation : IAsyncDisposable
     {
         if (active)
         {
-            Notify(new("Hazard Pay Bill",
-                "The higher the temperature is above 2100, the more XP is awarded, and a reduction in XP otherwise."));
+            Notify("Hazard Pay Bill",
+                "The higher the temperature is above 2100, the more XP is awarded, and a reduction in XP otherwise.");
         }
         else
         {
-            Notify(new("Hazard Pay Bill", "Hazard temperature bonus inactive."));
+            Notify("Hazard Pay Bill", "Hazard temperature bonus inactive.");
         }
     }
-    
+
     public double GetHazardPayBonus()
     {
         if (!ShiftHazardPaySwitch.Value)
         {
-            return 1d;
+            return 0d;
         }
-        
+
         var temperature = ReactorTemperature.Value;
         const double hazardTempBase = 2100;
         const double maxXpCoef = 0.45;
         const double minXpCoef = -0.15;
         var maxDelta = Parameters.Core.MeltdownTemperature - hazardTempBase;
         var delta = temperature - hazardTempBase;
-        var bonus = (delta / maxDelta) * maxXpCoef;
-        
-        return 1d + Math.Clamp(bonus, minXpCoef, maxXpCoef);
+        var bonus = delta / maxDelta * maxXpCoef;
+
+        return Math.Clamp(bonus, minXpCoef, maxXpCoef);
     }
-    
+
+    public int GetPoeaMultiplier()
+    {
+        return ShiftEfficiencyActSwitch.Value ? 2 : 1;
+    }
+
+    public double GetBonusMultiplier()
+    {
+        double baseMul = GetPoeaMultiplier();
+
+        baseMul += GetHazardPayBonus();
+
+        return baseMul;
+    }
+
     public double GetPowerOrderXp()
     {
-        var baseXp = 150;
-        if (ShiftEfficiencyActSwitch.Value)
-        {
-            baseXp *= 2;
-        }
-
-        var bonus = GetHazardPayBonus();
-        return baseXp * bonus;
+        return 150 * GetBonusMultiplier();
     }
 
     public int GetShiftTier()
@@ -749,11 +781,11 @@ public class Simulation : IAsyncDisposable
             <= 3 => 1,
             <= 6 => 2,
             <= 9 => 3,
-            _ when _enableTier4 => 4 , // Should be very hard, even impossible
+            _ when _enableTier4 => 4,
             _ => 3
         };
     }
-    
+
     public double GetShiftXp(int tier)
     {
         var baseXp = tier switch
@@ -764,10 +796,187 @@ public class Simulation : IAsyncDisposable
             4 => 3000,
             _ => 0,
         };
-        
-        return baseXp * GetHazardPayBonus();
+
+        return baseXp * GetBonusMultiplier();
     }
-    
+
+    public bool IsDemandMet(double demand, double margin)
+    {
+        var excess = GetExcessOutput();
+        var delta = Math.Abs(excess - demand);
+        return delta <= margin;
+    }
+
+    public int GenerateOrder()
+    {
+        return RandomNumberGenerator.GetInt32(Parameters.Shift.PowerOrderMinPower,
+            Parameters.Shift.PowerOrderMaxPower) * GetPoeaMultiplier();
+    }
+
+    public int GenerateOrderTime()
+    {
+        var index = RandomNumberGenerator.GetInt32(0, Parameters.Shift.PowerOrderTimes.Length);
+        return Parameters.Shift.PowerOrderTimes[index];
+    }
+
+    public int GenerateOrderMargin()
+    {
+        return RandomNumberGenerator.GetInt32(Parameters.Shift.DemandMinMargin, Parameters.Shift.DemandMaxMargin);
+    }
+
+    private void AttemptRequestOrder()
+    {
+        if (RequestOrder())
+        {
+            // the shift manager screen never had more details btw.
+            Notify("Incoming Power Order", "See the \"Shift Manager\" screen for more details.");
+            Audio.PlaySfxAsync(AudioKeys.Sfx.PowerOrder);
+        }
+    }
+
+    private async Task OrderRequestInterval()
+    {
+        while (!_meltdown)
+        {
+            if (ShiftOrderSwitch.Value)
+            {
+                AttemptRequestOrder();
+            }
+
+            await Sleep(Parameters.Shift.RequestInterval);
+        }
+    }
+
+    private void PowerOrderCheckLoop(double dt)
+    {
+        _shiftRemainingTime -= dt;
+        _shiftTimeSinceLastOrder += dt;
+
+        ShiftTimeLeft.Value = _shiftRemainingTime;
+        ShiftTimeLeft.ValueOverride = _shiftRemainingTime < 0 ? _na : null;
+
+        if (_shiftOrderDemand is null || _shiftOrderMargin is null)
+        {
+            return;
+        }
+
+        if (IsDemandMet(_shiftOrderDemand ?? 0, _shiftOrderMargin ?? 0))
+        {
+            _shiftOrderTime -= dt;
+            ShiftPowerOrderHold.Value = _shiftOrderTime ?? 0;
+        }
+
+        if (AttemptCompleteOrder())
+        {
+            Task.Run(async () =>
+            {
+                var bonus = GetBonusMultiplier();
+                Notify("Power Order Completed", "Bonus paycheck enroute.");
+                await Sleep(10);
+
+                var xp = GetPowerOrderXp();
+                Notify("Bonus Paycheck", $"Power order completed. (+{xp:N0}) ({bonus:F1}x)");
+                await AddXpAsync(xp);
+            });
+        }
+    }
+
+    private async Task RunShiftLoop()
+    {
+        while (!_notgreatnotterrible)
+        {
+            ShiftOrders.Value = 0;
+            ShiftTier.Value = 1;
+
+            _shiftDay = !_shiftDay;
+            var day = _shiftDay ? "Day" : "Night";
+            Notify("Shift Management",
+                $"{day} Shift personnel. You have 5 minutes to get to your stations. Reactor prep may begin at the shift tone.");
+            await Sleep(16);
+            // TODO: HORN HERE
+            // supposedly have to wait lots of time before starting, but nah
+            Notify("Shift Management",
+                $"{day} Shift personnel. The shift has started. You may begin doing power orders.");
+            _shiftRemainingTime = Parameters.Shift.Duration;
+
+            await Task.Delay(TimeSpan.FromSeconds(_shiftRemainingTime));
+            
+            
+            var tier = GetShiftTier();
+            var bonus = GetBonusMultiplier();
+            var xp = GetShiftXp(tier);
+            Notify("Shift Management",
+                $"Tier {tier} shift achieved. Excellent work. Your paychecks will reflect your dedication.");
+            await Sleep(16);
+            Notify("Bonus Paycheck", $"Successfully completed a Tier {tier} shift! (+{xp:N0}) ({bonus:F1}x)");
+            await AddXpAsync(xp);
+            await Sleep(10);
+        }
+    }
+
+    private bool RequestOrder()
+    {
+        if (_shiftOrderDemand is not null)
+        {
+            return false;
+        }
+
+        _shiftTimeSinceLastOrder = 0;
+
+        _shiftOrderDemand = GenerateOrder();
+        _shiftOrderTime = GenerateOrderTime();
+        _shiftOrderMargin = GenerateOrderMargin();
+
+        ShiftPowerOrderDemand.Value = _shiftOrderDemand ?? 0;
+        ShiftPowerOrderHold.Value = _shiftOrderTime ?? 0;
+        ShiftPowerOrderMargin.Value = _shiftOrderMargin ?? 0;
+
+        ShiftPowerOrderHold.ValueOverride = null;
+        ShiftPowerOrderDemand.ValueOverride = null;
+        ShiftPowerOrderMargin.ValueOverride = null;
+
+        return true;
+    }
+
+    private bool AttemptCompleteOrder()
+    {
+        if (_shiftOrderTime > 0)
+        {
+            return false;
+        }
+
+        _shiftOrderDemand = null;
+        _shiftOrderTime = null;
+        _shiftOrderMargin = null;
+
+        ShiftPowerOrderHold.ValueOverride = "N/A";
+        ShiftPowerOrderDemand.ValueOverride = "N/A";
+        ShiftPowerOrderMargin.ValueOverride = "N/A";
+
+        ShiftOrders.Value++;
+        ShiftTier.Value = GetShiftTier();
+
+        return true;
+    }
+
+    public async Task AddXpAsync(double xp)
+    {
+        PlayerXp.Value += xp;
+        var profile = await Storage.GetAsync<Profile>("profile") ?? new Profile();
+        profile.Experience += (int)xp;
+        await Storage.SetAsync("profile", profile);
+    }
+
+    public void Notify(Notification notification)
+    {
+        OnNotification?.Invoke(this, notification);
+    }
+
+    public void Notify(string title, string message, bool critical = false, bool permanent = false, bool silent = false)
+    {
+        Notify(new Notification(title, message, critical, permanent, silent));
+    }
+
     public Task Sleep(double seconds)
     {
         return Task.Delay(TimeSpan.FromSeconds(seconds));

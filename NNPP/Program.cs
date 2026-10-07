@@ -11,6 +11,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 builder.Services.AddSingleton<Simulation>();
+builder.Services.AddSingleton<PersistentStorage>();
 builder.Services.AddSingleton(sp => new AudioManager(sp.GetRequiredService<IJSRuntime>())
     .Register(AudioKeys.Sfx.Notification, "audio/notification.ogg")
     .Register(AudioKeys.Sfx.NotificationCritical, "audio/notificationcritical.ogg")
@@ -25,6 +26,7 @@ builder.Services.AddSingleton(sp => new AudioManager(sp.GetRequiredService<IJSRu
     .Register(AudioKeys.Sfx.ControlDenied, "audio/controldenied.ogg")
     .Register(AudioKeys.Sfx.AuthTrigger, "audio/redtrigger.ogg")
     .Register(AudioKeys.Sfx.Authorize, "audio/authorize.ogg")
+    .Register(AudioKeys.Sfx.PowerOrder, "audio/powerorder.ogg")
     
     .Register(AudioKeys.Music.Overheat, "audio/overheat.ogg")
     .Register(AudioKeys.Music.Meltdown, "audio/meltdown.ogg")
