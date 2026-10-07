@@ -590,6 +590,7 @@ public class Simulation : IAsyncDisposable
                 RodControl.Locked = false;
                 Running = true;
                 _igniting = false;
+                await AddXpAsync(100, "Ignited the reactor.");
             });
         }
         else
@@ -641,7 +642,11 @@ public class Simulation : IAsyncDisposable
             await Audio.PlayMusicAsync(AudioKeys.Music.Shutdown, 1, loop: false);
 
             await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
-            await Sleep(30);
+            await Sleep(10);
+
+            await AddXpAsync(1000, "Successfully shutdown the reactor.");
+            
+            await Sleep(20);
             Notify("SCRAM Qualification",
                 "\"That... Was close.\" Successfully scram the reactor before it explodes. Refresh the page to restart.",
                 silent: true, permanent: true);
@@ -784,7 +789,7 @@ public class Simulation : IAsyncDisposable
 
     public double GetPowerOrderXp()
     {
-        return 150 * GetBonusMultiplier();
+        return 150;
     }
 
     public int GetShiftTier()
@@ -810,7 +815,7 @@ public class Simulation : IAsyncDisposable
             _ => 0,
         };
 
-        return baseXp * GetBonusMultiplier();
+        return baseXp;
     }
 
     public bool IsDemandMet(double demand, double margin)
@@ -883,13 +888,11 @@ public class Simulation : IAsyncDisposable
         {
             Task.Run(async () =>
             {
-                var bonus = GetBonusMultiplier();
                 Notify("Power Order Completed", "Bonus paycheck enroute.");
                 await Sleep(10);
 
                 var xp = GetPowerOrderXp();
-                Notify("Bonus Paycheck", $"Power order completed. (+{xp:N0}) ({bonus:F1}x)");
-                await AddXpAsync(xp);
+                await AddXpAsync(xp, "Power order completed.");
             });
         }
     }
@@ -916,13 +919,11 @@ public class Simulation : IAsyncDisposable
             
             
             var tier = GetShiftTier();
-            var bonus = GetBonusMultiplier();
             var xp = GetShiftXp(tier);
             Notify("Shift Management",
                 $"Tier {tier} shift achieved. Excellent work. Your paychecks will reflect your dedication.");
             await Sleep(16);
-            Notify("Bonus Paycheck", $"Successfully completed a Tier {tier} shift! (+{xp:N0}) ({bonus:F1}x)");
-            await AddXpAsync(xp);
+            await AddXpAsync(xp, $"Successfully completed a Tier {tier} shift!");
             await Sleep(10);
         }
     }
@@ -972,11 +973,14 @@ public class Simulation : IAsyncDisposable
         return true;
     }
 
-    public async Task AddXpAsync(double xp)
+    public async Task AddXpAsync(double xp, string message)
     {
+        var bonus = GetBonusMultiplier();
+        xp *= bonus;
         Profile.Experience += (int)xp;
         PlayerXp.Value = Profile.Experience;
         await Storage.SetAsync("profile", Profile);
+        Notify("Bonus Paycheck", $"{message} (+{xp:N0}) ({bonus:F1}x)");
     }
 
     public void Notify(Notification notification)
