@@ -844,7 +844,7 @@ public class Simulation : IAsyncDisposable
 
     private void AttemptRequestOrder()
     {
-        if (RequestOrder())
+        if (RequestOrder() && !_meltdown)
         {
             // the shift manager screen never had more details btw.
             Notify("Incoming Power Order", "See the \"Shift Manager\" screen for more details.");
