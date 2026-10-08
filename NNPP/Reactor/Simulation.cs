@@ -367,10 +367,8 @@ public class Simulation : IAsyncDisposable
         Turbine1.Valve.Value = Math.Clamp(Turbine1.Valve.Value, 0, 1);
         Turbine2.Valve.Value = Math.Clamp(Turbine2.Valve.Value, 0, 1);
 
-        Turbine1.FlowRate.Value = Parameters.TurbineFlow(Turbine1.Valve.Value, ReactorTemperature.Value,
-            FeedwaterLevel.Value, Turbine1.IsDestroyed());
-        Turbine2.FlowRate.Value = Parameters.TurbineFlow(Turbine2.Valve.Value, ReactorTemperature.Value,
-            FeedwaterLevel.Value, Turbine2.IsDestroyed());
+        Turbine1.FlowRate.Value = Parameters.TurbineFlow(Turbine1.Valve.Value, Pressure.Value, Turbine1.IsDestroyed());
+        Turbine2.FlowRate.Value = Parameters.TurbineFlow(Turbine2.Valve.Value, Pressure.Value, Turbine2.IsDestroyed());
 
         var turb1RpmTarget = Parameters.RpmTarget(Turbine1.FlowRate.Value, Turbine1.IsDestroyed());
         var turb1RpmTau = Parameters.RpmTau(Turbine1.AccelerationSwitch.Position, Turbine1.IsDestroyed());
@@ -512,7 +510,7 @@ public class Simulation : IAsyncDisposable
         }
         else
         {
-            ReactorTemperature.Value = Parameters.Core.StallTemp;
+            //ReactorTemperature.Value = Parameters.Core.StallTemp;
         }
 
         if (ReactorTemperature.Value < Parameters.Core.StallTemp)
