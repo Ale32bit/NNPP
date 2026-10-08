@@ -51,6 +51,7 @@ public static class Parameters
         public const double RampEnd = 423;
         public const double RampWidth = 50;
         public const double RampExp = 1.4;
+        public const double K = 0.1;
     }
 
     public static class CoolantPump
@@ -71,15 +72,15 @@ public static class Parameters
     {
         public const double FlowFull = 8.454;
         public const double DeadFlow = 0.276;
-        public const double SyncFlow = 3.61;
+        public const double SyncFlow = 3.61111;
         public const double SyncRpm = 3000;
         public const double TauFast = 17.5;
         public const double TauMedium = 26.5;
         public const double TauSlow = 52.5;
         public const double TauBroken = 12;
         public const double FlowMin = 1.5;
-        public const double SyncRpmTolerance = 50; // made up
-        public const double PowerPerFlow = 5512.6; // minus 3.61 for base flow
+        public const double SyncRpmTolerance = 50; // made up for antispam reasons
+        public const double PowerPerFlow = 5500.0;
 
         // the following vibration values are arbitrary. i need to research more
         public const double VibPerAccel = 2;
@@ -233,8 +234,19 @@ public static class Parameters
     public static double CoolantRate(double rpm1, double rpm2, bool valveOpen) =>
         valveOpen ? CoolantPump.CoolingPerPump * (rpm1 + rpm2) / CoolantPump.MaxRpm : 0;
 
-    public static double TurbineFlow(double valve, double temp, double level, bool broken) =>
-        broken ? 0 : Turbine.FlowFull * valve * SteamFactor(temp) * level;
+    public static double TurbineFlow(double valve, double pressure, bool broken)
+    {
+        if (broken)
+            return 0;
+
+        if (pressure < Pressure.Atm)
+        {
+            return 0;
+        }
+
+        var fullFlowrate = Pressure.K * Math.Sqrt(pressure - Pressure.Atm);
+        return fullFlowrate * valve;
+    }
 
     public static double SteamFactor(double temp) // TODO: ???? document this
     {
