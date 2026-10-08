@@ -26,6 +26,11 @@
     {
         Simulation.KeyPress += (_, key) =>
         {
+            if (Control.KeyEventLock)
+            {
+                return;
+            }
+
             switch (key.Key)
             {
                 case "e":

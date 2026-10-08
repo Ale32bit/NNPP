@@ -1,0 +1,211 @@
+﻿@using NNPP.Reactor
+@using NNPP.Reactor.Grid
+@inject Simulation Sim
+
+@if (OpenGridControl)
+{
+    <div class="grid-overlay" @onclick="Close">
+        <div class="grid-screen" @onclick:stopPropagation="true">
+            <p>Naramo Nuclear Power Plant</p>
+            <p>Terminal #3 [GRID CONTROL]</p>
+            @* btw there is one extra char compared to other lines, now you are cursed with this knowledge too *@
+            <p>============================</p>
+            <p><br/></p>
+            <p>Current grid state:</p>
+            <p>Reactor bus source: <span class="lime">External Grid</span></p>
+            <p>Auxiliary bus Source: <span class="lime">Reactor Grid</span></p>
+            <p>DC bus source: <span class="lime">Auxiliary Grid</span></p>
+            <p><br/></p>
+            <p>-----------------------------</p>
+            <p><br/></p>
+            <p>Pending grid changes:</p>
+            <p>- No grid switches pending</p>
+            <p><br/></p>
+            <p>-----------------------------</p>
+            <p><br/></p>
+            <p>Available commands:</p>
+            <div class="options">
+                <p><span class="@Class(FacilityGrid.AuxiliarySource.Primary)" @onclick="PowerAuxFromPrimary">1) Power <b>Auxiliary Grid</b> from <b>Reactor Grid</b></span> @(UseText(FacilityGrid.AuxiliarySource.Primary))</p>
+                <p><span class="@Class(FacilityGrid.AuxiliarySource.Generators)" @onclick="PowerAuxFromGenerators">2) Power <b>Auxiliary Grid</b> from <b>Generators</b></span> @UseText(FacilityGrid.AuxiliarySource.Generators)</p>
+                <p><span class="@Class(FacilityGrid.PrimarySource.Turbines)" @onclick="PowerPrimaryFromTurbines">3) Power <b>Reactor Grid</b> from <b>Turbines</b></span> @UseText(FacilityGrid.PrimarySource.Turbines)</p>
+                <p><span class="@Class(FacilityGrid.PrimarySource.External)" @onclick="PowerPrimaryFromExternals">4) Power <b>Reactor Grid</b> from <b>External Grid</b></span> @UseText(FacilityGrid.PrimarySource.External)</p>
+                <p><span @onclick="ToggleDcBus">5) @GetDcVerb() <b>DC bus</b> from <b>Auxiliary Grid</b></span></p>
+                <p><span @onclick="Close">PRESS <kbd>e</kbd> or <kbd>q</kbd> TO EXIT</span></p>
+            </div>
+            <p><br/></p>
+            <p>-----------------------------</p>
+            <p>Enter command number:</p>
+            <p>> _</p>
+        </div>
+    </div>
+}
+
+<div class="frame" @onclick="Open">
+    <div class="keyboard">
+        @for (int i = 0; i < 13 * 4; i++)
+        {
+            <div class="key"></div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required FacilityGrid Grid { get; set; }
+
+    private bool OpenGridControl { get; set; } = false;
+
+    private static readonly MarkupString CurrentlyInUseText = new("<span class=\"green\">(Currently in use)</span>"); 
+    private static readonly MarkupString NoPowerText = new("<span class=\"red\">(No Power)</span>");
+
+    protected override void OnInitialized()
+    {
+        Sim.KeyPress += (_, e) => OnKey(e);
+    }
+
+    public void Open()
+    {
+        OpenGridControl = true;
+        Sim.RodControl.KeyEventLock = true;
+    }
+
+    public void Close()
+    {
+        OpenGridControl = false;
+        Sim.RodControl.KeyEventLock = false;
+    }
+
+    private bool CanUse(FacilityGrid.PrimarySource source)
+    {
+        var inUse = Grid.Primary.Value;
+        if (source == inUse)
+        {
+            return false;
+        }
+
+        switch (source)
+        {
+            case FacilityGrid.PrimarySource.External when !Grid.ExtCanSupply():
+            case FacilityGrid.PrimarySource.Turbines when !Grid.TurbinesCanSupply():
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    private bool CanUse(FacilityGrid.AuxiliarySource source)
+    {
+        var inUse = Grid.Auxiliary.Value;
+        if (source == inUse)
+        {
+            return false;
+        }
+
+        switch (source)
+        {
+            case FacilityGrid.AuxiliarySource.Primary when !Grid.PrimCanSupply():
+            case FacilityGrid.AuxiliarySource.Generators when !Grid.GensCanSupply():
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    private string Class(FacilityGrid.PrimarySource source)
+    {
+        return CanUse(source) ? "" : "strike";
+    }
+
+    private string Class(FacilityGrid.AuxiliarySource source)
+    {
+        return CanUse(source) ? "" : "strike";
+    }
+    
+    private bool InUse(FacilityGrid.PrimarySource source)
+    {
+        return source == Grid.Primary.Value;
+    }
+
+    private bool InUse(FacilityGrid.AuxiliarySource source)
+    {
+        return source == Grid.Auxiliary.Value;
+    }
+    
+    private MarkupString UseText(FacilityGrid.PrimarySource source)
+    {
+        if (InUse(source))
+        {
+            return CurrentlyInUseText;
+        }
+        
+        if(!CanUse(source))
+        {
+            return NoPowerText;
+        }
+        
+        return new MarkupString("");
+    }
+
+    private MarkupString UseText(FacilityGrid.AuxiliarySource source)
+    {
+        if (InUse(source))
+        {
+            return CurrentlyInUseText;
+        }
+        
+        if(!CanUse(source))
+        {
+            return NoPowerText;
+        }
+        
+        return new MarkupString("");
+    }
+
+    private void OnKey(KeyPressEventArgs e)
+    {
+        if (!OpenGridControl)
+        {
+            return;
+        }
+
+        Action callback = e.Key switch
+        {
+            "1" => PowerAuxFromPrimary,
+            "2" => PowerAuxFromGenerators,
+            "3" => PowerPrimaryFromTurbines,
+            "4" => PowerPrimaryFromExternals,
+            "5" => ToggleDcBus,
+            "e" or "q" => Close,
+            _ => () => { },
+        };
+
+        callback();
+    }
+
+    private void PowerAuxFromPrimary()
+    {
+    }
+
+    private void PowerAuxFromGenerators()
+    {
+    }
+
+    private void PowerPrimaryFromTurbines()
+    {
+    }
+
+    private void PowerPrimaryFromExternals()
+    {
+    }
+
+    private string GetDcVerb()
+    {
+        return Grid.DcConnected ? "Cut power to" : "Power";
+    }
+
+    private void ToggleDcBus()
+    {
+        Grid.DcConnected = !Grid.DcConnected;
+        Close();
+    }
+
+}

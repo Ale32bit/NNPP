@@ -1,0 +1,26 @@
+﻿@using NNPP.Reactor
+@inject Simulation Sim
+
+@if (!Enable)
+{
+    <div class="dark">
+    </div>
+}
+
+@code {
+    public bool Enable { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        Sim.Ticked += Ticked;
+    }
+
+    private void Ticked()
+    {
+        if (Sim.Grid.IsDcPowered() != Enable)
+        {
+            Enable = Sim.Grid.IsDcPowered();
+            StateHasChanged();
+        }
+    }
+}

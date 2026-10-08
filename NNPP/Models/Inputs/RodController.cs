@@ -11,4 +11,5 @@ public class RodController
 
     public ControlPosition Position { get; set; } = ControlPosition.Neutral;
     public bool Locked { get; set; } = false;
+    public bool KeyEventLock { get; set; } = false;
 }

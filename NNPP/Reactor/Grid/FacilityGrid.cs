@@ -56,16 +56,36 @@ public class FacilityGrid(Simulation Sim)
     
     // Aux to DC
     public bool DcConnected { get; set; } = true;
+
+    public bool ExtCanSupply()
+    {
+        return ExternalRunning;
+    }
+
+    public bool TurbinesCanSupply()
+    {
+        return Sim.GetTurbineOutput() > 0;
+    }
+
+    public bool GensCanSupply()
+    {
+        return false; // TODO
+    }
+
+    public bool PrimCanSupply()
+    {
+        return IsPrimaryPowered();
+    }
     
 
     public bool IsPrimaryPowered()
     {
-        return true;
+        return PrimarySupply.Value > 0;
     }
     
     public bool IsAuxiliaryPowered()
     {
-        return true;
+        return AuxSupply.Value > 0;
     }
 
     public bool IsDcPowered()
