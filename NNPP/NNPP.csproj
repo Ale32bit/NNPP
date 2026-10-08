@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+		<StaticWebAssetFingerprintContent>true</StaticWebAssetFingerprintContent>
     </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -49,5 +50,26 @@
       <Folder Include="wwwroot\fonts\noto\" />
       <Folder Include="wwwroot\lib\" />
     </ItemGroup>
+
+	<Target Name="CacheBustIndexHtml" AfterTargets="Publish">
+		<PropertyGroup>
+			<CacheBust>$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</CacheBust>
+			<PublishedIndexHtml>$(PublishDir)wwwroot\index.html</PublishedIndexHtml>
+		</PropertyGroup>
+
+		<ItemGroup>
+			<_IndexHtml Include="$(PublishedIndexHtml)" />
+		</ItemGroup>
+
+		<ReadLinesFromFile File="$(PublishedIndexHtml)">
+			<Output TaskParameter="Lines" ItemName="_IndexHtmlLines" />
+		</ReadLinesFromFile>
+
+		<WriteLinesToFile
+				File="$(PublishedIndexHtml)"
+				Lines="@(_IndexHtmlLines->Replace('__BUILD_VERSION', '$(CacheBust)'))"
+				Overwrite="true"
+				Encoding="UTF-8" />
+	</Target>
 
 </Project>
