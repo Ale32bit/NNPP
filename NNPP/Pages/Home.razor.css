@@ -199,3 +199,33 @@ h2 {
     font-size: 1.4em;
     rotate: 10deg;
 }
+
+.wip {
+    position: absolute;
+    width: 5em;
+    display: inline;
+    background-color: #f7c501;
+    color: black;
+    border: 10px solid #f7c501;
+    outline: 2px solid black;
+    outline-offset: -5px;
+    border-radius: 20px;
+    margin: 0 40px 20px;
+    font-weight: bolder;
+    text-align: center;
+    font-size: 1.1em;
+}
+
+.image-frame {
+    width: 8em;
+    border-radius: 5px;
+    border: 2px ridge black;
+    margin: 10px;
+}
+
+.frog {
+    position: absolute;
+    width: calc(17px * 3);
+    transform: translate(75%, -105%);
+    image-rendering: pixelated;
+}

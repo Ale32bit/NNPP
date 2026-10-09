@@ -84,7 +84,7 @@
                 </div>
 
                 <div class="bottom">
-                    <FlowRateValve Switch="Sim.FeedwaterPump2.Switch"/>
+                    <p class="wip">CLP + FWP STATUS HERE</p>
                 </div>
             </div>
 
@@ -98,12 +98,14 @@
                 </div>
 
                 <div class="bottom">
-                    <FlowRateValve Switch="Sim.FeedwaterPump1.Switch"/>
+                    <FlowRateValve Switch="Sim.FeedwaterPump2.Switch" Label="FLOW 2"/>
+                    <FlowRateValve Switch="Sim.FeedwaterPump1.Switch" Label="FLOW 1"/>
                 </div>
             </div>
 
             <div class="station">
                 <div class="top">
+                    <img class="frog" alt="frog" src="/assets/frog.png"/>
                     <Display Title="Feedwater Overview">
                         <MetricDisplay Index="1" Parameter="Sim.FeedwaterLevel"></MetricDisplay>
                         <MetricDisplay Index="2" Parameter="Sim.TotalFeedwaterFlow"></MetricDisplay>
@@ -162,6 +164,18 @@
                         <ReliefValve Valve="Sim.ReliefValves[2]"/>
                         <ReliefValve Valve="Sim.ReliefValves[3]"/>
                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="station">
+                <div class="top">
+                    <img class="image-frame" alt="uhh" src="/assets/uhh.png"/>
+                </div>
+
+                <div class="bottom">
+                    <p class="wip">REACTOR STATUS HERE</p>
                 </div>
             </div>
         </div>
@@ -296,6 +310,7 @@
                 </div>
 
                 <div class="bottom">
+                    <p class="wip">TURBINES STATUS HERE</p>
                 </div>
             </div>
         </div>
@@ -321,7 +336,7 @@
                     <GridControl Grid="Sim.Grid"/>
                 </div>
             </div>
-            
+
             <div class="station">
                 <div class="top">
                     <Display Title="Bus Overview (Aux)" Grid="Display.GridType.OneByThree">
@@ -332,6 +347,7 @@
                 </div>
 
                 <div class="bottom">
+                    <p class="wip">GRID STATUS HERE</p>
                 </div>
             </div>
         </div>

@@ -3,24 +3,34 @@
 @inject IJSRuntime JS
 @inject AudioManager Audio
 
-<div class="switch">
-    <span style="--a:-60deg">––</span>
-    <span style="--a:-30deg">–</span>
-    <span style="--a:0deg">•</span>
-    <span style="--a:30deg">+</span>
-    <span style="--a:60deg">++</span>
-    <div class="knob" style="transform: @_transform;" @ref="_element" onclick="@OnClick"></div>
+<div class="frame">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <div class="label">
+            <span>@Label</span>
+        </div>
+    }
+    <div class="switch">
+        <span style="--a:-60deg">––</span>
+        <span style="--a:-30deg">–</span>
+        <span style="--a:0deg">•</span>
+        <span style="--a:30deg">+</span>
+        <span style="--a:60deg">++</span>
+        <div class="knob" style="transform: @_transform;" @ref="_element" onclick="@OnClick"></div>
+    </div>
 </div>
 
 @code {
+
     private class Size
     {
         public int Width { get; set; }
         public int Height { get; set; }
     }
 
-    [Parameter, EditorRequired]
-    public required RateSwitch Switch { get; set; }
+    [Parameter, EditorRequired] public required RateSwitch Switch { get; set; }
+    
+    [Parameter] public string? Label { get; set; }
 
     private ElementReference _element;
     private Size? _size;
@@ -44,4 +54,5 @@
         _transform = $"rotate({value * 30}deg)";
         Audio.Interact();
     }
+
 }

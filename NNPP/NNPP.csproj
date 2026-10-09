@@ -47,6 +47,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="wwwroot\assets\" />
       <Folder Include="wwwroot\fonts\noto\" />
       <Folder Include="wwwroot\lib\" />
     </ItemGroup>

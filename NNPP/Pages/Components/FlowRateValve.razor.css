@@ -42,3 +42,12 @@
         height: 20px;
         background: #333;
     }
+
+.label {
+    background: white;
+    font-size: 0.6rem;
+    text-align: center;
+    padding: 0 2px;
+    font-weight: 600;
+    user-select: none;
+}
