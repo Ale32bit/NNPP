@@ -228,6 +228,14 @@ public class Simulation : IAsyncDisposable
                 Turbine2.Rpm.Value = 3000;
                 AttemptTurbineSync(Turbine2);
             }
+
+            if (key.Key == "k")
+            {
+                Running = true;
+                ReactorTemperature.Value = 1420;
+                RodControl.Locked = false;
+                RodInsertion.Value = 0.55;
+            }
         };
     }
 
@@ -430,7 +438,7 @@ public class Simulation : IAsyncDisposable
 
         GridTotalOutput.Value = GetTotalOutput();
         GridTurbineOutput.Value = GetTurbineOutput();
-        GridExcessOutput.Value = GetExcessOutput();
+        GridExcessOutput.Value = Grid.GetExcessOutput();
 
         if (Running)
         {
@@ -732,11 +740,6 @@ public class Simulation : IAsyncDisposable
         return GetTurbineOutput();
     }
 
-    public double GetExcessOutput()
-    {
-        return Math.Clamp(GetTurbineOutput(), 0, 50000);
-    }
-
     public void OnKeyPress(KeyPressEventArgs args)
     {
         if (_started)
@@ -840,7 +843,7 @@ public class Simulation : IAsyncDisposable
 
     public bool IsDemandMet(double demand, double margin)
     {
-        var excess = GetExcessOutput();
+        var excess = Grid.GetExcessOutput();
         var delta = Math.Abs(excess - demand);
         return delta <= margin;
     }

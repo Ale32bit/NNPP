@@ -9,51 +9,54 @@ public class FacilityGrid(Simulation Sim)
         External,
         Turbines,
     }
-    
+
     public enum AuxiliarySource
     {
         Primary,
         Generators,
     }
-    
+
     public const int DcDemand = 5000;
-    public const double GeneratorSupply = 5666; // x 3 =  17000
+    public const int GeneratorSupply = 5666; // x 3 =  17000
     public const double ExternalSupply = 26000;
-    
-    
+    public const int OverallFacilityDemand = 30_000;
+    public const int MaxExcessOutput = 50_000;
+
+    public IReadOnlyList<GridGenerator> Generators => [new(), new(), new()];
+
     // EXT/Turb to Primary
     public MetricEnum<PrimarySource> Primary { get; } = new("Primary", PrimarySource.External);
-    
+
     // Primary/EDG to Aux
     public MetricEnum<AuxiliarySource> Auxiliary { get; } = new("Auxiliary", AuxiliarySource.Primary);
-    
+
     public Metric PrimaryDemand { get; } = new("Demand", 0, "kW")
     {
         ShowUnit = false,
         DecimalPlaces = 0,
     };
-    
+
     public Metric PrimarySupply { get; } = new("Supply", 0, "kW")
     {
         ShowUnit = false,
         DecimalPlaces = 0,
     };
-    
+
     public Metric AuxDemand { get; } = new("Demand", 0, "kW")
     {
         ShowUnit = false,
         DecimalPlaces = 0,
     };
-    
+
     public Metric AuxSupply { get; } = new("Supply", 0, "kW")
     {
         ShowUnit = false,
         DecimalPlaces = 0,
     };
-    
+
     // External transformers can break
     public bool ExternalRunning { get; set; } = true;
-    
+
     // Aux to DC
     public bool DcConnected { get; set; } = true;
 
@@ -69,20 +72,20 @@ public class FacilityGrid(Simulation Sim)
 
     public bool GensCanSupply()
     {
-        return false; // TODO
+        return Generators.Any(q => q.Running);
     }
 
     public bool PrimCanSupply()
     {
         return IsPrimaryPowered();
     }
-    
+
 
     public bool IsPrimaryPowered()
     {
         return PrimarySupply.Value > 0;
     }
-    
+
     public bool IsAuxiliaryPowered()
     {
         return AuxSupply.Value > 0;
@@ -90,7 +93,14 @@ public class FacilityGrid(Simulation Sim)
 
     public bool IsDcPowered()
     {
-        return DcConnected && IsAuxiliaryPowered();
+        var auxSupply = AuxSupply.Value;
+        var auxDemand = GetAuxDemand();
+        return DcConnected && auxSupply - auxDemand >= 0;
+    }
+
+    public int GetGeneratorsOutput()
+    {
+        return GeneratorSupply * Generators.Count(q => q.Running);
     }
 
     /// <summary>
@@ -115,11 +125,11 @@ public class FacilityGrid(Simulation Sim)
         var demand = 0;
         demand += Sim.CoolantPumpBeta.GetPowerDemand(); // always demanding power regardless of state
         demand += Sim.FeedwaterPump2 is { Powered: true, Alive: true } ? Sim.FeedwaterPump2.GetPowerDemand() : 0;
-        
+
 
         return demand;
     }
-    
+
     /// <summary>
     /// Get demand of dc
     /// </summary>
@@ -128,7 +138,7 @@ public class FacilityGrid(Simulation Sim)
     {
         return DcConnected ? DcDemand : 0;
     }
-    
+
     public int GetPrimaryDemand()
     {
         return GetPrimaryBusDemand() + (Auxiliary.Value == AuxiliarySource.Primary ? GetAuxBusDemand() : 0);
@@ -140,6 +150,17 @@ public class FacilityGrid(Simulation Sim)
         return GetAuxBusDemand() + GetDcBusDemand();
     }
 
+    public double GetExcessOutput()
+    {
+        var output = Sim.GetTurbineOutput();
+        if (Primary.Value == PrimarySource.Turbines)
+        {
+            output -= OverallFacilityDemand;
+        }
+        
+        return Math.Clamp(output, 0, MaxExcessOutput);
+    }
+
     public void Update(double dt)
     {
         // the bus displays in CR are misleading
@@ -149,14 +170,14 @@ public class FacilityGrid(Simulation Sim)
         // but aux also powers DC, and that's an extra 5000kW!!!
         // so why doesn't the primary overview show a demand of ~23400kW, that's Primary + Aux + DC?
         // at least the aux overview shows aux + dc, but cmon.
-        
+
         // Primary overview demand = Primary + AUX (NO DC!)
         // Aux overview demand = Aux + DC.
-        
+
         // absolutely insane.
-        
+
         // should i be faithful or should i be sane?
-        
+
         // primary
 
         var primarySupply = Primary.Value switch
@@ -167,22 +188,36 @@ public class FacilityGrid(Simulation Sim)
         };
 
         // aux
-        
+
         var auxSupply = Auxiliary.Value switch
         {
             AuxiliarySource.Primary => Math.Max(0, primarySupply - GetPrimaryBusDemand()),
-            AuxiliarySource.Generators => 0, // TODO: implement
+            AuxiliarySource.Generators => GetGeneratorsOutput(), // TODO: implement
             _ => 0
         };
-        
+
         // dc
-        
+
         var dcSupply = DcConnected ? Math.Max(0, auxSupply - GetAuxBusDemand()) : 0;
 
         PrimaryDemand.Value = GetPrimaryDemand();
         AuxDemand.Value = GetAuxDemand();
-        
+
         PrimarySupply.Value = primarySupply;
         AuxSupply.Value = auxSupply;
+        
+        // handle components
+        
+        // primary
+        primarySupply -= Sim.CoolantPumpAlpha.GetPowerDemand();
+        Sim.CoolantPumpAlpha.Powered = primarySupply >= 0;
+        primarySupply -= Sim.FeedwaterPump1.GetPowerDemand();
+        Sim.FeedwaterPump1.Powered = primarySupply >= 0;
+        
+        // Auxiliary
+        auxSupply -= Sim.CoolantPumpBeta.GetPowerDemand();
+        Sim.CoolantPumpBeta.Powered = auxSupply >= 0;
+        auxSupply -= Sim.FeedwaterPump2.GetPowerDemand();
+        Sim.FeedwaterPump2.Powered = auxSupply >= 0;
     }
 }

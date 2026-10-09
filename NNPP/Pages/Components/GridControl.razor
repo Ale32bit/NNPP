@@ -183,18 +183,34 @@
 
     private void PowerAuxFromPrimary()
     {
+        if (CanUse(FacilityGrid.AuxiliarySource.Primary))
+        {
+            Grid.Auxiliary.Value = FacilityGrid.AuxiliarySource.Primary;
+        }
     }
 
     private void PowerAuxFromGenerators()
     {
+        if (CanUse(FacilityGrid.AuxiliarySource.Generators))
+        {
+            Grid.Auxiliary.Value = FacilityGrid.AuxiliarySource.Generators;
+        }
     }
 
     private void PowerPrimaryFromTurbines()
     {
+        if (CanUse(FacilityGrid.PrimarySource.Turbines))
+        {
+            Grid.Primary.Value = FacilityGrid.PrimarySource.Turbines;
+        }
     }
 
     private void PowerPrimaryFromExternals()
     {
+        if (CanUse(FacilityGrid.PrimarySource.External))
+        {
+            Grid.Primary.Value = FacilityGrid.PrimarySource.External;
+        }
     }
 
     private string GetDcVerb()
@@ -205,7 +221,6 @@
     private void ToggleDcBus()
     {
         Grid.DcConnected = !Grid.DcConnected;
-        Close();
     }
 
 }
