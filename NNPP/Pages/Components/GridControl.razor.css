@@ -102,3 +102,9 @@
     font-weight: 600;
     text-transform: uppercase;
 }
+
+::deep .grid-screen .yellow {
+    color: #e3e305;
+    font-weight: 600;
+    text-transform: uppercase;
+}

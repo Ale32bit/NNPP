@@ -21,6 +21,10 @@ public class Simulation : IAsyncDisposable
 
     public bool Started => _started;
 
+    public ulong Tick { get; private set; } = 0;
+    public int Tickrate { get; set; } = 20;
+    public double Runtime { get; private set; } = 0;
+
     public MetricEnum<ReactorStatus> ReactorStatus { get; } = new("Reactor Status", Models.ReactorStatus.Stalled);
 
     public Metric ReactorTemperature { get; } = new("Reactor Temp", Parameters.Core.StallTemp, "K");
@@ -78,7 +82,7 @@ public class Simulation : IAsyncDisposable
         DecimalPlaces = 0,
         ShowUnit = false,
     };
-    
+
     public Metric GridTurbineOutput { get; } = new("Turb. Output", 0, "kW")
     {
         DecimalPlaces = 0,
@@ -179,9 +183,9 @@ public class Simulation : IAsyncDisposable
     {
         Audio = audioManager;
         Storage = storage;
-        
-        _loop = new GameLoop(20, Update, () => Ticked?.Invoke());
-        
+
+        _loop = new GameLoop(Tickrate, Update, () => Ticked?.Invoke());
+
         Grid = new FacilityGrid(this);
 
         CoolantValveMetric = new(CoolantValve, "Coolant Valves", "OPEN", "CLOSED");
@@ -268,7 +272,7 @@ public class Simulation : IAsyncDisposable
 
             return Task.CompletedTask;
         });
-        
+
         Notify("Welcome to NNPPRS", "Please report any bug!", silent: true);
 
         Task.Run(OrderRequestInterval);
@@ -277,6 +281,9 @@ public class Simulation : IAsyncDisposable
 
     public void Update(double dt)
     {
+        Tick++;
+        Runtime += dt;
+        
         if (_firstTick)
         {
             OnFirstTick();
@@ -436,7 +443,7 @@ public class Simulation : IAsyncDisposable
             Turbine2.Phase = (Turbine2.Phase + 6 * (Turbine2.Rpm.Value - Parameters.Turbine.SyncRpm) * dt) % 360;
         }
 
-        GridTotalOutput.Value = GetTotalOutput();
+        GridTotalOutput.Value = Grid.GetTotalOutput();
         GridTurbineOutput.Value = GetTurbineOutput();
         GridExcessOutput.Value = Grid.GetExcessOutput();
 
@@ -527,7 +534,7 @@ public class Simulation : IAsyncDisposable
         }
 
         PowerOrderCheckLoop(dt);
-        
+
         Grid.Update(dt);
 
         OnUpdate?.Invoke(this, dt);
@@ -668,7 +675,7 @@ public class Simulation : IAsyncDisposable
             await Sleep(10);
 
             await AddXpAsync(1000, "Successfully shutdown the reactor.");
-            
+
             await Sleep(20);
             Notify("SCRAM Qualification",
                 "\"That... Was close.\" Successfully scram the reactor before it explodes. Refresh the page to restart.",
@@ -733,11 +740,6 @@ public class Simulation : IAsyncDisposable
             : 0;
 
         return output;
-    }
-
-    public double GetTotalOutput()
-    {
-        return GetTurbineOutput();
     }
 
     public void OnKeyPress(KeyPressEventArgs args)
@@ -939,8 +941,8 @@ public class Simulation : IAsyncDisposable
             _shiftRemainingTime = Parameters.Shift.Duration;
 
             await Task.Delay(TimeSpan.FromSeconds(_shiftRemainingTime));
-            
-            
+
+
             var tier = GetShiftTier();
             var xp = GetShiftXp(tier);
             Notify("Shift Management",

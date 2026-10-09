@@ -1,4 +1,5 @@
-﻿using NNPP.Models;
+﻿using System.Security.Cryptography;
+using NNPP.Models;
 
 namespace NNPP.Reactor.Grid;
 
@@ -17,10 +18,11 @@ public class FacilityGrid(Simulation Sim)
     }
 
     public const int DcDemand = 5000;
-    public const int GeneratorSupply = 5666; // x 3 =  17000
+    public const double GeneratorSupply = 17000d / 3d; // x 3 =  17000
     public const double ExternalSupply = 26000;
     public const int OverallFacilityDemand = 30_000;
     public const int MaxExcessOutput = 50_000;
+    public const int GenPowerNoiseMax = 300;
 
     public IReadOnlyList<GridGenerator> Generators => [new(), new(), new()];
 
@@ -98,9 +100,25 @@ public class FacilityGrid(Simulation Sim)
         return DcConnected && auxSupply - auxDemand >= 0;
     }
 
+    private int GetGeneratorNoise(int running)
+    {
+        var seed = (int)((double)Sim.Tick / Sim.Tickrate * 10) * 1000;
+        var rng = new Random(seed);
+        var wave = Math.Sin(0.5 * Sim.Runtime * Math.PI * rng.NextDouble());
+        var noise = 0;
+        for (var i = 0; i < running; i++)
+        {
+            noise += (int)(wave * rng.NextDouble() * GenPowerNoiseMax);
+        }
+
+        return noise;
+    }
+
     public int GetGeneratorsOutput()
     {
-        return GeneratorSupply * Generators.Count(q => q.Running);
+        var running = Generators.Count(q => q.Running);
+        var noise = GetGeneratorNoise(running);
+        return (int)(GeneratorSupply * running) + noise;
     }
 
     /// <summary>
@@ -150,6 +168,17 @@ public class FacilityGrid(Simulation Sim)
         return GetAuxBusDemand() + GetDcBusDemand();
     }
 
+    public double GetTotalOutput()
+    {
+        var value = Sim.GetTurbineOutput();
+        if (Auxiliary.Value == AuxiliarySource.Generators)
+        {
+            value += GetGeneratorsOutput();
+        }
+
+        return value;
+    }
+
     public double GetExcessOutput()
     {
         var output = Sim.GetTurbineOutput();
@@ -157,7 +186,7 @@ public class FacilityGrid(Simulation Sim)
         {
             output -= OverallFacilityDemand;
         }
-        
+
         return Math.Clamp(output, 0, MaxExcessOutput);
     }
 
@@ -187,6 +216,8 @@ public class FacilityGrid(Simulation Sim)
             _ => 0,
         };
 
+        primarySupply = Math.Clamp(primarySupply, 0, 30000);
+
         // aux
 
         var auxSupply = Auxiliary.Value switch
@@ -205,15 +236,15 @@ public class FacilityGrid(Simulation Sim)
 
         PrimarySupply.Value = primarySupply;
         AuxSupply.Value = auxSupply;
-        
+
         // handle components
-        
+
         // primary
         primarySupply -= Sim.CoolantPumpAlpha.GetPowerDemand();
         Sim.CoolantPumpAlpha.Powered = primarySupply >= 0;
         primarySupply -= Sim.FeedwaterPump1.GetPowerDemand();
         Sim.FeedwaterPump1.Powered = primarySupply >= 0;
-        
+
         // Auxiliary
         auxSupply -= Sim.CoolantPumpBeta.GetPowerDemand();
         Sim.CoolantPumpBeta.Powered = auxSupply >= 0;

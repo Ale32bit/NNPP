@@ -30,7 +30,7 @@ public static class Parameters
     {
         public const double MaxRpm = 3200; // 80% = 2560; 100% = 3200
         public const double RpmRiseRate = 50;
-        public const double RpmFallRate = 75;
+        public const double RpmFallRate = 50;
         public const double MaxFlow = 1.15;
         public const double NeedBase = 0.7;
         public const double NeedRefTemp = 1420;
