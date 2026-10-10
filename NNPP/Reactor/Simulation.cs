@@ -182,11 +182,14 @@ public class Simulation : IAsyncDisposable
     private readonly GameLoop _loop;
     private bool _started;
     private bool _firstTick = true;
+    
+    private readonly ILogger<Simulation> _logger;
 
-    public Simulation(AudioManager audioManager, PersistentStorage storage)
+    public Simulation(AudioManager audioManager, PersistentStorage storage, ILogger<Simulation> logger)
     {
         Audio = audioManager;
         Storage = storage;
+        _logger = logger;
 
         _loop = new GameLoop(Tickrate, Update, () => Ticked?.Invoke());
 
@@ -501,7 +504,13 @@ public class Simulation : IAsyncDisposable
 
             if ((ReactorTemperature.Value >= Parameters.Core.MeltdownTemperature || _forceMeltdown) && !_meltdown)
             {
-                Task.Run(Meltdown);
+                Task.Run(Meltdown).ContinueWith(task =>
+                {
+                    if (task.IsFaulted)
+                    {
+                        _logger.LogError(task.Exception, "Meltdown task failure");
+                    }
+                });
             }
 
             if (_meltdown && ScramButton.Enabled && RodInsertion.Value < 1)
