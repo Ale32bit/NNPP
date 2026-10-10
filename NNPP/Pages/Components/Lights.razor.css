@@ -1,8 +1,19 @@
-﻿.dark {
+﻿.lights {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.6);
-    backdrop-filter: blur(1px);
     z-index: 100;
     pointer-events: none;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(1px);
+    opacity: 0;
+    transition:
+            opacity .5s linear(0, .3 10%, .1 18%, .5 30%, .35 40%, .8 60%, .65 70%, 1),
+            backdrop-filter .5s ease;
+}
+
+.dark {
+    opacity: 1;
+    transition:
+            opacity .6s linear(0, .4 8%, .05 14%, .6 25%, .2 32%, .7 50%, .5 58%, .9 75%, .8 82%, 1),
+            backdrop-filter .6s ease;
 }

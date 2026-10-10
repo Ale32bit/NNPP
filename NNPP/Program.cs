@@ -27,6 +27,9 @@ builder.Services.AddSingleton(sp => new AudioManager(sp.GetRequiredService<IJSRu
     .Register(AudioKeys.Sfx.AuthTrigger, "audio/redtrigger.ogg")
     .Register(AudioKeys.Sfx.Authorize, "audio/authorize.ogg")
     .Register(AudioKeys.Sfx.PowerOrder, "audio/powerorder.ogg")
+    .Register(AudioKeys.Sfx.PowerOut, "audio/powerout.ogg")
+    .Register(AudioKeys.Sfx.PowerIn, "audio/powerin.ogg")
+    .Register(AudioKeys.Sfx.BlackOut, "audio/blackout.ogg")
     
     .Register(AudioKeys.Music.Overheat, "audio/overheat.ogg")
     .Register(AudioKeys.Music.Meltdown, "audio/meltdown.ogg")

@@ -50,7 +50,7 @@ public class FacilityGrid(Simulation Sim)
         DecimalPlaces = 0,
     };
 
-    public Metric AuxSupply { get; } = new("Supply", 0, "kW")
+    public Metric AuxSupply { get; } = new("Supply", 16800, "kW") // initial value just to stop DC from freaking out
     {
         ShowUnit = false,
         DecimalPlaces = 0,

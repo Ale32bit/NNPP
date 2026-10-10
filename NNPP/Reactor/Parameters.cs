@@ -41,6 +41,7 @@ public static class Parameters
         public const double Knee = 0.8;
         public const double LossPerLevel = 18.77;
         public const double LossMax = 15;
+        public const double CavitationLimit = 0.8;
     }
 
     public static class Pressure

@@ -1,26 +1,59 @@
 ﻿@using NNPP.Reactor
 @inject Simulation Sim
+@inject AudioManager Audio
 
-@if (!Enable)
-{
-    <div class="dark">
-    </div>
-}
+<div class="lights @_class">
+</div>
 
 @code {
     public bool Enable { get; set; } = true;
+    private bool _changing;
+    private bool _playing = false;
+    private string _class => Enable ? "" : "dark";
 
     protected override void OnInitialized()
     {
         Sim.Ticked += Ticked;
+        Audio.PreloadAsync(AudioKeys.Sfx.PowerOut, AudioKeys.Sfx.PowerIn, AudioKeys.Sfx.BlackOut);
     }
 
     private void Ticked()
     {
+        if (_changing)
+        {
+            return;
+        }
+
         if (Sim.Grid.IsDcPowered() != Enable)
         {
-            Enable = Sim.Grid.IsDcPowered();
-            StateHasChanged();
+            Task.Run(ChangeAsync);
         }
     }
+
+    private async Task ChangeAsync()
+    {
+        var newValue = Sim.Grid.IsDcPowered();
+        _changing = true;
+        if (newValue)
+        {
+            await Audio.PlaySfxAsync(AudioKeys.Sfx.PowerIn);
+            Enable = newValue;
+            StateHasChanged();
+
+            await Sim.Sleep(3);
+        }
+        else
+        {
+            await Audio.PlaySfxAsync(AudioKeys.Sfx.PowerOut);
+            await Sim.Sleep(3);
+            Enable = newValue;
+            StateHasChanged();
+            await Audio.PlaySfxAsync(AudioKeys.Sfx.BlackOut);
+            await Sim.Sleep(5);
+            Sim.Notify("Grid Failure", "Switch to another grid or increase pressure.", critical: true);
+        }
+
+        _changing = false;
+    }
+
 }

@@ -23,5 +23,7 @@ public class FeedwaterPump
     public bool Running => Powered && Alive;
 
     public int GetPowerDemand() => Parameters.FeedwaterPumpPowerDemand(Utilization.Value);
+    
+    public bool IsCavitating() => Flow.Value > Parameters.Feedwater.CavitationLimit;
 
 }

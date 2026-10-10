@@ -4,6 +4,7 @@ using NNPP.Models.Inputs;
 using NNPP.Models.Metrics;
 using NNPP.Reactor.Components;
 using NNPP.Reactor.Grid;
+using NNPP.Reactor.StatusBoards;
 using AuthButton = NNPP.Models.Inputs.AuthButton;
 
 namespace NNPP.Reactor;
@@ -142,6 +143,8 @@ public class Simulation : IAsyncDisposable
         Unit = "XP",
         DecimalPlaces = 0,
     };
+    
+    public CoolantBoard CoolantBoard { get; } = new();
 
     public bool Stalled { get; set; } = false;
 
@@ -283,7 +286,7 @@ public class Simulation : IAsyncDisposable
     {
         Tick++;
         Runtime += dt;
-        
+
         if (_firstTick)
         {
             OnFirstTick();
@@ -362,7 +365,10 @@ public class Simulation : IAsyncDisposable
         FeedwaterPump1.Utilization.Value = Math.Clamp(FeedwaterPump1.Utilization.Value, 0, 1);
         FeedwaterPump2.Utilization.Value = Math.Clamp(FeedwaterPump2.Utilization.Value, 0, 1);
 
-        FeedwaterOverview.Value = $"2/2 ACTIVE"; // todo: implement HP
+        var activeFw = 0;
+        if (FeedwaterPump1.Running) activeFw++;
+        if (FeedwaterPump2.Running) activeFw++;
+        FeedwaterOverview.Value = $"{activeFw}/2 ACTIVE";
 
         // Pressure
 
