@@ -249,13 +249,6 @@ public static class Parameters
         return fullFlowrate * valve;
     }
 
-    public static double SteamFactor(double temp) // TODO: ???? document this
-    {
-        if (temp <= Core.BoilTemp) return 0;
-        if (temp <= 530) return 0.427 * (temp - Core.BoilTemp) / 157;
-        return 0.427 + 0.573 * (temp - 530) / 890; // some of these values come from ANRO handbooks. i think....
-    }
-
     public static double RpmTarget(double flow, bool broken) =>
         broken
             ? 0
