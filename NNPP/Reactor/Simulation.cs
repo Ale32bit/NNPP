@@ -143,7 +143,7 @@ public class Simulation : IAsyncDisposable
         Unit = "XP",
         DecimalPlaces = 0,
     };
-    
+
     public CoolantBoard CoolantBoard { get; } = new();
 
     public bool Stalled { get; set; } = false;
@@ -945,6 +945,19 @@ public class Simulation : IAsyncDisposable
             // supposedly have to wait lots of time before starting, but nah
             Notify("Shift Management",
                 $"{day} Shift personnel. The shift has started. You may begin doing power orders.");
+            
+            if (!_meltdown && !_reactorOverheat)
+            {
+                if (day == "Day")
+                {
+                    await PlayMusic(AudioKeys.Music.DayShift, loop: false, volume: 0.5, fadeSeconds: 3);
+                }
+                else
+                {
+                    await PlayMusic(AudioKeys.Music.NightShift, loop: false, volume: 0.5);
+                }
+            }
+
             _shiftRemainingTime = Parameters.Shift.Duration;
 
             await Task.Delay(TimeSpan.FromSeconds(_shiftRemainingTime));
@@ -1024,7 +1037,7 @@ public class Simulation : IAsyncDisposable
     {
         Notify(new Notification(title, message, critical, permanent, silent));
     }
-    
+
     public ValueTask PlayMusic(string key, double volume = 1, double fadeSeconds = 0, bool loop = true)
     {
         OnMusic?.Invoke(this, key);

@@ -36,6 +36,8 @@ builder.Services.AddSingleton(sp => new AudioManager(sp.GetRequiredService<IJSRu
     .Register(AudioKeys.Music.Evacuate, "audio/evacuate.ogg")
     .Register(AudioKeys.Music.Shutdown, "audio/shutdown.ogg")
     .Register(AudioKeys.Music.Ignition, "audio/ignition.ogg")
+    .Register(AudioKeys.Music.DayShift, "audio/dayshift.ogg")
+    .Register(AudioKeys.Music.NightShift, "audio/nightshift.ogg")
 );
 
 var app = builder.Build();
