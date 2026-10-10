@@ -944,7 +944,7 @@ public class Simulation : IAsyncDisposable
             Notify("Shift Management",
                 $"{day} Shift personnel. The shift has started. You may begin doing power orders.");
 
-            if (!_meltdown && !_reactorOverheat)
+            if (!_meltdown && !_reactorOverheat && !_igniting)
             {
                 if (day == "Day")
                 {
