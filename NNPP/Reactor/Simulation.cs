@@ -169,6 +169,7 @@ public class Simulation : IAsyncDisposable
     private double? _shiftOrderMargin = null; // met? = demand +- margin
     private double? _shiftOrderTime = null;
     private bool _shiftDay = false;
+    private double _powerOrderRequestCooldown = 0; // 70s ... 0s => new power order
 
     private const string _na = "N/A";
 
@@ -182,7 +183,7 @@ public class Simulation : IAsyncDisposable
     private readonly GameLoop _loop;
     private bool _started;
     private bool _firstTick = true;
-    
+
     private readonly ILogger<Simulation> _logger;
 
     public Simulation(AudioManager audioManager, PersistentStorage storage, ILogger<Simulation> logger)
@@ -208,13 +209,7 @@ public class Simulation : IAsyncDisposable
         IgnitionShutdownPumps.Triggered += (_, value) => OnIgnitionButtons(IgnitionShutdownPumps, value);
         IgnitionButton.Engaged += AttemptIgnition;
 
-        ShiftOrderSwitch.Triggered += (_, value) =>
-        {
-            if (value && _shiftTimeSinceLastOrder >= Parameters.Shift.RequestInterval)
-            {
-                AttemptRequestOrder();
-            }
-        };
+        ShiftOrderSwitch.Triggered += (_, value) => AttemptRequestOrder();
         ShiftEfficiencyActSwitch.Triggered += PoeaSwitchTriggered;
         ShiftHazardPaySwitch.Triggered += HazardPaySwitchTriggered;
 
@@ -259,6 +254,7 @@ public class Simulation : IAsyncDisposable
 
         _started = true;
         _loop.Start();
+        _logger.LogInformation("Simulation started!");
     }
 
     private void OnFirstTick()
@@ -282,7 +278,6 @@ public class Simulation : IAsyncDisposable
 
         Notify("Welcome to NNPPRS", "Please report any bug!", silent: true);
 
-        Task.Run(OrderRequestInterval);
         Task.Run(RunShiftLoop);
     }
 
@@ -885,7 +880,7 @@ public class Simulation : IAsyncDisposable
 
     private void AttemptRequestOrder()
     {
-        if (RequestOrder() && !_meltdown)
+        if (ShiftOrderSwitch.Value && _powerOrderRequestCooldown <= 0 && !_meltdown && RequestOrder())
         {
             // the shift manager screen never had more details btw.
             Notify("Incoming Power Order", "See the \"Shift Manager\" screen for more details.");
@@ -893,23 +888,11 @@ public class Simulation : IAsyncDisposable
         }
     }
 
-    private async Task OrderRequestInterval()
-    {
-        while (!_meltdown)
-        {
-            if (ShiftOrderSwitch.Value)
-            {
-                AttemptRequestOrder();
-            }
-
-            await Sleep(Parameters.Shift.RequestInterval);
-        }
-    }
-
     private void PowerOrderCheckLoop(double dt)
     {
         _shiftRemainingTime -= dt;
         _shiftTimeSinceLastOrder += dt;
+        _powerOrderRequestCooldown -= dt;
 
         ShiftTimeLeft.Value = _shiftRemainingTime;
         ShiftTimeLeft.ValueOverride = _shiftRemainingTime < 0 ? _na : null;
@@ -927,6 +910,7 @@ public class Simulation : IAsyncDisposable
 
         if (AttemptCompleteOrder())
         {
+            _powerOrderRequestCooldown = Parameters.Shift.PowerOrderRequestCooldown;
             Task.Run(async () =>
             {
                 Notify("Power Order Completed", "Bonus paycheck enroute.");
@@ -935,6 +919,11 @@ public class Simulation : IAsyncDisposable
                 var xp = GetPowerOrderXp();
                 await AddXpAsync(xp, "Power order completed.");
             });
+        }
+
+        if (_powerOrderRequestCooldown < 0)
+        {
+            AttemptRequestOrder();
         }
     }
 
@@ -954,7 +943,7 @@ public class Simulation : IAsyncDisposable
             // supposedly have to wait lots of time before starting, but nah
             Notify("Shift Management",
                 $"{day} Shift personnel. The shift has started. You may begin doing power orders.");
-            
+
             if (!_meltdown && !_reactorOverheat)
             {
                 if (day == "Day")
