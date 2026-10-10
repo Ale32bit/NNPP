@@ -1,0 +1,24 @@
+﻿.music-credits {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    
+    margin: 5px;
+    padding: 10px;
+    background-color: #33333377;
+    color: white;
+    backdrop-filter: blur(4px);
+    font-size: 1.3rem;
+    border-radius: 100px;
+    
+    transition: margin-right 0.5s ease-in-out;
+}
+
+.hide {
+    margin-right: -100%;
+    transition: margin-right 0.5s ease-in-out;
+}
+
+.music-credits p {
+    margin: 0;
+}

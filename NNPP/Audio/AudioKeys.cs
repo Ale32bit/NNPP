@@ -30,5 +30,8 @@ public static class AudioKeys
         public const string Evacuate = "music.evacuate";
         public const string Shutdown = "music.shutdown";
         public const string Ignition = "music.ignition";
+        public const string DayShift = "music.dayShift";
+        public const string NightShift = "music.nightShift";
+        public const string Tier3 = "music.tier3";
     }
 }

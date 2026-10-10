@@ -12,7 +12,12 @@
     border: 1px solid #FFF;
     color: #fff;
     margin: 10px;
-    transition: all 0.3s ease;
+    transition: margin-right 0.5s ease-in-out;
+}
+
+.hide {
+    margin-right: -100%;
+    transition: margin-right 0.5s ease-in-out;
 }
 
 .notification .data {

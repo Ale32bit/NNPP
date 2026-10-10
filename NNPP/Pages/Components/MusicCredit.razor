@@ -1,0 +1,40 @@
+﻿@using NNPP.Reactor
+@inject Simulation Sim
+
+<div class="music-credits @_class">
+    <p>🎶 @Credit 🎶</p>
+</div>
+
+@code {
+    public string? Credit { get; set; }
+
+    private string _class = "hide";
+
+    protected override void OnInitialized()
+    {
+        Sim.OnMusic += (_, key) =>
+        {
+            if (!MusicCredits.Credits.TryGetValue(key, out var credit))
+            {
+                credit = key;
+            }
+
+            Show(credit);
+        };
+    }
+
+    public void Show(string str)
+    {
+        Credit = str;
+        Task.Run(async () =>
+        {
+            _class = "";
+            StateHasChanged();
+
+            await Task.Delay(10000);
+            _class = "hide";
+            StateHasChanged();
+        });
+    }
+
+}

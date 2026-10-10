@@ -7,7 +7,7 @@
 <div class="notifications">
     @foreach (var entry in _notifications)
     {
-        <div class="notification" @key="entry">
+        <div class="notification @entry.Class" @key="entry">
             <div class="data">
                 <h3>@entry.Data.Title</h3>
                 <p>@entry.Data.Message</p>
@@ -21,6 +21,7 @@
     private sealed class Entry(Notification notification)
     {
         public Notification Data { get; set; } = notification;
+        public string Class { get; set; } = "hide";
     }
 
     private List<Entry> _notifications = [];
@@ -64,6 +65,10 @@
             }
         }
 
+        await Task.Delay(10, _cts.Token);
+        entry.Class = "";
+        StateHasChanged();
+
         if (notification.Permanent)
         {
             return;
@@ -78,6 +83,8 @@
             return;
         }
 
+        entry.Class = "hide";
+        await Task.Delay(500, _cts.Token);
         _notifications.Remove(entry);
         StateHasChanged();
     }

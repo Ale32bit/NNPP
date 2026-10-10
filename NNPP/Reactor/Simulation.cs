@@ -176,6 +176,7 @@ public class Simulation : IAsyncDisposable
     public event EventHandler<KeyPressEventArgs>? KeyPress;
     public event EventHandler<double>? OnUpdate;
     public event EventHandler<Notification>? OnNotification;
+    public event EventHandler<string>? OnMusic;
 
     public event Action? Ticked;
     private readonly GameLoop _loop;
@@ -482,7 +483,7 @@ public class Simulation : IAsyncDisposable
 
             if (ReactorTemperature.Value >= 2400 && !_reactorOverheat && !_meltdown)
             {
-                Audio.PlayMusicAsync(AudioKeys.Music.Overheat, 0.25);
+                PlayMusic(AudioKeys.Music.Overheat, 0.25);
                 _reactorOverheat = true;
                 Notify("Reactor overheat",
                     "The Reactor is above safe operating parameters. Lower temperature immediately.", true);
@@ -616,7 +617,7 @@ public class Simulation : IAsyncDisposable
 
             Task.Run(async () =>
             {
-                await Audio.PlaySfxAsync(AudioKeys.Music.Ignition);
+                await PlayMusic(AudioKeys.Music.Ignition, loop: false);
                 await Sleep(8.6);
                 Notify("Reactor Ignition", "The Facility Reactor is currently being ignited. Standby");
                 await Sleep(2.4);
@@ -644,7 +645,7 @@ public class Simulation : IAsyncDisposable
 
         await Sleep(3);
 
-        await Audio.PlayMusicAsync(AudioKeys.Music.Meltdown, 1, loop: false);
+        await PlayMusic(AudioKeys.Music.Meltdown, 1, loop: false);
         Notify("Reactor overheat",
             "The Reactor is above safe operating parameters. Lower temperature immediately.", true);
 
@@ -675,7 +676,7 @@ public class Simulation : IAsyncDisposable
             Notify("Reactor shutdown",
                 "Temperature has returned to safe operating parameters. Full shutdown in progress.", true);
             _extraHeat = -57;
-            await Audio.PlayMusicAsync(AudioKeys.Music.Shutdown, 1, loop: false);
+            await PlayMusic(AudioKeys.Music.Shutdown, 1, loop: false);
 
             await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
             await Sleep(10);
@@ -695,7 +696,7 @@ public class Simulation : IAsyncDisposable
             }
 
             await Audio.PlaySfxAsync(AudioKeys.Sfx.MetalCry);
-            await Audio.PlayMusicAsync(AudioKeys.Music.Evacuate, 1, loop: false);
+            await PlayMusic(AudioKeys.Music.Evacuate, 1, loop: false);
             await Sleep(6);
             await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion, 2d);
             Notify("Reactor meltdown",
@@ -1022,6 +1023,12 @@ public class Simulation : IAsyncDisposable
     public void Notify(string title, string message, bool critical = false, bool permanent = false, bool silent = false)
     {
         Notify(new Notification(title, message, critical, permanent, silent));
+    }
+    
+    public ValueTask PlayMusic(string key, double volume = 1, double fadeSeconds = 0, bool loop = true)
+    {
+        OnMusic?.Invoke(this, key);
+        return Audio.PlayMusicAsync(key, volume, fadeSeconds, loop);
     }
 
     public Task Sleep(double seconds)
