@@ -501,7 +501,8 @@ public class Simulation : IAsyncDisposable
             {
                 // meltdown task runs in background and may not set _meltdown in time, triggering multiple times.
                 _meltdown = true;
-                Task.Run(Meltdown).ContinueWith(task =>
+
+                Meltdown().ContinueWith(task =>
                 {
                     if (task.IsFaulted)
                     {
