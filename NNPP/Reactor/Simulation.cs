@@ -644,6 +644,11 @@ public class Simulation : IAsyncDisposable
 
     public async Task Meltdown()
     {
+        if (_meltdown)
+        {
+            return;
+        }
+        
         _meltdown = true;
 
         await Audio.PlaySfxLoopAsync(AudioKeys.Sfx.MeltdownAlarm);
