@@ -20,4 +20,6 @@ public abstract class AbstractTile(string label, TileColor color = TileColor.Yel
     /// An event automatically clears status and turns off.
     /// </summary>
     public abstract void Reset();
+    
+    public abstract void Check(bool condition);
 }

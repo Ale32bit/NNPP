@@ -17,4 +17,13 @@ public class StatusTile(string label, TileColor color = TileColor.Blue) : Abstra
     {
         Status = TileStatus.Off;
     }
+
+    public override void Check(bool condition)
+    {
+        var oldValue = Status == TileStatus.On;
+        if (oldValue != condition)
+        {
+            Status = condition ? TileStatus.On : TileStatus.Off;
+        }
+    }
 }

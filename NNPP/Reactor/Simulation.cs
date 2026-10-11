@@ -544,6 +544,8 @@ public class Simulation : IAsyncDisposable
             ReactorTemperature.Value = Parameters.Core.StallTemp;
         }
 
+        HandleStatusBoards(dt);
+
         PowerOrderCheckLoop(dt);
 
         Grid.Update(dt);
@@ -896,7 +898,7 @@ public class Simulation : IAsyncDisposable
 
         ShiftTimeLeft.Value = _shiftRemainingTime;
         ShiftTimeLeft.ValueOverride = _shiftRemainingTime < 0 ? _na : null;
-        
+
         if (_powerOrderRequestCooldown < 0)
         {
             AttemptRequestOrder();
@@ -1024,6 +1026,27 @@ public class Simulation : IAsyncDisposable
         PlayerXp.Value = Profile.Experience;
         await Storage.SetAsync("profile", Profile);
         Notify("Bonus Paycheck", $"{message} (+{xp:N0}) ({bonus:F1}x)");
+    }
+
+    public void HandleStatusBoards(double dt)
+    {
+        // COOLANT AND FW BOARD
+        CoolantBoard.Fw1Malfunction.Check(!FeedwaterPump1.Running);
+        CoolantBoard.Fw2Malfunction.Check(!FeedwaterPump2.Running);
+        CoolantBoard.Fw1Cavitation.Check(FeedwaterPump1.IsCavitating());
+        CoolantBoard.Fw2Cavitation.Check(FeedwaterPump2.IsCavitating());
+        CoolantBoard.FwValveOpen.Check(FeedwaterValve.Value);
+        CoolantBoard.FwValveClosed.Check(!FeedwaterValve.Value);
+        CoolantBoard.FwFlowLow.Check(FeedwaterPump1.Flow.Value + FeedwaterPump2.Flow.Value < 0.30);
+        
+        CoolantBoard.CoolantValveOpen.Check(CoolantValve.Value);
+        CoolantBoard.CoolantValveClosed.Check(!CoolantValve.Value);
+        CoolantBoard.Clp1Off.Check(!CoolantPumpAlpha.Running);
+        CoolantBoard.Clp2Off.Check(!CoolantPumpBeta.Running);
+        CoolantBoard.Clp1Runup.Check(CoolantPumpAlpha.Runup());
+        CoolantBoard.Clp2Runup.Check(CoolantPumpBeta.Runup());
+        CoolantBoard.Clp1Running.Check(CoolantPumpAlpha.Ready());
+        CoolantBoard.Clp2Running.Check(CoolantPumpBeta.Ready());
     }
 
     public void Notify(Notification notification)

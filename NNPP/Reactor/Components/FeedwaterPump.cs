@@ -5,7 +5,6 @@ namespace NNPP.Reactor.Components;
 
 public class FeedwaterPump
 {
-    // todo: research rates
     public Metric Rpm { get; } = new("RPM", 0) { ShowUnit = false, DecimalPlaces = 0 };
 
     public Metric Flow { get; } = new("Flow", 0, "m³/s")
@@ -24,6 +23,6 @@ public class FeedwaterPump
 
     public int GetPowerDemand() => Parameters.FeedwaterPumpPowerDemand(Utilization.Value);
     
-    public bool IsCavitating() => Flow.Value > Parameters.Feedwater.CavitationLimit;
+    public bool IsCavitating() => Rpm.Value > Parameters.Feedwater.MaxRpm * Parameters.Feedwater.CavitationLimit;
 
 }

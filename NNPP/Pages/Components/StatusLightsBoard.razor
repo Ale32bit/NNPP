@@ -1,7 +1,37 @@
-﻿@using NNPP.Reactor.StatusBoards
+﻿@using NNPP.Reactor
+@using NNPP.Reactor.StatusBoards
+@inject Simulation Sim
 
+<div class="board" style="grid-template-columns: @TemplateColumns(); grid-template-rows: @TemplateRows();"
+     title="Click to Acknowledge" @onclick="Acknowledge">
+    @{
+        var i = 0;
+        foreach (var tile in Board.Layout)
+        {
+            <div class="tile tile-@i status-@tile.Status.Name() color-@tile.Color.Name()">
+                <span>@tile.Label</span>
+            </div>
+
+            i++;
+        }
+    }
+
+</div>
 
 @code {
-    [Parameter, EditorRequired]
-    public required AbstractStatusBoard Board { get; set; }
+    [Parameter, EditorRequired] public required AbstractStatusBoard Board { get; set; }
+
+    private string TemplateColumns() => $"repeat({Board.Width}, 1fr);";
+    private string TemplateRows() => $"repeat({Board.Height}, 1fr);";
+
+    protected override void OnInitialized()
+    {
+        Sim.Ticked += StateHasChanged;
+    }
+
+    public void Acknowledge()
+    {
+        Board.Acknowledge();
+    }
+
 }

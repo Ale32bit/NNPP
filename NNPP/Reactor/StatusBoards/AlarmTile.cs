@@ -1,8 +1,11 @@
-﻿namespace NNPP.Reactor.StatusBoards;
+﻿using System.Xml;
 
-public class AlarmTile(string label, TileColor color = TileColor.Yellow) : AbstractTile(label, color)
+namespace NNPP.Reactor.StatusBoards;
+
+public class AlarmTile(string label, TileColor color = TileColor.Yellow, bool requireAck = false)
+    : AbstractTile(label, color)
 {
-    public bool RequireAck { get; set; }
+    public bool RequireAck { get; set; } = requireAck;
 
     public override void Ack()
     {
@@ -14,11 +17,37 @@ public class AlarmTile(string label, TileColor color = TileColor.Yellow) : Abstr
 
     public override void Trigger()
     {
-        Status = TileStatus.AlarmActive;
+        if (Status != TileStatus.On) // if acknowledged
+        {
+            Status = TileStatus.AlarmActive;
+        }
     }
 
     public override void Reset()
     {
+        if (Status == TileStatus.Off)
+        {
+            return;
+        }
+
+        if (Status == TileStatus.On)
+        {
+            Status = TileStatus.Off;
+            return;
+        }
+
         Status = RequireAck ? TileStatus.AlarmPassive : TileStatus.Off;
+    }
+
+    public override void Check(bool enable)
+    {
+        if (enable)
+        {
+            Trigger();
+        }
+        else
+        {
+            Reset();
+        }
     }
 }

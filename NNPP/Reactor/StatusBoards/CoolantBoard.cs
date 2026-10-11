@@ -18,17 +18,17 @@ public class CoolantBoard : AbstractStatusBoard
 
     public StatusTile FwValveOpen { get; } = new("FEEDWATER VALVE OPEN");
     public AlarmTile FwValveClosed { get; } = new("FEEDWATER VALVE CLOSED");
-    public AlarmTile Fw1Malfunction { get; } = new("FEED PUMP 1 MALFUNCTION", TileColor.Red);
-    public AlarmTile Fw1Cavitation { get; } = new("FEED PUMP 1 CAVITATING", TileColor.Red);
-    public AlarmTile Fw2Malfunction { get; } = new("FEED PUMP 2 MALFUNCTION", TileColor.Red);
-    public AlarmTile Fw2Cavitation { get; } = new("FEED PUMP 2 CAVITATING", TileColor.Red);
+    public AlarmTile Fw1Malfunction { get; } = new("FEED PUMP 1 MALFUNCTION", TileColor.Red, requireAck: true);
+    public AlarmTile Fw1Cavitation { get; } = new("FEED PUMP 1 CAVITATING", TileColor.Red, requireAck: true);
+    public AlarmTile Fw2Malfunction { get; } = new("FEED PUMP 2 MALFUNCTION", TileColor.Red, requireAck: true);
+    public AlarmTile Fw2Cavitation { get; } = new("FEED PUMP 2 CAVITATING", TileColor.Red, requireAck: true);
     public AlarmTile FwFlowLow { get; } = new("FEED PUMP FLOW LOW");
     public StatusTile CoolantValveOpen { get; } = new("COOLANT VALVE OPEN");
     public AlarmTile CoolantValveClosed { get; } = new("COOLANT VALVE CLOSED");
     public AlarmTile Clp1Off { get; } = new("COOLANT PUMP 1 OFF", TileColor.Red);
-    public AlarmTile Clp2Off { get; } = new("COOLANT PUMP 1 OFF", TileColor.Red);
-    public AlarmTile Clp1Runup { get; } = new("COOLANT PUMP 1 RUNUP");
-    public AlarmTile Clp2Runup { get; } = new("COOLANT PUMP 2 RUNUP");
+    public AlarmTile Clp2Off { get; } = new("COOLANT PUMP 2 OFF", TileColor.Red);
+    public StatusTile Clp1Runup { get; } = new("COOLANT PUMP 1 RUNUP",TileColor.Yellow);
+    public StatusTile Clp2Runup { get; } = new("COOLANT PUMP 2 RUNUP", TileColor.Yellow);
     public StatusTile Clp1Running { get; } = new("COOLANT PUMP 1 RUNNING");
-    public StatusTile Clp2Running { get; } = new("COOLANT PUMP 1 RUNNING");
+    public StatusTile Clp2Running { get; } = new("COOLANT PUMP 2 RUNNING");
 }

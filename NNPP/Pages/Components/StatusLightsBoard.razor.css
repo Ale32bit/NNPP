@@ -1,1 +1,79 @@
-﻿
+﻿.board {
+    display: grid;
+    gap: 0;
+    user-select: none;
+    white-space: wrap;
+    border: solid 1px #594c39;
+    cursor: pointer;
+    transition: box-shadow 0.1s ease-in-out;
+}
+
+.board:hover {
+    box-shadow: 0 0 1rem 0.5rem rgb(255 166 0 / 0.66);
+}
+
+.board:active {
+    box-shadow: 0 0 1rem 0.5rem rgb(255 215 146);
+}
+
+.tile {
+    font-size: 8px;
+    font-weight: 700;
+    width: 4.2rem;
+    height: 1.5rem;
+    text-align: center;
+    border: solid 1px #594c39;
+    background-color: var(--background-color);
+}
+
+::deep .color-green {
+    --on-color: #00ff00;
+    --off-color: #0fa600;
+
+}
+
+::deep .color-blue {
+    --on-color: #00ffff;
+    --off-color: #04a68e;
+
+}
+
+::deep .color-yellow {
+    --on-color: #ffff00;
+    --off-color: #d7a400;
+
+}
+
+::deep .color-red {
+    --on-color: #ff0000;
+    --off-color: #c80100;
+
+}
+
+::deep .status-off {
+    --background-color: var(--off-color);
+}
+
+::deep .status-alarmactive {
+    --background-color: var(--off-color);
+    animation: alarm 0.2s cubic-bezier(1, 0, 0, 1) 0s infinite alternate both;
+}
+
+::deep .status-alarmpassive {
+    --background-color: var(--off-color);
+    animation: alarm 0.7s cubic-bezier(1, 0, 0, 1) 0s infinite alternate both;
+}
+
+::deep .status-on {
+    --background-color: var(--on-color);
+}
+
+@keyframes alarm {
+    0% {
+        --background-color: var(--off-color);
+    }
+    
+    100% {
+        --background-color: var(--on-color);
+    }
+}

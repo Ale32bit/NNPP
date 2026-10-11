@@ -11,5 +11,9 @@ public class CoolantPump
 
     public bool Running => Started && Powered;
     
+    
     public int GetPowerDemand() => Parameters.Grid.CoolantPumpDemand;
+
+    public bool Runup() => Running && Rpm.Value < Parameters.CoolantPump.MaxRpm;
+    public bool Ready() => Running && !Runup();
 }
