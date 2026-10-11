@@ -24,6 +24,17 @@ public static class Parameters
         public const double MeltdownExtraHeat = 17.9;
         public const double RodSpeedScram = 0.08;
         public const double IgnitionRate = 7.604651163;
+        
+        // for status board
+        public const double LowTemp = 600;
+        public const double HighTemp = 2400;
+        public const double LowPressure = 2500;
+        public const double HighPressure = 18000;
+        public const double LowFuelAlarm = 0.25;
+        // measured these two with different rod insertion values and fuel.
+        // these do not seem affected by anything else but temperature
+        public const double LowFuelEfficiencyLow = 974.5;
+        public const double LowFuelEfficiencyHigh = 2245.5;
     }
 
     public static class Feedwater
@@ -42,6 +53,10 @@ public static class Parameters
         public const double LossPerLevel = 18.77;
         public const double LossMax = 15;
         public const double CavitationLimit = 0.8;
+        
+        // for status board
+        public const double LowFlow = 0.6;
+        public const double LowLevel = 0.4;
     }
 
     public static class Pressure

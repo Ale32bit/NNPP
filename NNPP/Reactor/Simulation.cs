@@ -145,6 +145,7 @@ public class Simulation : IAsyncDisposable
     };
 
     public CoolantBoard CoolantBoard { get; } = new();
+    public ReactorBoard ReactorBoard { get; } = new();
 
     public bool Stalled { get; set; } = false;
 
@@ -321,9 +322,9 @@ public class Simulation : IAsyncDisposable
             {
                 ReactorStatus.Value = ReactorTemperature.Value switch
                 {
-                    <= 323 => Models.ReactorStatus.Stalled,
-                    > 323 and < 2400 => Models.ReactorStatus.Running,
-                    >= 2400 => Models.ReactorStatus.Overheat,
+                    <= Parameters.Core.StallTemp => Models.ReactorStatus.Stalled,
+                    > Parameters.Core.StallTemp and < Parameters.Core.HighTemp => Models.ReactorStatus.Running,
+                    >= Parameters.Core.HighTemp => Models.ReactorStatus.Overheat,
                     _ => Models.ReactorStatus.Error,
                 };
             }
@@ -479,7 +480,7 @@ public class Simulation : IAsyncDisposable
                 }
             }
 
-            if (ReactorTemperature.Value >= 2400 && !_reactorOverheat && !_meltdown)
+            if (ReactorTemperature.Value >= Parameters.Core.HighTemp && !_reactorOverheat && !_meltdown)
             {
                 PlayMusic(AudioKeys.Music.Overheat, 0.25);
                 _reactorOverheat = true;
@@ -1040,7 +1041,7 @@ public class Simulation : IAsyncDisposable
         CoolantBoard.Fw2Cavitation.Check(FeedwaterPump2.IsCavitating());
         CoolantBoard.FwValveOpen.Check(FeedwaterValve.Value);
         CoolantBoard.FwValveClosed.Check(!FeedwaterValve.Value);
-        CoolantBoard.FwFlowLow.Check(FeedwaterPump1.Flow.Value + FeedwaterPump2.Flow.Value < 0.30);
+        CoolantBoard.FwFlowLow.Check(FeedwaterPump1.Flow.Value + FeedwaterPump2.Flow.Value < Parameters.Feedwater.LowFlow);
 
         CoolantBoard.CoolantValveOpen.Check(CoolantValve.Value);
         CoolantBoard.CoolantValveClosed.Check(!CoolantValve.Value);
@@ -1050,6 +1051,20 @@ public class Simulation : IAsyncDisposable
         CoolantBoard.Clp2Runup.Check(CoolantPumpBeta.Runup());
         CoolantBoard.Clp1Running.Check(CoolantPumpAlpha.Ready());
         CoolantBoard.Clp2Running.Check(CoolantPumpBeta.Ready());
+        
+        // REACTOR BOARD
+        ReactorBoard.Offline.Check(!Running);
+        ReactorBoard.Online.Check(Running);
+        ReactorBoard.Scram.Check(ScramButton.Enabled);
+        ReactorBoard.TempLow.Check(ReactorTemperature.Value <= Parameters.Core.LowTemp);
+        ReactorBoard.TempHigh.Check(ReactorTemperature.Value >= Parameters.Core.HighTemp);
+        ReactorBoard.ControlRodLow.Check(RodInsertion.Value < 0.2);
+        ReactorBoard.PressureLow.Check(Pressure.Value <= Parameters.Core.LowPressure);
+        ReactorBoard.PressureHigh.Check(Pressure.Value >= Parameters.Core.HighPressure);
+        ReactorBoard.ReliefValveActive.Check(GetRunningReliefValves() > 0);
+        ReactorBoard.WaterLevelLow.Check(FeedwaterLevel.Value <= Parameters.Feedwater.LowLevel);
+        ReactorBoard.FuelEfficiencyLow.Check(ReactorTemperature.Value is < Parameters.Core.LowFuelEfficiencyLow or > Parameters.Core.LowFuelEfficiencyHigh);
+        ReactorBoard.FuelLow.Check(Fuel.Value <= Parameters.Core.LowFuelAlarm);
     }
 
     public void Notify(Notification notification)
