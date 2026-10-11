@@ -1,9 +1,9 @@
 ﻿@implements IDisposable
 @page "/"
-@using NNPP.Models.Metrics
 @using NNPP.Pages.Components
 @using NNPP.Reactor
 @inject Simulation Sim
+@inject AudioManager Audio
 
 <PageTitle>NNPPRS</PageTitle>
 
@@ -400,7 +400,11 @@
 @code {
     private bool InIntro { get; set; } = true;
 
-    protected override void OnInitialized() => Sim.Ticked += OnTick;
+    protected override async Task OnInitializedAsync()
+    {
+        await Audio.PreloadAllAsync();
+        Sim.Ticked += OnTick;
+    }
 
     private void OnTick() => InvokeAsync(StateHasChanged);
 

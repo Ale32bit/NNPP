@@ -896,6 +896,11 @@ public class Simulation : IAsyncDisposable
 
         ShiftTimeLeft.Value = _shiftRemainingTime;
         ShiftTimeLeft.ValueOverride = _shiftRemainingTime < 0 ? _na : null;
+        
+        if (_powerOrderRequestCooldown < 0)
+        {
+            AttemptRequestOrder();
+        }
 
         if (_shiftOrderDemand is null || _shiftOrderMargin is null)
         {
@@ -919,11 +924,6 @@ public class Simulation : IAsyncDisposable
                 var xp = GetPowerOrderXp();
                 await AddXpAsync(xp, "Power order completed.");
             });
-        }
-
-        if (_powerOrderRequestCooldown < 0)
-        {
-            AttemptRequestOrder();
         }
     }
 
