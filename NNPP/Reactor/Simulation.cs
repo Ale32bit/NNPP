@@ -499,6 +499,8 @@ public class Simulation : IAsyncDisposable
 
             if ((ReactorTemperature.Value >= Parameters.Core.MeltdownTemperature || _forceMeltdown) && !_meltdown)
             {
+                // meltdown task runs in background and may not set _meltdown in time, triggering multiple times.
+                _meltdown = true;
                 Task.Run(Meltdown).ContinueWith(task =>
                 {
                     if (task.IsFaulted)
@@ -644,11 +646,6 @@ public class Simulation : IAsyncDisposable
 
     public async Task Meltdown()
     {
-        if (_meltdown)
-        {
-            return;
-        }
-        
         _meltdown = true;
 
         await Audio.PlaySfxLoopAsync(AudioKeys.Sfx.MeltdownAlarm);
@@ -1043,7 +1040,7 @@ public class Simulation : IAsyncDisposable
         CoolantBoard.FwValveOpen.Check(FeedwaterValve.Value);
         CoolantBoard.FwValveClosed.Check(!FeedwaterValve.Value);
         CoolantBoard.FwFlowLow.Check(FeedwaterPump1.Flow.Value + FeedwaterPump2.Flow.Value < 0.30);
-        
+
         CoolantBoard.CoolantValveOpen.Check(CoolantValve.Value);
         CoolantBoard.CoolantValveClosed.Check(!CoolantValve.Value);
         CoolantBoard.Clp1Off.Check(!CoolantPumpAlpha.Running);
