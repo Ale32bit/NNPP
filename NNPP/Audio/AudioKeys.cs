@@ -21,6 +21,13 @@ public static class AudioKeys
         public const string PowerOut = "sfx.powerOut";
         public const string PowerIn = "sfx.powerIn";
         public const string BlackOut = "sfx.blackOut";
+        
+        // general alarms
+        public const string AlarmMalfunction = "sfx.alarmMalfunction";
+        public const string AlarmCritical = "sfx.alarmCritical";
+        public const string AlarmAttention = "sfx.alarmAttention";
+        public const string AlarmSevere = "sfx.alarmSevere";
+        public const string AlarmOverheat = "sfx.alarmOverheat";
     }
     
     public static class Music

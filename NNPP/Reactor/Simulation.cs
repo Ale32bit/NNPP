@@ -165,12 +165,13 @@ public class Simulation : IAsyncDisposable
 
     private bool _enableTier4 = false;
     private double _shiftRemainingTime = 0;
-    private double _shiftTimeSinceLastOrder = double.MaxValue;
     private double? _shiftOrderDemand = null;
     private double? _shiftOrderMargin = null; // met? = demand +- margin
     private double? _shiftOrderTime = null;
     private bool _shiftDay = false;
     private double _powerOrderRequestCooldown = 0; // 70s ... 0s => new power order
+    
+    private HashSet<string> _activeAlarmSfx = new(StringComparer.OrdinalIgnoreCase);
 
     private const string _na = "N/A";
 
@@ -180,7 +181,11 @@ public class Simulation : IAsyncDisposable
     public event EventHandler<Notification>? OnNotification;
     public event EventHandler<string>? OnMusic;
 
+    /// <summary>
+    /// Use OnUpdate.
+    /// </summary>
     public event Action? Ticked;
+
     private readonly GameLoop _loop;
     private bool _started;
     private bool _firstTick = true;
@@ -897,7 +902,6 @@ public class Simulation : IAsyncDisposable
     private void PowerOrderCheckLoop(double dt)
     {
         _shiftRemainingTime -= dt;
-        _shiftTimeSinceLastOrder += dt;
         _powerOrderRequestCooldown -= dt;
 
         ShiftTimeLeft.Value = _shiftRemainingTime;
@@ -984,8 +988,6 @@ public class Simulation : IAsyncDisposable
             return false;
         }
 
-        _shiftTimeSinceLastOrder = 0;
-
         _shiftOrderDemand = GenerateOrder();
         _shiftOrderTime = GenerateOrderTime();
         _shiftOrderMargin = GenerateOrderMargin();
@@ -1041,7 +1043,8 @@ public class Simulation : IAsyncDisposable
         CoolantBoard.Fw2Cavitation.Check(FeedwaterPump2.IsCavitating());
         CoolantBoard.FwValveOpen.Check(FeedwaterValve.Value);
         CoolantBoard.FwValveClosed.Check(!FeedwaterValve.Value);
-        CoolantBoard.FwFlowLow.Check(FeedwaterPump1.Flow.Value + FeedwaterPump2.Flow.Value < Parameters.Feedwater.LowFlow);
+        CoolantBoard.FwFlowLow.Check(FeedwaterPump1.Flow.Value + FeedwaterPump2.Flow.Value <
+                                     Parameters.Feedwater.LowFlow);
 
         CoolantBoard.CoolantValveOpen.Check(CoolantValve.Value);
         CoolantBoard.CoolantValveClosed.Check(!CoolantValve.Value);
@@ -1051,7 +1054,7 @@ public class Simulation : IAsyncDisposable
         CoolantBoard.Clp2Runup.Check(CoolantPumpBeta.Runup());
         CoolantBoard.Clp1Running.Check(CoolantPumpAlpha.Ready());
         CoolantBoard.Clp2Running.Check(CoolantPumpBeta.Ready());
-        
+
         // REACTOR BOARD
         ReactorBoard.Offline.Check(!Running);
         ReactorBoard.Online.Check(Running);
@@ -1063,8 +1066,31 @@ public class Simulation : IAsyncDisposable
         ReactorBoard.PressureHigh.Check(Pressure.Value >= Parameters.Core.HighPressure);
         ReactorBoard.ReliefValveActive.Check(GetRunningReliefValves() > 0);
         ReactorBoard.WaterLevelLow.Check(FeedwaterLevel.Value <= Parameters.Feedwater.LowLevel);
-        ReactorBoard.FuelEfficiencyLow.Check(ReactorTemperature.Value is < Parameters.Core.LowFuelEfficiencyLow or > Parameters.Core.LowFuelEfficiencyHigh);
+        ReactorBoard.FuelEfficiencyLow.Check(ReactorTemperature.Value is < Parameters.Core.LowFuelEfficiencyLow
+            or > Parameters.Core.LowFuelEfficiencyHigh);
         ReactorBoard.FuelLow.Check(Fuel.Value <= Parameters.Core.LowFuelAlarm);
+
+        var sfx = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        sfx.UnionWith(CoolantBoard.GetActiveSfx());
+        sfx.UnionWith(ReactorBoard.GetActiveSfx());
+
+        var toRemove = _activeAlarmSfx.Except(sfx);
+        var toPlay = sfx.Except(_activeAlarmSfx);
+
+        _activeAlarmSfx = sfx;
+
+        Task.Run(async () =>
+        {
+            foreach (var key in toRemove)
+            {
+                await Audio.StopSfxAsync(key);
+            }
+
+            foreach (var key in toPlay)
+            {
+                await Audio.PlaySfxLoopAsync(key);
+            }
+        });
     }
 
     public void Notify(Notification notification)

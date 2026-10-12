@@ -13,7 +13,7 @@
 
     protected override void OnInitialized()
     {
-        Sim.Ticked += Ticked;
+        Sim.OnUpdate += (_, _) => Ticked();
         Audio.PreloadAsync(AudioKeys.Sfx.PowerOut, AudioKeys.Sfx.PowerIn, AudioKeys.Sfx.BlackOut);
     }
 
