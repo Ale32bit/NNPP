@@ -146,6 +146,7 @@ public class Simulation : IAsyncDisposable
 
     public CoolantBoard CoolantBoard { get; } = new();
     public ReactorBoard ReactorBoard { get; } = new();
+    public GridGenBoard GridGenBoard { get; } = new();
 
     public bool Stalled { get; set; } = false;
 
@@ -1050,10 +1051,27 @@ public class Simulation : IAsyncDisposable
         ReactorBoard.FuelEfficiencyLow.Check(ReactorTemperature.Value is < Parameters.Core.LowFuelEfficiencyLow
             or > Parameters.Core.LowFuelEfficiencyHigh);
         ReactorBoard.FuelLow.Check(Fuel.Value <= Parameters.Core.LowFuelAlarm);
+        
+        // GRID GEN BOARD
+        GridGenBoard.MainBusPowerInsuf.Check(Grid.PrimarySupply.Value < Grid.GetPrimaryBusDemand());
+        GridGenBoard.AuxBusPowerInsuf.Check(Grid.AuxSupply.Value < Grid.GetAuxBusDemand());
+        GridGenBoard.DcBusPowerInsuf.Check(!Grid.IsDcPowered());
+        GridGenBoard.Gen1Running.Check(Grid.Generators[0].Running);
+        GridGenBoard.Gen2Running.Check(Grid.Generators[1].Running);
+        GridGenBoard.Gen3Running.Check(Grid.Generators[2].Running);
+        GridGenBoard.Gen1Malf.Check(Grid.Generators[0].Broken);
+        GridGenBoard.Gen2Malf.Check(Grid.Generators[1].Broken);
+        GridGenBoard.Gen3Malf.Check(Grid.Generators[2].Broken);
+        GridGenBoard.TurbinesUnsync.Check(!Turbine1.IsSynced() || !Turbine2.IsSynced());
+        GridGenBoard.TurbinesReversePower.Check((Turbine1.IsSynced() || Turbine2.IsSynced()) && GetTurbineOutput() <= 0);
+        GridGenBoard.GridPendingHandoff.Check(false); // TODO: add delay to grid changes
+        
+        // SFX
 
         var sfx = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         sfx.UnionWith(CoolantBoard.GetActiveSfx());
         sfx.UnionWith(ReactorBoard.GetActiveSfx());
+        sfx.UnionWith(GridGenBoard.GetActiveSfx());
 
         var toRemove = _activeAlarmSfx.Except(sfx);
         var toPlay = sfx.Except(_activeAlarmSfx);

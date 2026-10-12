@@ -38,7 +38,7 @@ public class FacilityGrid(Simulation Sim)
         DecimalPlaces = 0,
     };
 
-    public Metric PrimarySupply { get; } = new("Supply", 0, "kW")
+    public Metric PrimarySupply { get; } = new("Supply", 26000, "kW")
     {
         ShowUnit = false,
         DecimalPlaces = 0,
