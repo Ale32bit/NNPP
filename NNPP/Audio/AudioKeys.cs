@@ -28,6 +28,8 @@ public static class AudioKeys
         public const string AlarmAttention = "sfx.alarmAttention";
         public const string AlarmSevere = "sfx.alarmSevere";
         public const string AlarmOverheat = "sfx.alarmOverheat";
+        // i ran out of adjectives
+        public const string Alarm1 = "sfx.alarm1";
     }
     
     public static class Music

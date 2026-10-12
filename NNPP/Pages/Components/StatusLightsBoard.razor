@@ -31,8 +31,6 @@
 
     private void Tick()
     {
-        var active = Board.GetActiveSfx();
-        AbstractStatusBoard.ActiveAlarms.IntersectWith(active);
         StateHasChanged();
     }
 

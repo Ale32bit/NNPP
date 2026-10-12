@@ -2,8 +2,8 @@
 
 namespace NNPP.Reactor.StatusBoards;
 
-public class AlarmTile(string label, TileColor color = TileColor.Yellow, bool requireAck = false, string? sfx = null)
-    : AbstractTile(label, color, sfx)
+public class AlarmTile(string label, TileColor color = TileColor.Yellow, bool requireAck = false, string? sfx = null, bool clearSfx = true)
+    : AbstractTile(label, color, sfx, clearSfx)
 {
     public bool RequireAck { get; set; } = requireAck;
 
