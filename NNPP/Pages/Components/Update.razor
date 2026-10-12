@@ -1,0 +1,29 @@
+﻿@inject IJSRuntime JS
+@inject NavigationManager uriHelper
+
+@code {
+    private bool _updateAvailable = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RegisterForUpdateAvailableNotification();
+    }
+    
+    private async Task RegisterForUpdateAvailableNotification()
+    {
+        await JS.InvokeAsync<object>(
+            identifier: "registerForUpdateAvailableNotification",
+            DotNetObjectReference.Create(this),
+            nameof(OnUpdateAvailable));
+    }
+
+    [JSInvokable(nameof(OnUpdateAvailable))]
+    public Task OnUpdateAvailable()
+    {
+        uriHelper.NavigateTo(uriHelper.Uri, forceLoad: true);
+
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+}

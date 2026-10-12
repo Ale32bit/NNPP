@@ -2,6 +2,13 @@
     /*outline: red 1px solid;*/
 }
 
+h1 {
+    display: inline-block;
+    color: white;
+    margin: 0;
+    font-size: 2em;
+}
+
 .board {
     display: inline-flex;
     flex-wrap: wrap;

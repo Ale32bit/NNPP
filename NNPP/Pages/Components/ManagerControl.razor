@@ -1,0 +1,101 @@
+﻿@using NNPP.Reactor
+@inject Simulation Sim
+
+<button @onclick="Toggle" class="popup-button @TaintedClass">MANAGER CONTROL</button>
+
+@if (_openMenu)
+{
+    <div class="manager-control">
+        <h3>Manager Control</h3>
+        <p>Using these controls will disable XP gain.</p>
+        <div>
+            <label>Reactor Temperature (K)</label>
+            <input @bind="Temperature" type="number"/>
+            <button @onclick="SetTemperature">SET</button>
+        </div>
+
+        <div>
+            <label>Fuel (%)</label>
+            <input @bind="Fuel" type="number"/>
+            <button @onclick="SetFuel">SET</button>
+        </div>
+
+        <div>
+            <button @onclick="TriggerMeltdown">Trigger meltdown</button>
+            <button @onclick="ToggleReactor">Toggle reactor</button>
+            <button @onclick="ForceSyncTurbines">Force sync turbines</button>
+            <button @onclick="OperationPreset">Operation preset</button>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _openMenu = false;
+    private bool _tainted = false;
+
+    private double Temperature { get; set; } = Parameters.Core.StallTemp;
+    private double Fuel { get; set; } = 100;
+    private string TaintedClass => _tainted ? "tainted" : "";
+
+    public void Toggle()
+    {
+        _openMenu = !_openMenu;
+    }
+
+    public void SetTemperature()
+    {
+        Taint();
+        Sim.ReactorTemperature.Value = Temperature;
+    }
+
+    public void SetFuel()
+    {
+        Taint();
+        Sim.Fuel.Value = Fuel / 100d;
+    }
+
+    public void TriggerMeltdown()
+    {
+        Taint();
+        Sim.TriggerMeltdown();
+    }
+
+    public void ToggleReactor()
+    {
+        Taint();
+        Sim.Running = !Sim.Running;
+        Sim.RodControl.Locked = !Sim.Running;
+    }
+
+    public void ForceSyncTurbines()
+    {
+        Taint();
+        Sim.Turbine1.Phase = 0;
+        Sim.Turbine1.FlowRate.Value = Parameters.Turbine.SyncFlow;
+        Sim.Turbine1.Valve.Value = 1;
+        Sim.Turbine1.Rpm.Value = Parameters.Turbine.SyncRpm;
+        Sim.AttemptTurbineSync(Sim.Turbine1);
+
+        Sim.Turbine2.Phase = 0;
+        Sim.Turbine2.FlowRate.Value = Parameters.Turbine.SyncFlow;
+        Sim.Turbine2.Valve.Value = 1;
+        Sim.Turbine2.Rpm.Value = Parameters.Turbine.SyncRpm;
+        Sim.AttemptTurbineSync(Sim.Turbine2);
+    }
+
+    public void OperationPreset()
+    {
+        Taint();
+        Sim.Running = true;
+        Sim.ReactorTemperature.Value = 1420;
+        Sim.RodControl.Locked = false;
+        Sim.RodInsertion.Value = 0.55;
+    }
+
+    private void Taint()
+    {
+        _tainted = true;
+        Sim.Taint();
+    }
+
+}

@@ -31,10 +31,16 @@
 		<WasmBuildNative>true</WasmBuildNative>
 		<RunAOTCompilation>false</RunAOTCompilation>
 		<WasmEmitSymbolMap>false</WasmEmitSymbolMap>
+
+		<ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<TrimmerRootAssembly Include="NNPP" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
 	</ItemGroup>
 
     <ItemGroup>
@@ -48,8 +54,6 @@
 
     <ItemGroup>
       <Folder Include="wwwroot\assets\" />
-      <Folder Include="wwwroot\fonts\noto\" />
-      <Folder Include="wwwroot\lib\" />
     </ItemGroup>
 
 	<Target Name="CacheBustIndexHtml" AfterTargets="Publish">

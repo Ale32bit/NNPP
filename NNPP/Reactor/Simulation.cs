@@ -149,6 +149,8 @@ public class Simulation : IAsyncDisposable
 
     public bool Stalled { get; set; } = false;
 
+    private bool _tainted = false;
+
     private bool _reactorOverheat = false;
     private double _extraHeat = 0;
     private bool _meltdown = false;
@@ -170,7 +172,7 @@ public class Simulation : IAsyncDisposable
     private double? _shiftOrderTime = null;
     private bool _shiftDay = false;
     private double _powerOrderRequestCooldown = 0; // 70s ... 0s => new power order
-    
+
     private HashSet<string> _activeAlarmSfx = new(StringComparer.OrdinalIgnoreCase);
 
     private const string _na = "N/A";
@@ -218,37 +220,6 @@ public class Simulation : IAsyncDisposable
         ShiftOrderSwitch.Triggered += (_, value) => AttemptRequestOrder();
         ShiftEfficiencyActSwitch.Triggered += PoeaSwitchTriggered;
         ShiftHazardPaySwitch.Triggered += HazardPaySwitchTriggered;
-
-        KeyPress += (_, key) =>
-        {
-            if (key.Key == "m")
-            {
-                TriggerMeltdown();
-            }
-
-            if (key.Key == "n")
-            {
-                Turbine1.Phase = 0;
-                Turbine1.FlowRate.Value = 3.61;
-                Turbine1.Valve.Value = 1;
-                Turbine1.Rpm.Value = 3000;
-                AttemptTurbineSync(Turbine1);
-
-                Turbine2.Phase = 0;
-                Turbine2.FlowRate.Value = 3.61;
-                Turbine2.Valve.Value = 1;
-                Turbine2.Rpm.Value = 3000;
-                AttemptTurbineSync(Turbine2);
-            }
-
-            if (key.Key == "k")
-            {
-                Running = true;
-                ReactorTemperature.Value = 1420;
-                RodControl.Locked = false;
-                RodInsertion.Value = 0.55;
-            }
-        };
     }
 
     public void Start()
@@ -382,6 +353,7 @@ public class Simulation : IAsyncDisposable
         // Fuel
 
         Fuel.Value += Parameters.FuelRate(RodInsertion.Value, Running) * dt;
+        Fuel.Value = Math.Clamp(Fuel.Value, 0, 1);
 
         // Relief valves
         ReliefValves.ForEach(rv => rv.Update(dt));
@@ -1025,8 +997,16 @@ public class Simulation : IAsyncDisposable
         return true;
     }
 
+    public void Taint()
+    {
+        _tainted = true;
+    }
+
     public async Task AddXpAsync(double xp, string message)
     {
+        if (_tainted)
+            return;
+
         var bonus = GetBonusMultiplier();
         xp *= bonus;
         Profile.Experience += (int)xp;
