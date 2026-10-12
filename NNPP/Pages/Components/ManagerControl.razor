@@ -19,6 +19,12 @@
             <input @bind="Fuel" type="number"/>
             <button @onclick="SetFuel">SET</button>
         </div>
+        
+        <div>
+            <label>Rod Insertion (%)</label>
+            <input @bind="RodInsertion" type="number"/>
+            <button @onclick="SetRodInsertion">SET</button>
+        </div>
 
         <div>
             <button @onclick="TriggerMeltdown">Trigger meltdown</button>
@@ -32,10 +38,11 @@
 @code {
     private bool _openMenu = false;
     private bool _tainted = false;
+    private string TaintedClass => _tainted ? "tainted" : "";
 
     private double Temperature { get; set; } = Parameters.Core.StallTemp;
     private double Fuel { get; set; } = 100;
-    private string TaintedClass => _tainted ? "tainted" : "";
+    private double RodInsertion { get; set; } = 100;
 
     public void Toggle()
     {
@@ -52,6 +59,12 @@
     {
         Taint();
         Sim.Fuel.Value = Fuel / 100d;
+    }
+    
+    public void SetRodInsertion()
+    {
+        Taint();
+        Sim.RodInsertion.Value = RodInsertion / 100d;
     }
 
     public void TriggerMeltdown()
