@@ -1,0 +1,24 @@
+﻿@using NNPP.Reactor
+@inject Simulation Sim
+
+<div class="veil @_class">
+</div>
+
+@code {
+    public bool Enable { get; set; } = false;
+    private string _class => Enable ? "notgreatnotterrible" : "";
+
+    protected override void OnInitialized()
+    {
+        Sim.OnUpdate += (_, _) => Ticked();
+    }
+
+    private void Ticked()
+    {
+        if (!Sim.NotGreatNotTerrible)
+            return;
+        Enable = Sim.NotGreatNotTerrible;
+        StateHasChanged();
+    }
+
+}

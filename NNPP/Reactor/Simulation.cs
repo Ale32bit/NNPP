@@ -157,7 +157,7 @@ public class Simulation : IAsyncDisposable
     private bool _scramRodFailed = false;
 
     // it's anrover :pray:
-    private bool _notgreatnotterrible = false;
+    public bool NotGreatNotTerrible { get; private set; } = false;
     private bool _forceMeltdown = false;
 
     private double _ignitionTime = 0;
@@ -305,7 +305,7 @@ public class Simulation : IAsyncDisposable
         }
         else if (_meltdown)
         {
-            if (_notgreatnotterrible)
+            if (NotGreatNotTerrible)
             {
                 ReactorStatus.Value = Models.ReactorStatus.Error;
             }
@@ -714,10 +714,11 @@ public class Simulation : IAsyncDisposable
             await PlayMusic(AudioKeys.Music.Evacuate, 1, loop: false);
             await Sleep(6);
             await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion, 2d);
+            await Sleep(0.964); // Very precise :tm:
             Notify("Reactor meltdown",
                 "Reactor continues to be in a critical state. Full Evacuation in progress.", true);
             _extraHeat = 57;
-            _notgreatnotterrible = true;
+            NotGreatNotTerrible = true;
 
             await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
             await Sleep(30);
@@ -728,7 +729,7 @@ public class Simulation : IAsyncDisposable
 
     public void OnScramEngage()
     {
-        if (!_notgreatnotterrible)
+        if (!NotGreatNotTerrible)
         {
             _extraHeat = 0;
         }
@@ -939,7 +940,7 @@ public class Simulation : IAsyncDisposable
 
     private async Task RunShiftLoop()
     {
-        while (!_notgreatnotterrible)
+        while (!NotGreatNotTerrible)
         {
             ShiftOrders.Value = 0;
             ShiftTier.Value = 1;
