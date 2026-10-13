@@ -604,6 +604,7 @@ public class Simulation : IAsyncDisposable
         {
             turbine.Status.Value = Turbine.TurbineStatus.Desynced;
             turbine.SyncSwitch.RawSet(false);
+            turbine.Tripped = true;
         }
         else if (turbine.IsSyncPossible())
         {
@@ -613,7 +614,6 @@ public class Simulation : IAsyncDisposable
         else
         {
             turbine.SyncSwitch.RawSet(false);
-            turbine.Tripped = true;
             Audio.PlaySfxAsync(AudioKeys.Sfx.ControlDenied);
         }
     }
