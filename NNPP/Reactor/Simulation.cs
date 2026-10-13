@@ -3,7 +3,6 @@ using NNPP.Models;
 using NNPP.Models.Inputs;
 using NNPP.Models.Metrics;
 using NNPP.Reactor.Components;
-using NNPP.Reactor.Grid;
 using NNPP.Reactor.StatusBoards;
 using AuthButton = NNPP.Models.Inputs.AuthButton;
 
@@ -147,6 +146,7 @@ public class Simulation : IAsyncDisposable
     public CoolantBoard CoolantBoard { get; } = new();
     public ReactorBoard ReactorBoard { get; } = new();
     public GridGenBoard GridGenBoard { get; } = new();
+    public TurbineBoard TurbineBoard { get; } = new();
 
     public bool Stalled { get; set; } = false;
 
@@ -312,6 +312,12 @@ public class Simulation : IAsyncDisposable
         }
 
         // coolant
+        CoolantPumpAlpha.Powered = Grid.PrimarySupply.Value >= CoolantPumpAlpha.GetPowerDemand();
+        CoolantPumpBeta.Powered = Grid.AuxSupply.Value >= CoolantPumpBeta.GetPowerDemand();
+
+        CoolantPumpAlpha.Status.Value = CoolantPumpAlpha.Running;
+        CoolantPumpBeta.Status.Value = CoolantPumpBeta.Running;
+
         CoolantPumpAlpha.Rpm.Value =
             Parameters.StepCoolantRpm(CoolantPumpAlpha.Rpm.Value, CoolantPumpAlpha.Running, dt);
         CoolantPumpBeta.Rpm.Value = Parameters.StepCoolantRpm(CoolantPumpBeta.Rpm.Value, CoolantPumpBeta.Running, dt);
@@ -347,6 +353,16 @@ public class Simulation : IAsyncDisposable
         if (FeedwaterPump2.Running) activeFw++;
         FeedwaterOverview.Value = $"{activeFw}/2 ACTIVE";
 
+        if (FeedwaterPump1.Health.Value <= 0)
+        {
+            FeedwaterPump1.Break();
+        }
+
+        if (FeedwaterPump2.Health.Value <= 0)
+        {
+            FeedwaterPump2.Break();
+        }
+
         // Pressure
 
         Pressure.Value = Parameters.SteamPressure(ReactorTemperature.Value, FeedwaterLevel.Value);
@@ -366,11 +382,11 @@ public class Simulation : IAsyncDisposable
         Turbine1.Valve.Value = Math.Clamp(Turbine1.Valve.Value, 0, 1);
         Turbine2.Valve.Value = Math.Clamp(Turbine2.Valve.Value, 0, 1);
 
-        Turbine1.FlowRate.Value = Parameters.TurbineFlow(Turbine1.Valve.Value, Pressure.Value, Turbine1.IsDestroyed());
-        Turbine2.FlowRate.Value = Parameters.TurbineFlow(Turbine2.Valve.Value, Pressure.Value, Turbine2.IsDestroyed());
+        Turbine1.FlowRate.Value = Parameters.TurbineFlow(Turbine1.Valve.Value, Pressure.Value, !Turbine1.CanRun());
+        Turbine2.FlowRate.Value = Parameters.TurbineFlow(Turbine2.Valve.Value, Pressure.Value, !Turbine2.CanRun());
 
-        var turb1RpmTarget = Parameters.RpmTarget(Turbine1.FlowRate.Value, Turbine1.IsDestroyed());
-        var turb1RpmTau = Parameters.RpmTau(Turbine1.AccelerationSwitch.Position, Turbine1.IsDestroyed());
+        var turb1RpmTarget = Parameters.RpmTarget(Turbine1.FlowRate.Value, !Turbine1.CanRun());
+        var turb1RpmTau = Parameters.RpmTau(Turbine1.AccelerationSwitch.Position, !Turbine1.CanRun());
         var turb1Accel = 0d;
         if (Turbine1.IsSynced())
         {
@@ -382,8 +398,8 @@ public class Simulation : IAsyncDisposable
             Turbine1.Rpm.Value = Math.Max(0, Turbine1.Rpm.Value + turb1Accel * dt);
         }
 
-        var turb2RpmTarget = Parameters.RpmTarget(Turbine2.FlowRate.Value, Turbine2.IsDestroyed());
-        var turb2RpmTau = Parameters.RpmTau(Turbine2.AccelerationSwitch.Position, Turbine2.IsDestroyed());
+        var turb2RpmTarget = Parameters.RpmTarget(Turbine2.FlowRate.Value, !Turbine2.CanRun());
+        var turb2RpmTau = Parameters.RpmTau(Turbine2.AccelerationSwitch.Position, !Turbine2.CanRun());
         var turb2Accel = 0d;
         if (Turbine2.IsSynced())
         {
@@ -400,6 +416,26 @@ public class Simulation : IAsyncDisposable
 
         Turbine1.Vibration.Value = Parameters.StepVibration(Turbine1.Vibration.Value, vibTarget1, dt);
         Turbine2.Vibration.Value = Parameters.StepVibration(Turbine2.Vibration.Value, vibTarget2, dt);
+
+        if (Turbine1.Rpm.Value >= Parameters.Turbine.RpmBreak || Turbine1.Health.Value <= 0)
+        {
+            Turbine1.Break();
+        }
+
+        if (Turbine2.Rpm.Value >= Parameters.Turbine.RpmBreak || Turbine2.Health.Value <= 0)
+        {
+            Turbine2.Break();
+        }
+
+        if (Turbine1.Rpm.Value < 100)
+        {
+            Turbine1.Tripped = false;
+        }
+
+        if (Turbine2.Rpm.Value < 100)
+        {
+            Turbine2.Tripped = false;
+        }
 
         if (Turbine1.IsSynced())
         {
@@ -425,6 +461,22 @@ public class Simulation : IAsyncDisposable
         else
         {
             Turbine2.Phase = (Turbine2.Phase + 6 * (Turbine2.Rpm.Value - Parameters.Turbine.SyncRpm) * dt) % 360;
+        }
+
+        foreach (var generator in Grid.Generators)
+        {
+            if (generator.Running)
+            {
+                generator.Fuel.Value -= Parameters.Grid.GeneratorFuelBurn * dt;
+                if (generator.Fuel.Value <= 0)
+                {
+                    generator.Status = GridGenerator.GeneratorStatus.Off;
+                }
+
+                generator.Fuel.Value = Math.Clamp(generator.Fuel.Value, 0, 1);
+            }
+
+            generator.Power.Value = generator.GetOutput();
         }
 
         GridTotalOutput.Value = Grid.GetTotalOutput();
@@ -560,6 +612,7 @@ public class Simulation : IAsyncDisposable
         else
         {
             turbine.SyncSwitch.RawSet(false);
+            turbine.Tripped = true;
             Audio.PlaySfxAsync(AudioKeys.Sfx.ControlDenied);
         }
     }
@@ -1051,7 +1104,7 @@ public class Simulation : IAsyncDisposable
         ReactorBoard.FuelEfficiencyLow.Check(ReactorTemperature.Value is < Parameters.Core.LowFuelEfficiencyLow
             or > Parameters.Core.LowFuelEfficiencyHigh);
         ReactorBoard.FuelLow.Check(Fuel.Value <= Parameters.Core.LowFuelAlarm);
-        
+
         // GRID GEN BOARD
         GridGenBoard.MainBusPowerInsuf.Check(Grid.PrimarySupply.Value < Grid.GetPrimaryBusDemand());
         GridGenBoard.AuxBusPowerInsuf.Check(Grid.AuxSupply.Value < Grid.GetAuxBusDemand());
@@ -1063,15 +1116,35 @@ public class Simulation : IAsyncDisposable
         GridGenBoard.Gen2Malf.Check(Grid.Generators[1].Broken);
         GridGenBoard.Gen3Malf.Check(Grid.Generators[2].Broken);
         GridGenBoard.TurbinesUnsync.Check(!Turbine1.IsSynced() || !Turbine2.IsSynced());
-        GridGenBoard.TurbinesReversePower.Check((Turbine1.IsSynced() || Turbine2.IsSynced()) && GetTurbineOutput() <= 0);
+        GridGenBoard.TurbinesReversePower.Check((Turbine1.IsSynced() || Turbine2.IsSynced()) &&
+                                                GetTurbineOutput() <= 0);
         GridGenBoard.GridPendingHandoff.Check(false); // TODO: add delay to grid changes
-        
+
+        // TURBINE
+        TurbineBoard.Turbine1Running.Check(Turbine1.Rpm.Value > 0);
+        TurbineBoard.Turbine2Running.Check(Turbine2.Rpm.Value > 0);
+        TurbineBoard.Turbine1Synced.Check(Turbine1.IsSynced());
+        TurbineBoard.Turbine2Synced.Check(Turbine2.IsSynced());
+        TurbineBoard.Turbine1Malfunction.Check(Turbine1.IsBroken());
+        TurbineBoard.Turbine2Malfunction.Check(Turbine2.IsBroken());
+        TurbineBoard.Turbine1Tripped.Check(Turbine1.Tripped);
+        TurbineBoard.Turbine2Tripped.Check(Turbine2.Tripped);
+        TurbineBoard.Turbine1Overspeed.Check(Turbine1.Rpm.Value >= 4000);
+        TurbineBoard.Turbine2Overspeed.Check(Turbine2.Rpm.Value >= 4000);
+        TurbineBoard.Turbine1Underspeed.Check(Turbine1.Rpm.Value < 2000);
+        TurbineBoard.Turbine2Underspeed.Check(Turbine2.Rpm.Value < 2000);
+        TurbineBoard.Turbine1VibrationHigh.Check(Turbine1.Vibration.Value >= 100);
+        TurbineBoard.Turbine2VibrationHigh.Check(Turbine2.Vibration.Value >= 100);
+        TurbineBoard.Turbine1VibrationCritical.Check(Turbine1.Vibration.Value >= 200);
+        TurbineBoard.Turbine2VibrationCritical.Check(Turbine2.Vibration.Value >= 200);
+
         // SFX
 
         var sfx = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         sfx.UnionWith(CoolantBoard.GetActiveSfx());
         sfx.UnionWith(ReactorBoard.GetActiveSfx());
         sfx.UnionWith(GridGenBoard.GetActiveSfx());
+        sfx.UnionWith(TurbineBoard.GetActiveSfx());
 
         var toRemove = _activeAlarmSfx.Except(sfx);
         var toPlay = sfx.Except(_activeAlarmSfx);
@@ -1116,5 +1189,10 @@ public class Simulation : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await _loop.DisposeAsync();
+    }
+
+    public void RefuelReactor()
+    {
+        Fuel.Value = Math.Clamp(Fuel.Value + 0.2, 0, 1);
     }
 }

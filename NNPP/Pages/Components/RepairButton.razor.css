@@ -1,0 +1,27 @@
+﻿.action {
+    display: block;
+    cursor: pointer;
+    user-select: none;
+    margin: 2px;
+    background-color: #EEE;
+    color: #111;
+    padding: 4px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: bold;
+    border: 2px solid #555;
+    border-radius: 4px;
+}
+
+.action:hover {
+    background-color: #FFF;
+}
+
+.action:active {
+    background: #AAA;
+}
+
+.action img {
+    width: 1em;
+}

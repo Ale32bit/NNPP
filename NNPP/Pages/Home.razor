@@ -179,7 +179,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="section">
             <div class="station">
                 <div class="top">
@@ -273,7 +273,8 @@
                 </div>
 
                 <div class="bottom">
-                    <Synchroscope Turbine="Sim.Turbine2"></Synchroscope>
+                    <Synchroscope Turbine="Sim.Turbine2"/>
+                    <StatusLightsBoard Board="Sim.TurbineBoard.Turbine2"/>
                 </div>
             </div>
         </div>
@@ -309,6 +310,7 @@
 
                 <div class="bottom">
                     <Synchroscope Turbine="Sim.Turbine1"></Synchroscope>
+                    <StatusLightsBoard Board="Sim.TurbineBoard.Turbine1"/>
                 </div>
             </div>
         </div>
@@ -322,7 +324,7 @@
                 </div>
 
                 <div class="bottom">
-                    <p class="wip">TURBINES STATUS HERE</p>
+                    <StatusLightsBoard Board="Sim.TurbineBoard"/>
                 </div>
             </div>
         </div>
@@ -400,6 +402,101 @@
                 <div class="bottom">
                     <ToggleSwitch Switch="Sim.ShiftEfficiencyActSwitch" Label="Efficiency Act"/>
                     <ToggleSwitch Switch="Sim.ShiftHazardPaySwitch" Label="Hazard Pay"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="board">
+    <div class="label">
+        <h3>Plant Maintenance</h3>
+    </div>
+
+    <div class="sections">
+        <div class="section">
+            <div class="station">
+                <div class="top">
+                    <Display Title="Turbines">
+                        <MetricDisplay Index="1" Parameter="Sim.Turbine1.Health" Label="Turbine 1 Health" ShowLabelUnit="false"/>
+                        <MetricDisplay Index="2" Parameter="Sim.Turbine2.Health" Label="Turbine 2 Health" ShowLabelUnit="false"/>
+                    </Display>
+                </div>
+                <div class="bottom">
+                    <RepairButton Label="Turbine 1" Callback="Sim.Turbine1.Repair"/>
+                    <RepairButton Label="Turbine 2" Callback="Sim.Turbine2.Repair"/>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="station">
+                <div class="top">
+                    <Display Title="Feedwater Pumps">
+                        <MetricDisplay Index="1" Parameter="Sim.FeedwaterPump1.Health" Label="Pump 1 Health" ShowLabelUnit="false"/>
+                        <MetricDisplay Index="2" Parameter="Sim.FeedwaterPump2.Health" Label="Pump 2 Health" ShowLabelUnit="false"/>
+                    </Display>
+                </div>
+                <div class="bottom">
+                    <RepairButton Label="Pump 1" Callback="Sim.FeedwaterPump1.Repair"/>
+                    <RepairButton Label="Pump 2" Callback="Sim.FeedwaterPump2.Repair"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="station">
+                <div class="top">
+                    <Display Title="Coolant Pumps">
+                        <MetricDisplay Index="1" Parameter="Sim.CoolantPumpAlpha.Status" Label="Alpha Status"/>
+                        <MetricDisplay Index="2" Parameter="Sim.CoolantPumpBeta.Status" Label="Beta Status"/>
+                    </Display>
+                </div>
+                <div class="bottom">
+                    <ToggleSwitch Switch="Sim.CoolantPumpAlpha.Switch" Label="ALPHA"/>
+                    <ToggleSwitch Switch="Sim.CoolantPumpBeta.Switch" Label="BETA"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            @for (var i = 0; i < Sim.Grid.Generators.Count; i++)
+            {
+                var generator = Sim.Grid.Generators[i];
+                var label = $"Generator {i + 1}";
+                <div class="station">
+                    <div class="top">
+                        <Display Title="@label" Grid="Display.GridType.OneThenTwo">
+                            <MetricDisplay Index="1" Parameter="generator.Power"/>
+                            <MetricDisplay Index="2" Parameter="generator.Fuel"/>
+                            <MetricDisplay Index="3" Parameter="generator.Health" ShowLabelUnit="false"/>
+                        </Display>
+                    </div>
+                    <div class="bottom">
+                        <div class="vertical-grid">
+                            <RepairButton Callback="generator.Repair"/>
+                            <RefuelButton Callback="generator.Refuel"/>
+                        </div>
+                        <div class="vertical-grid">
+                            <GeneratorButton Type="GeneratorButton.ButtonType.Off" Generator="generator"/>
+                            <GeneratorButton Type="GeneratorButton.ButtonType.On" Generator="generator"/>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <div class="section">
+            <div class="station">
+                <div class="top">
+                    <Display Title="Reactor Fuel">
+                        <MetricDisplay Index="1" Parameter="Sim.ReactorTemperature"/>
+                        <MetricDisplay Index="2" Parameter="Sim.Fuel"/>
+                    </Display>
+                </div>
+                <div class="bottom">
+                    <RefuelButton Callback="Sim.RefuelReactor" Label="Reactor"/>
                 </div>
             </div>
         </div>

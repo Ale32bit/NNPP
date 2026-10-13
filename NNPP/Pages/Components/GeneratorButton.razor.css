@@ -1,0 +1,17 @@
+﻿.button {
+    border: 2px solid #212018;
+    border-radius: 100%;
+    aspect-ratio: 1;
+    
+    cursor: pointer;
+}
+
+.off {
+    background-color: #d90000;
+    width: 2rem;
+}
+
+.on {
+    background-color: #0f952b;
+    width: 1.5rem;
+}

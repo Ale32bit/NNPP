@@ -37,6 +37,7 @@ builder.Services.AddSingleton(sp => new AudioManager(sp.GetRequiredService<IJSRu
     .Register(AudioKeys.Sfx.AlarmSevere, "audio/alarmsevere.ogg")
     .Register(AudioKeys.Sfx.AlarmOverheat, "audio/alarmoverheat.ogg")
     .Register(AudioKeys.Sfx.Alarm1, "audio/alarm1.ogg")
+    .Register(AudioKeys.Sfx.AlarmOverspeed, "audio/alarmoverspeed.ogg")
     
     .Register(AudioKeys.Music.Overheat, "audio/overheat.ogg")
     .Register(AudioKeys.Music.Meltdown, "audio/meltdown.ogg")

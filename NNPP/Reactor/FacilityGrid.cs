@@ -1,9 +1,9 @@
-﻿using System.Security.Cryptography;
-using NNPP.Models;
+﻿using NNPP.Models;
+using NNPP.Reactor.Components;
 
-namespace NNPP.Reactor.Grid;
+namespace NNPP.Reactor;
 
-public class FacilityGrid(Simulation Sim)
+public class FacilityGrid(Simulation sim)
 {
     public enum PrimarySource
     {
@@ -17,14 +17,7 @@ public class FacilityGrid(Simulation Sim)
         Generators,
     }
 
-    public const int DcDemand = 5000;
-    public const double GeneratorSupply = 17000d / 3d; // x 3 =  17000
-    public const double ExternalSupply = 26000;
-    public const int OverallFacilityDemand = 30_000;
-    public const int MaxExcessOutput = 50_000;
-    public const int GenPowerNoiseMax = 300;
-
-    public IReadOnlyList<GridGenerator> Generators => [new(), new(), new()];
+    public IReadOnlyList<GridGenerator> Generators { get; } = [new(sim), new(sim), new(sim)];
 
     // EXT/Turb to Primary
     public MetricEnum<PrimarySource> Primary { get; } = new("Primary", PrimarySource.External);
@@ -69,7 +62,7 @@ public class FacilityGrid(Simulation Sim)
 
     public bool TurbinesCanSupply()
     {
-        return Sim.GetTurbineOutput() > 0;
+        return sim.GetTurbineOutput() > 0;
     }
 
     public bool GensCanSupply()
@@ -102,13 +95,13 @@ public class FacilityGrid(Simulation Sim)
 
     private int GetGeneratorNoise(int running)
     {
-        var seed = (int)((double)Sim.Tick / Sim.Tickrate * 10) * 1000;
+        var seed = (int)((double)sim.Tick / sim.Tickrate * 10) * 1000;
         var rng = new Random(seed);
-        var wave = Math.Sin(0.5 * Sim.Runtime * Math.PI * rng.NextDouble());
+        var wave = Math.Sin(0.5 * sim.Runtime * Math.PI * rng.NextDouble());
         var noise = 0;
         for (var i = 0; i < running; i++)
         {
-            noise += (int)(wave * rng.NextDouble() * GenPowerNoiseMax);
+            noise += (int)(wave * rng.NextDouble() * Parameters.Grid.GenPowerNoiseMax);
         }
 
         return noise;
@@ -116,9 +109,7 @@ public class FacilityGrid(Simulation Sim)
 
     public int GetGeneratorsOutput()
     {
-        var running = Generators.Count(q => q.Running);
-        var noise = GetGeneratorNoise(running);
-        return (int)(GeneratorSupply * running) + noise;
+        return (int)Generators.Sum(q => q.GetOutput());
     }
 
     /// <summary>
@@ -128,8 +119,8 @@ public class FacilityGrid(Simulation Sim)
     public int GetPrimaryBusDemand()
     {
         var demand = 0;
-        demand += Sim.CoolantPumpAlpha.GetPowerDemand(); // always demanding power regardless of state
-        demand += Sim.FeedwaterPump1 is { Powered: true, Alive: true } ? Sim.FeedwaterPump1.GetPowerDemand() : 0;
+        demand += sim.CoolantPumpAlpha.GetPowerDemand(); // always demanding power regardless of state
+        demand += sim.FeedwaterPump1 is { Powered: true, Alive: true } ? sim.FeedwaterPump1.GetPowerDemand() : 0;
 
         return demand;
     }
@@ -141,8 +132,8 @@ public class FacilityGrid(Simulation Sim)
     public int GetAuxBusDemand()
     {
         var demand = 0;
-        demand += Sim.CoolantPumpBeta.GetPowerDemand(); // always demanding power regardless of state
-        demand += Sim.FeedwaterPump2 is { Powered: true, Alive: true } ? Sim.FeedwaterPump2.GetPowerDemand() : 0;
+        demand += sim.CoolantPumpBeta.GetPowerDemand(); // always demanding power regardless of state
+        demand += sim.FeedwaterPump2 is { Powered: true, Alive: true } ? sim.FeedwaterPump2.GetPowerDemand() : 0;
 
 
         return demand;
@@ -154,7 +145,7 @@ public class FacilityGrid(Simulation Sim)
     /// <returns></returns>
     public int GetDcBusDemand()
     {
-        return DcConnected ? DcDemand : 0;
+        return DcConnected ? Parameters.Grid.DcDemand : 0;
     }
 
     public int GetPrimaryDemand()
@@ -170,7 +161,7 @@ public class FacilityGrid(Simulation Sim)
 
     public double GetTotalOutput()
     {
-        var value = Sim.GetTurbineOutput();
+        var value = sim.GetTurbineOutput();
         if (Auxiliary.Value == AuxiliarySource.Generators)
         {
             value += GetGeneratorsOutput();
@@ -181,13 +172,13 @@ public class FacilityGrid(Simulation Sim)
 
     public double GetExcessOutput()
     {
-        var output = Sim.GetTurbineOutput();
+        var output = sim.GetTurbineOutput();
         if (Primary.Value == PrimarySource.Turbines)
         {
-            output -= OverallFacilityDemand;
+            output -= Parameters.Grid.OverallFacilityDemand;
         }
 
-        return Math.Clamp(output, 0, MaxExcessOutput);
+        return Math.Clamp(output, 0, Parameters.Grid.MaxExcessOutput);
     }
 
     public void Update(double dt)
@@ -211,8 +202,8 @@ public class FacilityGrid(Simulation Sim)
 
         var primarySupply = Primary.Value switch
         {
-            PrimarySource.External => ExternalRunning ? ExternalSupply : 0,
-            PrimarySource.Turbines => Sim.GetTurbineOutput(),
+            PrimarySource.External => ExternalRunning ? Parameters.Grid.ExternalSupply : 0,
+            PrimarySource.Turbines => sim.GetTurbineOutput(),
             _ => 0,
         };
 
@@ -240,15 +231,15 @@ public class FacilityGrid(Simulation Sim)
         // handle components
 
         // primary
-        primarySupply -= Sim.CoolantPumpAlpha.GetPowerDemand();
-        Sim.CoolantPumpAlpha.Powered = primarySupply >= 0;
-        primarySupply -= Sim.FeedwaterPump1.GetPowerDemand();
-        Sim.FeedwaterPump1.Powered = primarySupply >= 0;
+        primarySupply -= sim.CoolantPumpAlpha.GetPowerDemand();
+        sim.CoolantPumpAlpha.Powered = primarySupply >= 0;
+        primarySupply -= sim.FeedwaterPump1.GetPowerDemand();
+        sim.FeedwaterPump1.Powered = primarySupply >= 0;
 
         // Auxiliary
-        auxSupply -= Sim.CoolantPumpBeta.GetPowerDemand();
-        Sim.CoolantPumpBeta.Powered = auxSupply >= 0;
-        auxSupply -= Sim.FeedwaterPump2.GetPowerDemand();
-        Sim.FeedwaterPump2.Powered = auxSupply >= 0;
+        auxSupply -= sim.CoolantPumpBeta.GetPowerDemand();
+        sim.CoolantPumpBeta.Powered = auxSupply >= 0;
+        auxSupply -= sim.FeedwaterPump2.GetPowerDemand();
+        sim.FeedwaterPump2.Powered = auxSupply >= 0;
     }
 }

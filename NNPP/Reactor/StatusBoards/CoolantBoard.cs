@@ -27,8 +27,8 @@ public class CoolantBoard : AbstractStatusBoard
     public AlarmTile CoolantValveClosed { get; } = new("COOLANT VALVE CLOSED", sfx: AudioKeys.Sfx.AlarmCritical);
     public AlarmTile Clp1Off { get; } = new("COOLANT PUMP 1 OFF", TileColor.Red, sfx: AudioKeys.Sfx.AlarmCritical);
     public AlarmTile Clp2Off { get; } = new("COOLANT PUMP 2 OFF", TileColor.Red, sfx: AudioKeys.Sfx.AlarmCritical);
-    public StatusTile Clp1Runup { get; } = new("COOLANT PUMP 1 RUNUP",TileColor.Yellow);
-    public StatusTile Clp2Runup { get; } = new("COOLANT PUMP 2 RUNUP", TileColor.Yellow);
+    public AlarmTile Clp1Runup { get; } = new("COOLANT PUMP 1 RUNUP");
+    public AlarmTile Clp2Runup { get; } = new("COOLANT PUMP 2 RUNUP");
     public StatusTile Clp1Running { get; } = new("COOLANT PUMP 1 RUNNING");
     public StatusTile Clp2Running { get; } = new("COOLANT PUMP 2 RUNNING");
 }

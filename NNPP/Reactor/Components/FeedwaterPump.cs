@@ -14,6 +14,12 @@ public class FeedwaterPump
 
     public MetricPercentage Utilization { get; } = new("Utilization", 0.8);
 
+    public Metric Health { get; } = new("Health", 100, "/ 100")
+    {
+        DecimalPlaces = 0, 
+        ShowUnit = true,
+    };
+
     public RateSwitch Switch { get; } = new();
 
     public bool Powered { get; set; } = true;
@@ -22,7 +28,22 @@ public class FeedwaterPump
     public bool Running => Powered && Alive;
 
     public int GetPowerDemand() => Parameters.FeedwaterPumpPowerDemand(Utilization.Value);
-    
+
     public bool IsCavitating() => Rpm.Value > Parameters.Feedwater.MaxRpm * Parameters.Feedwater.CavitationLimit;
 
+    public void Break()
+    {
+        Alive = false;
+        Health.Value = 0;
+    }
+
+    public void Repair()
+    {
+        var health = Math.Clamp((int)Health.Value + 25, 0, 100);
+        Health.Value = health;
+        if (health == 100 && !Alive)
+        {
+            Alive = true;
+        }
+    }
 }

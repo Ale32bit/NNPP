@@ -86,7 +86,6 @@ public static class Parameters
 
     public static class Turbine
     {
-        public const double FlowFull = 8.454;
         public const double DeadFlow = 0.276;
         public const double SyncFlow = 3.61111;
         public const double SyncRpm = 3000;
@@ -97,6 +96,8 @@ public static class Parameters
         public const double FlowMin = 1.5;
         public const double SyncRpmTolerance = 50; // made up for antispam reasons
         public const double PowerPerFlow = 5500.0;
+        public const double RpmBreak = 5000;
+        public const double RpmOverspeed = 4000;
 
         // the following vibration values are arbitrary. i need to research more
         public const double VibPerAccel = 2;
@@ -122,6 +123,13 @@ public static class Parameters
     {
         public const int CoolantPumpDemand = 6000;
         public const int FeedwaterPumpMaxDemand = 5000;
+        public const int DcDemand = 5000;
+        public const double GeneratorSupply = 17000d / 3d;
+        public const double ExternalSupply = 26000;
+        public const int OverallFacilityDemand = 30_000;
+        public const int MaxExcessOutput = 50_000;
+        public const int GenPowerNoiseMax = 300;
+        public const double GeneratorFuelBurn = 0.002;
     }
 
     public static double Lerp(double x, double[] xs, double[] ys)

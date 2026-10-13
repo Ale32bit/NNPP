@@ -52,10 +52,6 @@
         <_ContentIncludedByDefault Remove="wwwroot\sample-data\weather.json"/>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="wwwroot\assets\" />
-    </ItemGroup>
-
 	<Target Name="CacheBustIndexHtml" AfterTargets="Publish">
 		<PropertyGroup>
 			<CacheBust>$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</CacheBust>

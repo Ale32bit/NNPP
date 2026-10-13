@@ -1,13 +1,13 @@
 ﻿@using NNPP.Reactor
 @inject Simulation Sim
 
-<button @onclick="Toggle" class="popup-button @TaintedClass">MANAGER CONTROL</button>
+<button @onclick="Toggle" class="popup-button @TaintedClass">SIMULATION CONTROL</button>
 
 @if (_openMenu)
 {
     <div class="manager-control">
-        <h3>Manager Control</h3>
-        <p>Using these controls will disable XP gain.</p>
+        <h3>Simulation Control</h3>
+        <p><b>Using these controls will disable XP gain.</b></p>
         <div>
             <label>Reactor Temperature (K)</label>
             <input @bind="Temperature" type="number"/>
@@ -103,6 +103,8 @@
         Sim.ReactorTemperature.Value = 1420;
         Sim.RodControl.Locked = false;
         Sim.RodInsertion.Value = 0.55;
+        Sim.FeedwaterPump1.Rpm.Value = Parameters.Feedwater.MaxRpm * Sim.FeedwaterPump1.Utilization.Value;
+        Sim.FeedwaterPump2.Rpm.Value = Parameters.Feedwater.MaxRpm * Sim.FeedwaterPump2.Utilization.Value;
     }
 
     private void Taint()

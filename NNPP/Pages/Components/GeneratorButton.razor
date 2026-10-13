@@ -1,0 +1,41 @@
+﻿@using NNPP.Reactor.Components
+@inject AudioManager Audio
+
+<div @onclick="Click" class="button @(Type.ToString().ToLowerInvariant())"></div>
+
+@code {
+
+    public enum ButtonType
+    {
+        Off,
+        On,
+    }
+
+    [Parameter, EditorRequired] public GridGenerator Generator { get; set; }
+
+    [Parameter, EditorRequired] public ButtonType Type { get; set; }
+
+    public void Click()
+    {
+        Audio.PlaySfxAsync(AudioKeys.Sfx.ControlInteract);
+        
+        switch (Type)
+        {
+            case ButtonType.Off:
+                if (Generator.Running)
+                {
+                    Generator.Status = GridGenerator.GeneratorStatus.Off;
+                }
+
+                break;
+            case ButtonType.On:
+                if (Generator is { Running: false, Broken: false })
+                {
+                    Generator.Status = GridGenerator.GeneratorStatus.On;
+                }
+
+                break;
+        }
+    }
+
+}

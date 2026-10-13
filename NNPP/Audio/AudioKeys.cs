@@ -30,6 +30,7 @@ public static class AudioKeys
         public const string AlarmOverheat = "sfx.alarmOverheat";
         // i ran out of adjectives
         public const string Alarm1 = "sfx.alarm1";
+        public const string AlarmOverspeed = "sfx.alarmOverspeed";
     }
     
     public static class Music

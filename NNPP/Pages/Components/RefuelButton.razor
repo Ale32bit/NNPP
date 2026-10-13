@@ -1,0 +1,43 @@
+﻿@using Microsoft.AspNetCore.Components.Infrastructure
+@using NNPP.Reactor
+@inject Simulation Sim
+
+<button class="action" @onclick="Refuel" @(Disabled)><img src="assets/fuel.svg" alt="wrench"/>Refuel @Label @CooldownText</button>
+
+@code {
+    [Parameter, EditorRequired] public Action Callback { get; set; }
+    [Parameter] public string Label { get; set; }
+
+    private static readonly double CooldownDuration = 3; // seconds
+    private double _cooldown = 0;
+    private bool _refueling = false;
+
+    private string Disabled => _cooldown > 0 ? "disabled" : "";
+    
+    private string CooldownText => _refueling ? $"({_cooldown:F0}s)" : "";
+
+    protected override void OnInitialized()
+    {
+        Sim.OnUpdate += (_, dt) =>
+        {
+            if (!_refueling) return;
+            _cooldown -= dt;
+
+            if (_cooldown <= 0)
+            {
+                _refueling = false;
+                Callback();
+            }
+        };
+    }
+
+    public void Refuel()
+    {
+        if (_cooldown > 0)
+            return;
+
+        _cooldown = CooldownDuration;
+        _refueling = true;
+    }
+
+}
