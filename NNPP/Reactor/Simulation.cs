@@ -164,7 +164,8 @@ public class Simulation : IAsyncDisposable
     private bool _forceMeltdown = false;
 
     private double _ignitionTime = 0;
-    private bool _igniting = false;
+    private bool _ignitingTemperature = false;
+    private bool _igniting;
 
     private bool _enableTier4 = false;
     private double _shiftRemainingTime = 0;
@@ -271,7 +272,7 @@ public class Simulation : IAsyncDisposable
         }
 
 
-        if (_igniting)
+        if (_ignitingTemperature)
         {
             ReactorStatus.Value = Models.ReactorStatus.Heating;
         }
@@ -561,7 +562,7 @@ public class Simulation : IAsyncDisposable
                 }
             }
         }
-        else if (Ignited && _igniting)
+        else if (Ignited && _ignitingTemperature)
         {
             _ignitionTime += dt;
             ReactorTemperature.Value =
@@ -654,6 +655,7 @@ public class Simulation : IAsyncDisposable
         if (IgnitionAuthBravo8.Value && IgnitionShutdownPumps.Value)
         {
             Ignited = true;
+            _igniting = true;
             Audio.PlaySfxAsync(AudioKeys.Sfx.AuthTrigger, 2d);
 
             Task.Run(async () =>
@@ -662,11 +664,12 @@ public class Simulation : IAsyncDisposable
                 await Sleep(8.6);
                 Notify("Reactor Ignition", "The Facility Reactor is currently being ignited. Standby");
                 await Sleep(2.4);
-                _igniting = true;
+                _ignitingTemperature = true;
                 await Sleep(43);
                 Notify("Reactor ignition", "Reactor online. Code Bravo-8 is now in effect.");
                 RodControl.Locked = false;
                 Running = true;
+                _ignitingTemperature = false;
                 _igniting = false;
                 await AddXpAsync(100, "Ignited the reactor.");
             });
