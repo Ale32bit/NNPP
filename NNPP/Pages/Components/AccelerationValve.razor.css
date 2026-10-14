@@ -16,9 +16,9 @@
     white-space: nowrap;
 }
 
-    .switch span.on {
-        font-weight: bold;
-    }
+.switch span.on {
+    font-weight: bold;
+}
 
 .knob {
     position: absolute;
@@ -29,16 +29,34 @@
     border-radius: 50%;
     background: #ccc;
     border: 3px solid #333;
-    cursor: pointer;
     transition: transform .2s;
 }
 
-    .knob::after {
-        content: "";
-        position: absolute;
-        left: 18px;
-        top: 0;
-        width: 4px;
-        height: 20px;
-        background: #333;
-    }
+.knob::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    top: 0;
+    width: 4px;
+    height: 20px;
+    background: #333;
+}
+
+.interact-box {
+    position: absolute;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    left: 0;
+    top: 20px;
+    width: 40px;
+    height: 40px;
+    padding: 3px;
+}
+
+.interact-box .interact {
+    display: inline-block;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    cursor: pointer;
+}

@@ -51,3 +51,22 @@
     font-weight: 600;
     user-select: none;
 }
+
+.interact-box {
+    position: absolute;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    left: 0;
+    top: 20px;
+    width: 40px;
+    height: 40px;
+    padding: 3px;
+}
+
+.interact-box .interact {
+    display: inline-block;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    cursor: pointer;
+}
