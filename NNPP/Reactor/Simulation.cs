@@ -585,6 +585,8 @@ public class Simulation : IAsyncDisposable
 
         Grid.Update(dt);
 
+        HandleDamage(dt);
+
         OnUpdate?.Invoke(this, dt);
     }
 
@@ -1166,6 +1168,35 @@ public class Simulation : IAsyncDisposable
                 await Audio.PlaySfxLoopAsync(key);
             }
         });
+    }
+
+    public void HandleDamage(double dt)
+    {
+        if (FeedwaterPump1.Alive)
+        {
+            var fw1u = FeedwaterPump1.Utilization.Value;
+            var fw1sd = Parameters.FeedwaterSecondsPerDamage(fw1u);
+            FeedwaterPump1.SecondsToDamage += dt;
+
+            if (FeedwaterPump1.SecondsToDamage >= fw1sd)
+            {
+                FeedwaterPump1.SecondsToDamage = 0;
+                FeedwaterPump1.Health.Value--;
+            }
+        }
+
+        if (FeedwaterPump2.Alive)
+        {
+            var fw2u = FeedwaterPump2.Utilization.Value;
+            var fw2sd = Parameters.FeedwaterSecondsPerDamage(fw2u);
+            FeedwaterPump2.SecondsToDamage += dt;
+
+            if (FeedwaterPump2.SecondsToDamage >= fw2sd)
+            {
+                FeedwaterPump2.SecondsToDamage = 0;
+                FeedwaterPump2.Health.Value--;
+            }
+        }
     }
 
     public void Notify(Notification notification)

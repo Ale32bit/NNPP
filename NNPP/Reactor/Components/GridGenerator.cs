@@ -54,6 +54,6 @@ public class GridGenerator(Simulation sim)
 
     public void Refuel()
     {
-        Fuel.Value = Math.Clamp(Fuel.Value + 0.25d, 0, 1);
+        Fuel.Value = Math.Clamp(Fuel.Value + 0.3, 0, 1);
     }
 }

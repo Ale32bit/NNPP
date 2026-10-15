@@ -307,4 +307,33 @@ public static class Parameters
 
     public static int FeedwaterPumpPowerDemand(double utilization) =>
         (int)(utilization * utilization * Grid.FeedwaterPumpMaxDemand);
+
+    public static double TurbineDamageCoefficient(double flowrate)
+    {
+        return flowrate * 4.0986 - 39.635; // TODO: prediction about 98% confident.
+    }
+
+    public static double TurbineVibrationCoefficient(double flowrate)
+    {
+        return flowrate * 19.609 - 89.146; // TODO: prediction about 96% confident.
+    }
+
+    public static double TurbineSecondsPerDamage(double flowrate)
+    {
+        var coefficient = TurbineDamageCoefficient(flowrate);
+        return flowrate / coefficient;
+    }
+
+    public static double FeedwaterSecondsPerDamage(double utilization)
+    {
+        if (utilization <= 0.8)
+        {
+            return 10;
+        }
+
+        // the researched formula seemed wrong: u * 6.97 - 5.469 (9.34 s/d at 80%).
+        // this one does 80% = 10 s/d
+        var inv = utilization * 7 - 5.5;  
+        return 1 / inv;
+    }
 }

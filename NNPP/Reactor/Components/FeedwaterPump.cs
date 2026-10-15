@@ -5,6 +5,7 @@ namespace NNPP.Reactor.Components;
 
 public class FeedwaterPump
 {
+    public double SecondsToDamage = 0;
     public Metric Rpm { get; } = new("RPM", 0) { ShowUnit = false, DecimalPlaces = 0 };
 
     public Metric Flow { get; } = new("Flow", 0, "m³/s")
