@@ -13,6 +13,8 @@ public class Turbine
         Broken,
     }
 
+    public double SecondsToDamage { get; set; } = 0;
+
     public bool Tripped { get; set; } = false;
 
     public MetricPercentage Valve { get; } = new("Valves", 0);

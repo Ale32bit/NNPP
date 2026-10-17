@@ -412,11 +412,11 @@ public class Simulation : IAsyncDisposable
             Turbine2.Rpm.Value = Math.Max(0, Turbine2.Rpm.Value + turb2Accel * dt);
         }
 
-        var vibTarget1 = Parameters.VibrationTarget(Turbine1.FlowRate.Value, turb1Accel);
-        var vibTarget2 = Parameters.VibrationTarget(Turbine2.FlowRate.Value, turb2Accel);
+        // var vibTarget1 = Parameters.VibrationTarget(Turbine1.FlowRate.Value, turb1Accel);
+        // var vibTarget2 = Parameters.VibrationTarget(Turbine2.FlowRate.Value, turb2Accel);
 
-        Turbine1.Vibration.Value = Parameters.StepVibration(Turbine1.Vibration.Value, vibTarget1, dt);
-        Turbine2.Vibration.Value = Parameters.StepVibration(Turbine2.Vibration.Value, vibTarget2, dt);
+        // Turbine1.Vibration.Value = Parameters.StepVibration(Turbine1.Vibration.Value, vibTarget1, dt);
+        // Turbine2.Vibration.Value = Parameters.StepVibration(Turbine2.Vibration.Value, vibTarget2, dt);
 
         if (Turbine1.Rpm.Value >= Parameters.Turbine.RpmBreak || Turbine1.Health.Value <= 0)
         {
@@ -1195,6 +1195,32 @@ public class Simulation : IAsyncDisposable
             {
                 FeedwaterPump2.SecondsToDamage = 0;
                 FeedwaterPump2.Health.Value--;
+            }
+        }
+
+        if (!Turbine1.IsBroken())
+        {
+            var vib = Parameters.TurbineVibration(Turbine1.FlowRate.Value, Turbine1.RateSwitch.Value);
+            var spd = Parameters.TurbineSecondsPerDamage(vib);
+            Turbine1.SecondsToDamage += dt;
+
+            if (Turbine1.SecondsToDamage >= spd)
+            {
+                Turbine1.SecondsToDamage = 0;
+                Turbine1.Health.Value--;
+            }
+        }
+        
+        if (!Turbine2.IsBroken())
+        {
+            var vib = Parameters.TurbineVibration(Turbine2.FlowRate.Value, Turbine2.RateSwitch.Value);
+            var spd = Parameters.TurbineSecondsPerDamage(vib);
+            Turbine2.SecondsToDamage += dt;
+
+            if (Turbine2.SecondsToDamage >= spd)
+            {
+                Turbine2.SecondsToDamage = 0;
+                Turbine2.Health.Value--;
             }
         }
     }

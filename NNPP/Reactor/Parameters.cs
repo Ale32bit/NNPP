@@ -24,13 +24,15 @@ public static class Parameters
         public const double MeltdownExtraHeat = 17.9;
         public const double RodSpeedScram = 0.08;
         public const double IgnitionRate = 7.604651163;
-        
+
         // for status board
         public const double LowTemp = 600;
         public const double HighTemp = 2400;
         public const double LowPressure = 2500;
         public const double HighPressure = 18000;
+
         public const double LowFuelAlarm = 0.25;
+
         // measured these two with different rod insertion values and fuel.
         // these do not seem affected by anything else but temperature
         public const double LowFuelEfficiencyLow = 974.5;
@@ -53,7 +55,7 @@ public static class Parameters
         public const double LossPerLevel = 18.77;
         public const double LossMax = 15;
         public const double CavitationLimit = 0.8;
-        
+
         // for status board
         public const double LowFlow = 0.6;
         public const double LowLevel = 0.4;
@@ -132,18 +134,23 @@ public static class Parameters
         public const double GeneratorFuelBurn = 0.002;
     }
 
-    public static double Lerp(double x, double[] xs, double[] ys)
-    {
-        if (x <= xs[0]) return ys[0];
-        for (var i = 1; i < xs.Length; i++)
-        {
-            if (x <= xs[i])
-            {
-                return ys[i - 1] + (ys[i] - ys[i - 1]) * (x - xs[i - 1]) / (xs[i] - xs[i - 1]);
-            }
-        }
+    // public static double Lerp(double x, double[] xs, double[] ys)
+    // {
+    //     if (x <= xs[0]) return ys[0];
+    //     for (var i = 1; i < xs.Length; i++)
+    //     {
+    //         if (x <= xs[i])
+    //         {
+    //             return ys[i - 1] + (ys[i] - ys[i - 1]) * (x - xs[i - 1]) / (xs[i] - xs[i - 1]);
+    //         }
+    //     }
+    //
+    //     return ys[^1];
+    // }
 
-        return ys[^1];
+    public static double Lerp(double a, double b, double t)
+    {
+        return a + (b - a) * t;
     }
 
     public static double TemperatureRate(double fuel, double rod, double extraHeat, double waterLevel,
@@ -239,7 +246,7 @@ public static class Parameters
 
     public static double FeedwaterPumpStepRpm(double rpm, double utilization, bool running, double dt)
     {
-        double goal = running ? Feedwater.MaxRpm * utilization : 0;
+        var goal = running ? Feedwater.MaxRpm * utilization : 0;
         return goal > rpm
             ? Math.Min(goal, rpm + Feedwater.RpmRiseRate * dt)
             : Math.Max(goal, rpm - Feedwater.RpmFallRate * dt);
@@ -250,8 +257,8 @@ public static class Parameters
 
     public static double StepCoolantRpm(double rpm, bool running, double dt) // running = switched on and bus powered
     {
-        double goal = running ? CoolantPump.MaxRpm : 0;
-        double max = CoolantPump.RpmRate * dt;
+        var goal = running ? CoolantPump.MaxRpm : 0;
+        var max = CoolantPump.RpmRate * dt;
         return rpm + Math.Clamp(goal - rpm, -max, max);
     }
 
@@ -260,13 +267,8 @@ public static class Parameters
 
     public static double TurbineFlow(double valve, double pressure, bool broken)
     {
-        if (broken)
+        if (broken || pressure < Pressure.Atm)
             return 0;
-
-        if (pressure < Pressure.Atm)
-        {
-            return 0;
-        }
 
         var fullFlowrate = Pressure.K * Math.Sqrt(pressure - Pressure.Atm);
         return fullFlowrate * valve;
@@ -290,7 +292,7 @@ public static class Parameters
     public static double RpmAccel(double rpm, double target, double tau) =>
         (target - rpm) / tau; // synced: rpm = 3000 and accel = 0; else rpm = Math.Max(0, rpm + accel * dt)
 
-    public static double VibrationBase(double flow) => // todo: needs more research
+    /*public static double VibrationBase(double flow) => // todo: needs more research
         flow < Turbine.VibRefFlow
             ? 100 * Math.Pow(Math.Max(0, flow) / Turbine.VibRefFlow, 2.5)
             : Lerp(flow, Turbine.VibFlows, Turbine.VibValues);
@@ -302,27 +304,12 @@ public static class Parameters
         target > vib
             ? vib + (target - vib) * Math.Min(1, dt / Turbine.VibRiseTau)
             : target;
+            */
 
     public static double TurbineOutput(double flow) => (flow - Turbine.SyncFlow) * Turbine.PowerPerFlow;
 
     public static int FeedwaterPumpPowerDemand(double utilization) =>
         (int)(utilization * utilization * Grid.FeedwaterPumpMaxDemand);
-
-    public static double TurbineDamageCoefficient(double flowrate)
-    {
-        return flowrate * 4.0986 - 39.635; // TODO: prediction about 98% confident.
-    }
-
-    public static double TurbineVibrationCoefficient(double flowrate)
-    {
-        return flowrate * 19.609 - 89.146; // TODO: prediction about 96% confident.
-    }
-
-    public static double TurbineSecondsPerDamage(double flowrate)
-    {
-        var coefficient = TurbineDamageCoefficient(flowrate);
-        return flowrate / coefficient;
-    }
 
     public static double FeedwaterSecondsPerDamage(double utilization)
     {
@@ -333,7 +320,17 @@ public static class Parameters
 
         // the researched formula seemed wrong: u * 6.97 - 5.469 (9.34 s/d at 80%).
         // this one does 80% = 10 s/d
-        var inv = utilization * 7 - 5.5;  
+        var inv = utilization * 7 - 5.5;
         return 1 / inv;
+    }
+
+    public static double TurbineSecondsPerDamage(double vibration)
+    {
+        return vibration * 0.0146 - 1.36; // TODO: collect more data
+    }
+
+    public static double TurbineVibration(double flowrate, double rate)
+    {
+        return Math.Max(0, flowrate * 23.455 - 132.08); // TODO: collect more data
     }
 }
