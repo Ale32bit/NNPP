@@ -308,22 +308,6 @@ public static class Parameters
     public static int FeedwaterPumpPowerDemand(double utilization) =>
         (int)(utilization * utilization * Grid.FeedwaterPumpMaxDemand);
 
-    public static double TurbineDamageCoefficient(double flowrate)
-    {
-        return flowrate * 4.0986 - 39.635; // TODO: prediction about 98% confident.
-    }
-
-    public static double TurbineVibrationCoefficient(double flowrate)
-    {
-        return flowrate * 19.609 - 89.146; // TODO: prediction about 96% confident.
-    }
-
-    public static double TurbineSecondsPerDamage(double flowrate)
-    {
-        var coefficient = TurbineDamageCoefficient(flowrate);
-        return flowrate / coefficient;
-    }
-
     public static double FeedwaterSecondsPerDamage(double utilization)
     {
         if (utilization <= 0.8)
@@ -335,5 +319,23 @@ public static class Parameters
         // this one does 80% = 10 s/d
         var inv = utilization * 7 - 5.5;  
         return 1 / inv;
+    }
+
+    public static double TurbineSecondsPerDamage(double vibration)
+    {
+        return vibration * 0.0146 - 1.36; // TODO: collect more data
+    }
+
+    public static double TurbineVibration(double flowrate, double rate)
+    {
+        if (flowrate < 9)
+        {
+            return flowrate * 1.3 + 8.9;
+        }
+        else
+        {
+            return flowrate * 65 - 560;
+        }
+        //return Math.Max(0, flowrate * 23.455 - 132.08); // TODO: collect more data
     }
 }

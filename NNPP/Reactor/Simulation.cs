@@ -25,7 +25,7 @@ public class Simulation : IAsyncDisposable
     public int Tickrate { get; set; } = 20;
     public double Runtime { get; private set; } = 0;
 
-    public MetricEnum<ReactorStatus> ReactorStatus { get; } = new("Reactor Status", Models.ReactorStatus.Stalled);
+    public MetricEnum<ReactorStatus> ReactorStatus { get; } = new("Reactor Status", Models.ReactorStatus.Cold);
 
     public Metric ReactorTemperature { get; } = new("Reactor Temp", Parameters.Core.StallTemp, "K");
     public Metric Pressure { get; } = new("Pressure", Parameters.Pressure.Atm, "kPa");
@@ -290,7 +290,7 @@ public class Simulation : IAsyncDisposable
                 }
                 else
                 {
-                    ReactorStatus.Value = Models.ReactorStatus.Meltdown;
+                    ReactorStatus.Value = Models.ReactorStatus.Emergency;
                 }
             }
         }
@@ -300,8 +300,8 @@ public class Simulation : IAsyncDisposable
             {
                 ReactorStatus.Value = ReactorTemperature.Value switch
                 {
-                    <= Parameters.Core.StallTemp => Models.ReactorStatus.Stalled,
-                    > Parameters.Core.StallTemp and < Parameters.Core.HighTemp => Models.ReactorStatus.Running,
+                    <= Parameters.Core.StallTemp => Models.ReactorStatus.Cold,
+                    > Parameters.Core.StallTemp and < Parameters.Core.HighTemp => Models.ReactorStatus.Stable,
                     >= Parameters.Core.HighTemp => Models.ReactorStatus.Overheat,
                     _ => Models.ReactorStatus.Error,
                 };
