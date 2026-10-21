@@ -8,30 +8,33 @@ public class AudioManager(IJSRuntime js) : IAsyncDisposable
     public enum AudioBus
     {
         Master,
+        //Alarm,
+        Music,
         Sfx,
-        Music
     }
 
-    private readonly Dictionary<string, string> _map = new(StringComparer.OrdinalIgnoreCase);
+    private record Audio(string Path, AudioType Type);
+
+    private readonly Dictionary<string, Audio> _map = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly Lazy<Task<IJSObjectReference>> _mod = new(() =>
         js.InvokeAsync<IJSObjectReference>("import", "./audio.js").AsTask());
 
-    public AudioManager Register(string key, string path)
+    public AudioManager Register(string key, string path, AudioType type)
     {
-        _map[key] = path;
+        _map[key] = new Audio(path, type);
         return this;
     }
 
     private string Resolve(string key) =>
-        _map.TryGetValue(key, out var path)
-            ? path
+        _map.TryGetValue(key, out var audio)
+            ? audio.Path
             : throw new KeyNotFoundException($"Audio key '{key}' not registered. Skill issue.");
 
     private async ValueTask Call(string fn, params object?[] args) =>
         await (await _mod.Value).InvokeVoidAsync(fn, args);
 
-    public ValueTask PreloadAllAsync() => Call("preload", (object)_map.Values.Distinct().ToArray());
+    public ValueTask PreloadAllAsync() => Call("preload", (object)_map.Values.Select(q => q.Path).Distinct().ToArray());
 
     public ValueTask PreloadAsync(params string[] keys) =>
         Call("preload", (object)keys.Select(Resolve).ToArray());

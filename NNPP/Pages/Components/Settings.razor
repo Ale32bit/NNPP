@@ -1,0 +1,113 @@
+﻿@using NNPP.Reactor
+@inject Simulation Sim
+@inject AudioManager Audio
+
+<button @onclick="Toggle" class="popup-button">SETTINGS</button>
+
+@if (_openMenu)
+{
+    <div class="settings">
+        <h3>Settings</h3>
+        <div>
+            <label>Master volume (@MasterVolume.ToString("P0"))</label>
+            <input class="slider" type="range" min="0" max="1" step="0.01" @bind="MasterVolume"/>
+        </div>
+
+        @* <div> *@
+        @*     <label>Alarms volume (@AlarmsVolume.ToString("P0"))</label> *@
+        @*     <input class="slider" type="range" min="0" max="1" step="0.01" @bind="AlarmsVolume"/> *@
+        @* </div> *@
+
+        <div>
+            <label>Music volume (@MusicVolume.ToString("P0"))</label>
+            <input class="slider" type="range" min="0" max="1" step="0.01" @bind="MusicVolume"/>
+        </div>
+        
+        <div>
+            <label>SFX volume (@SfxVolume.ToString("P0"))</label>
+            <input class="slider" type="range" min="0" max="1" step="0.01" @bind="SfxVolume"/>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _openMenu = false;
+
+    private double MasterVolume
+    {
+        get;
+        set
+        {
+            field = value;
+            UpdateMasterVolume();
+        }
+    } = 0.5;
+
+    private double AlarmsVolume
+    {
+        get;
+        set
+        {
+            field = value;
+            UpdateAlarmsVolume();
+        }
+    } = 1;
+
+    private double MusicVolume
+    {
+        get;
+        set
+        {
+            field = value;
+            UpdateMusicVolume();
+        }
+    } = 1;
+    
+    private double SfxVolume
+    {
+        get;
+        set
+        {
+            field = value;
+            UpdateSfxVolume();
+        }
+    } = 0.2;
+
+    protected override void OnInitialized()
+    {
+        Sim.OnStart += (_, _) =>
+        {
+            UpdateMasterVolume();
+            UpdateAlarmsVolume();
+            UpdateMusicVolume();
+            UpdateSfxVolume();
+        };
+    }
+    
+    public void Toggle()
+    {
+        _openMenu = !_openMenu;
+    }
+
+
+    private void UpdateMasterVolume()
+    {
+        Audio.SetVolumeAsync(AudioManager.AudioBus.Master, MasterVolume);
+    }
+
+    private void UpdateAlarmsVolume()
+    {
+        //Audio.SetVolumeAsync(AudioManager.AudioBus.Master, MasterVolume);
+    }
+
+    private void UpdateMusicVolume()
+    {
+        Audio.SetVolumeAsync(AudioManager.AudioBus.Music, MusicVolume);
+    }
+    
+    private void UpdateSfxVolume()
+    {
+        Audio.SetVolumeAsync(AudioManager.AudioBus.Sfx, SfxVolume);
+    }
+
+}

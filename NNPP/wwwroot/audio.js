@@ -18,7 +18,8 @@ function get(url) {
     if (!p) {
         p = fetch(url)
             .then(r => { if (!r.ok) throw new Error(`${r.status} ${url}`); return r.arrayBuffer(); })
-            .then(b => ctx.decodeAudioData(b));
+            .then(b => ctx.decodeAudioData(b)
+                .catch(err => console.error(`${err} ${url}`)));
         p.catch(() => cache.delete(url));
         cache.set(url, p);
     }

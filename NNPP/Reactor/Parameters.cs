@@ -24,13 +24,15 @@ public static class Parameters
         public const double MeltdownExtraHeat = 17.9;
         public const double RodSpeedScram = 0.08;
         public const double IgnitionRate = 7.604651163;
-        
+
         // for status board
         public const double LowTemp = 600;
         public const double HighTemp = 2400;
         public const double LowPressure = 2500;
         public const double HighPressure = 18000;
+
         public const double LowFuelAlarm = 0.25;
+
         // measured these two with different rod insertion values and fuel.
         // these do not seem affected by anything else but temperature
         public const double LowFuelEfficiencyLow = 974.5;
@@ -53,7 +55,7 @@ public static class Parameters
         public const double LossPerLevel = 18.77;
         public const double LossMax = 15;
         public const double CavitationLimit = 0.8;
-        
+
         // for status board
         public const double LowFlow = 0.6;
         public const double LowLevel = 0.4;
@@ -317,25 +319,85 @@ public static class Parameters
 
         // the researched formula seemed wrong: u * 6.97 - 5.469 (9.34 s/d at 80%).
         // this one does 80% = 10 s/d
-        var inv = utilization * 7 - 5.5;  
+        var inv = utilization * 7 - 5.5;
         return 1 / inv;
     }
 
     public static double TurbineSecondsPerDamage(double vibration)
     {
-        return vibration * 0.0146 - 1.36; // TODO: collect more data
-    }
-
-    public static double TurbineVibration(double flowrate, double rate)
-    {
-        if (flowrate < 9)
+        // placeholders
+        if (vibration < 100)
         {
-            return flowrate * 1.3 + 8.9;
+            return 10;
+        }
+        else if (vibration < 200)
+        {
+            return 2;
         }
         else
         {
-            return flowrate * 65 - 560;
+            return 0.5;
         }
-        //return Math.Max(0, flowrate * 23.455 - 132.08); // TODO: collect more data
+
+        return vibration * 0.0146 - 1.36; // TODO: collect more data
     }
+
+    public static class TurbineVibration
+    {
+        public static double Base(double flow)
+        {
+            return 54.3 + 1.0187 * flow;
+        }
+        
+        // around 9 of flowrate the calculations change from linear to a squared function
+        public static double CriticalPointTerm(double flow)
+        {
+            var h = Math.Max(flow - 9.016, 0);
+            return 66.676 * h + -10.594 * h * h;
+        }
+        
+        public static double Mean(double flow)
+        {
+            return Base(flow) + CriticalPointTerm(flow);
+        }
+
+        public static double Jitter(double flow)
+        {
+            return 2 + 0.11 * CriticalPointTerm(flow);
+        }
+
+        public static double Sample(double flow)
+        {
+            var jitter = Jitter(flow);
+            var noise = (Random.Shared.NextDouble() * 2 - 1) * jitter;
+            return Mean(flow) + noise;
+        }
+
+        public static int SampleRounded(double flow)
+        {
+            return (int)Math.Round(Sample(flow), MidpointRounding.AwayFromZero);
+        }
+    }
+    
+
+    
+
+    // public static double TurbineVibration(double flowrate, double rate)
+    // {
+    //     // var b = Math.Max(flowrate - 9.016, 0);
+    //     // return 1.0187 * flowrate + 66.676 * b -
+    //     // 10.594 * Math.Pow(b, 2); // ?????? there better be a better formula
+    //
+    //     if (flowrate <= 9.09)
+    //     {
+    //         return flowrate * 1.0176 + 54.305;
+    //         // return flowrate * 1.3 + 8.9;
+    //     }
+    //     else
+    //     {
+    //         return Math.Pow(flowrate - 9, 2) * -10.523 + 67.873 * (flowrate - 9) + 62.456;
+    //         // return flowrate * 65 - 560;
+    //     }
+    //     //return Math.Max(0, flowrate * 23.455 - 132.08); // TODO: collect more data
+    // }
 }

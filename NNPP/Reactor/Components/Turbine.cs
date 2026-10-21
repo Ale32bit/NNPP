@@ -14,6 +14,8 @@ public class Turbine
     }
 
     public bool Tripped { get; set; } = false;
+    
+    public double SecondsToDamage { get; set; } = 0;
 
     public MetricPercentage Valve { get; } = new("Valves", 0);
 
@@ -43,7 +45,7 @@ public class Turbine
 
     public bool IsSynced() => Status.Value == TurbineStatus.Synced;
     public bool IsBroken() => Status.Value == TurbineStatus.Broken;
-    public bool CanRun() => !Tripped && !IsBroken();
+    public bool CanRun() => !IsBroken();
 
     public RateSwitch RateSwitch { get; } = new();
     public AccelerationSwitch AccelerationSwitch { get; } = new();
@@ -52,7 +54,7 @@ public class Turbine
     public double Phase { get; set; } = Random.Shared.NextDouble() * 360;
 
     public bool IsSyncPossible() =>
-        LitDot(Phase) == 0 && !IsBroken() && RpmSyncDifference() < Parameters.Turbine.SyncRpmTolerance;
+        LitDot(Phase) == 0 && CanRun() && RpmSyncDifference() < Parameters.Turbine.SyncRpmTolerance;
 
     public double RpmSyncDifference() => Math.Abs(Parameters.Turbine.SyncRpm - Rpm.Value);
 
