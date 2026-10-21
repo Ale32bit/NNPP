@@ -1,0 +1,29 @@
+﻿.popup {
+    position: absolute;
+    background-color: white;
+    border: black solid 2px;
+    padding: 20px;
+    margin: 5px;
+    z-index: 1000;
+    font-size: 1rem;
+}
+
+h3, h4 {
+    margin: 0;
+}
+
+p {
+    margin: 0;
+}
+
+ol {
+    margin: 0;
+}
+
+label {
+    display: inline-block;
+}
+
+input {
+    width: 4rem;
+}
