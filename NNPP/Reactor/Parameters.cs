@@ -17,7 +17,7 @@ public static class Parameters
         public const double HeatFullRate = 26;
         public const double RodCoolFullRate = 0.2;
         public const double ScramCoolingRate = 3;
-        public const double RvCoolingRate = 7;
+        public const double RvCoolingRate = 7.5;
         public const double FuelBurnRate = 0.000474;
         public const double RodSpeed = 0.02;
         public const double MeltdownTemperature = 3120;
