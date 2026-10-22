@@ -567,10 +567,7 @@ public class Simulation : IAsyncDisposable
             //ReactorTemperature.Value = Parameters.Core.StallTemp;
         }
 
-        if (ReactorTemperature.Value < Parameters.Core.StallTemp)
-        {
-            ReactorTemperature.Value = Parameters.Core.StallTemp;
-        }
+        ReactorTemperature.Value = Math.Clamp(ReactorTemperature.Value, Parameters.Core.StallTemp, 1_000_000);
 
         HandleStatusBoards(dt);
 
