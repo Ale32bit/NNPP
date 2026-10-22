@@ -5,6 +5,9 @@ namespace NNPP.Reactor;
 
 public class FacilityGrid(Simulation sim)
 {
+    // TODO: .NET 11 feature
+    // public union GridSource(PrimarySource, AuxiliarySource);
+
     public enum PrimarySource
     {
         External,
@@ -54,6 +57,16 @@ public class FacilityGrid(Simulation sim)
 
     // Aux to DC
     public bool DcConnected { get; set; } = true;
+
+    public PrimarySource? PrimaryPending { get; set; } = null;
+    public AuxiliarySource? AuxiliaryPending { get; set; } = null;
+    public bool? DcPending { get; set; } = null;
+
+    public const double PendingTime = 5;
+
+    private double _primaryPendingTime = 0;
+    private double _auxiliaryPendingTime = 0;
+    private double _dcPendingTime = 0;
 
     public bool ExtCanSupply()
     {
@@ -241,5 +254,109 @@ public class FacilityGrid(Simulation sim)
         sim.CoolantPumpBeta.Powered = auxSupply >= 0;
         auxSupply -= sim.FeedwaterPump2.GetPowerDemand();
         sim.FeedwaterPump2.Powered = auxSupply >= 0;
+
+        if (PrimaryPending.HasValue)
+        {
+            if (_primaryPendingTime <= 0)
+            {
+                Primary.Value = PrimaryPending.Value;
+                PrimaryPending = null;
+                NotifyGridChange("Reactor Bus", Primary.Value == PrimarySource.External ? "External Bus" : "Turbines");
+            }
+            
+            _primaryPendingTime -= dt;
+        }
+
+        if (AuxiliaryPending.HasValue)
+        {
+            if (_auxiliaryPendingTime <= 0)
+            {
+                Auxiliary.Value = AuxiliaryPending.Value;
+                AuxiliaryPending = null;
+                NotifyGridChange("Auxiliary Bus", Auxiliary.Value == AuxiliarySource.Primary ? "Reactor Bus" : "Generators");
+            }
+            
+            _auxiliaryPendingTime -= dt;
+        }
+
+        if (DcPending.HasValue)
+        {
+            if (_dcPendingTime <= 0)
+            {
+                DcConnected = DcPending.Value;
+                DcPending = null;
+
+                if (DcConnected)
+                {
+                    NotifyGridChange("DC Bus", "Auxiliary Bus");
+                }
+                else
+                {
+                    sim.Notify("Facility Power Grid", "Power to DC Bus has been cut.");
+                }
+            }
+            
+            _dcPendingTime -= dt;
+        }
+    }
+
+    private void NotifyGridPending()
+    {
+        sim.Notify("Facility Power Grid", "Reactor Operations requests a grid change. This change will happen automatically. Standby.");
+    }
+
+    private void NotifyGridChange(string bus, string source)
+    {
+        sim.Notify("Facility Power Grid", $"{bus} is now being powered by {source}");
+    }
+
+    // TODO: once .NET 11 is released, switch to union types
+
+    /// <summary>
+    /// Switch primary source.
+    /// </summary>
+    /// <param name="source"></param>
+    public void SwitchGrid(PrimarySource source)
+    {
+        PrimaryPending = source;
+        _primaryPendingTime = PendingTime;
+        NotifyGridPending();
+    }
+
+    /// <summary>
+    /// Switch auxiliary source.
+    /// </summary>
+    /// <param name="source"></param>
+    public void SwitchGrid(AuxiliarySource source)
+    {
+        AuxiliaryPending = source;
+        _auxiliaryPendingTime = PendingTime;
+        NotifyGridPending();
+    }
+
+    /// <summary>
+    /// Toggle DC grid.
+    /// </summary>
+    /// <param name="toggle"></param>
+    public void SwitchGrid(bool toggle)
+    {
+        DcPending = toggle;
+        _dcPendingTime = PendingTime;
+        NotifyGridPending();
+    }
+
+    public bool IsPending(PrimarySource source)
+    {
+        return PrimaryPending == source;
+    }
+
+    public bool IsPending(AuxiliarySource source)
+    {
+        return AuxiliaryPending == source;
+    }
+
+    public bool IsDcPending()
+    {
+        return DcPending.HasValue;
     }
 }

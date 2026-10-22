@@ -33,7 +33,9 @@
                 </p>
                 <p><span class="@Class(FacilityGrid.PrimarySource.External)" @onclick="PowerPrimaryFromExternals">4) Power <b>Reactor Grid</b> from <b>External Grid</b></span> @Status(FacilityGrid.PrimarySource.External)
                 </p>
-                <p><span @onclick="ToggleDcBus">5) @GetDcVerb() <b>DC bus</b> from <b>Auxiliary Grid</b></span></p>
+                <p><span class="@DcClass()"
+                         @onclick="ToggleDcBus">5) @GetDcVerb() <b>DC bus</b> from <b>Auxiliary Grid</b></span> @DcStatus()
+                </p>
                 <p><span @onclick="Close">PRESS <kbd>e</kbd> or <kbd>q</kbd> TO EXIT</span></p>
             </div>
             <p><br/></p>
@@ -60,7 +62,8 @@
 
     private static readonly MarkupString CurrentlyInUseText = new("<span class=\"green\">(Currently in use)</span>");
     private static readonly MarkupString NoPowerText = new("<span class=\"red\">(No Power)</span>");
-    private static readonly MarkupString Pending = new("<span class=\"yellow\">(Grid switch pending)</span>");
+    private static readonly MarkupString PendingText = new("<span class=\"yellow\">(Grid switch pending)</span>");
+    private static readonly MarkupString EmptyText = new("");
 
     protected override void OnInitialized()
     {
@@ -82,7 +85,7 @@
     private bool CanUse(FacilityGrid.PrimarySource source)
     {
         var inUse = Grid.Primary.Value;
-        if (source == inUse)
+        if (source == inUse || Grid.IsPending(source))
         {
             return false;
         }
@@ -100,7 +103,7 @@
     private bool CanUse(FacilityGrid.AuxiliarySource source)
     {
         var inUse = Grid.Auxiliary.Value;
-        if (source == inUse)
+        if (source == inUse || Grid.IsPending(source))
         {
             return false;
         }
@@ -115,6 +118,11 @@
         }
     }
 
+    private bool CanUseDc()
+    {
+        return !Grid.IsDcPending();
+    }
+
     private string Class(FacilityGrid.PrimarySource source)
     {
         return CanUse(source) ? "" : "strike";
@@ -123,6 +131,11 @@
     private string Class(FacilityGrid.AuxiliarySource source)
     {
         return CanUse(source) ? "" : "strike";
+    }
+
+    private string DcClass()
+    {
+        return CanUseDc() ? "" : "strike";
     }
 
     private bool InUse(FacilityGrid.PrimarySource source)
@@ -137,6 +150,11 @@
 
     private MarkupString Status(FacilityGrid.PrimarySource source)
     {
+        if (Grid.IsPending(source))
+        {
+            return PendingText;
+        }
+
         if (InUse(source))
         {
             return CurrentlyInUseText;
@@ -147,11 +165,16 @@
             return NoPowerText;
         }
 
-        return new MarkupString("");
+        return EmptyText;
     }
 
     private MarkupString Status(FacilityGrid.AuxiliarySource source)
     {
+        if (Grid.IsPending(source))
+        {
+            return PendingText;
+        }
+
         if (InUse(source))
         {
             return CurrentlyInUseText;
@@ -162,7 +185,17 @@
             return NoPowerText;
         }
 
-        return new MarkupString("");
+        return EmptyText;
+    }
+
+    private MarkupString DcStatus()
+    {
+        if (Grid.IsDcPending())
+        {
+            return PendingText;
+        }
+
+        return EmptyText;
     }
 
     private void OnKey(KeyPressEventArgs e)
@@ -190,7 +223,7 @@
     {
         if (CanUse(FacilityGrid.AuxiliarySource.Primary))
         {
-            Grid.Auxiliary.Value = FacilityGrid.AuxiliarySource.Primary;
+            Grid.SwitchGrid(FacilityGrid.AuxiliarySource.Primary);
         }
     }
 
@@ -198,7 +231,7 @@
     {
         if (CanUse(FacilityGrid.AuxiliarySource.Generators))
         {
-            Grid.Auxiliary.Value = FacilityGrid.AuxiliarySource.Generators;
+            Grid.SwitchGrid(FacilityGrid.AuxiliarySource.Generators);
         }
     }
 
@@ -206,7 +239,7 @@
     {
         if (CanUse(FacilityGrid.PrimarySource.Turbines))
         {
-            Grid.Primary.Value = FacilityGrid.PrimarySource.Turbines;
+            Grid.SwitchGrid(FacilityGrid.PrimarySource.Turbines);
         }
     }
 
@@ -214,7 +247,7 @@
     {
         if (CanUse(FacilityGrid.PrimarySource.External))
         {
-            Grid.Primary.Value = FacilityGrid.PrimarySource.External;
+            Grid.SwitchGrid(FacilityGrid.PrimarySource.External);
         }
     }
 
@@ -225,7 +258,12 @@
 
     private void ToggleDcBus()
     {
-        Grid.DcConnected = !Grid.DcConnected;
+        if (Grid.IsDcPending())
+        {
+            return;
+        }
+
+        Grid.SwitchGrid(!Grid.DcConnected);
     }
 
 
@@ -233,7 +271,7 @@
     {
         var text = Grid.Primary.Value == FacilityGrid.PrimarySource.External ? "External Grid" : "Turbines";
         var color = Grid.IsPrimaryPowered() ? "lime" : "red";
-        
+
         return new($"<span class=\"{color}\">{text}</span>");
     }
 
@@ -241,7 +279,7 @@
     {
         var text = Grid.Auxiliary.Value == FacilityGrid.AuxiliarySource.Primary ? "Reactor Grid" : "Generators";
         var color = Grid.IsAuxiliaryPowered() ? "lime" : "red";
-        
+
         return new($"<span class=\"{color}\">{text}</span>");
     }
 
@@ -249,7 +287,8 @@
     {
         var text = Grid.DcConnected ? "Auxiliary Grid" : "N/A";
         var color = Grid.IsDcPowered() ? "lime" : "red";
-        
+
         return new($"<span class=\"{color}\">{text}</span>");
     }
+
 }

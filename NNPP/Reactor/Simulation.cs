@@ -1232,6 +1232,25 @@ public class Simulation : IAsyncDisposable
         
         // todo: handle random component break, include EXT too while at it..
     }
+    
+    public bool CanRefuel()
+    {
+        if (Fuel.Value < 0.8)
+        {
+            _shouldRefuel = true;
+        }
+        return _shouldRefuel;
+    }
+
+    public void RefuelReactor()
+    {
+        var value = Fuel.Value + 0.2;
+        Fuel.Value = Math.Clamp(value, 0, 1);
+        if (value >= 1)
+        {
+            _shouldRefuel = false;
+        }
+    }
 
     public void Notify(Notification notification)
     {
@@ -1257,24 +1276,5 @@ public class Simulation : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await _loop.DisposeAsync();
-    }
-
-    public bool CanRefuel()
-    {
-        if (Fuel.Value < 0.8)
-        {
-            _shouldRefuel = true;
-        }
-        return _shouldRefuel;
-    }
-
-    public void RefuelReactor()
-    {
-        var value = Fuel.Value + 0.2;
-        Fuel.Value = Math.Clamp(value, 0, 1);
-        if (value >= 1)
-        {
-            _shouldRefuel = false;
-        }
     }
 }
