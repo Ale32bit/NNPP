@@ -35,6 +35,7 @@ public class Turbine
     public Metric Vibration { get; } = new("Vibration", 0, "µm")
     {
         DecimalPlaces = 0,
+        ValueOverride = "N/A", // TODO: fix vibration
     };
 
     public Metric Health { get; } = new("Health", 100, "/ 100")

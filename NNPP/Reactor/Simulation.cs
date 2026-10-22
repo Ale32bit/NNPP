@@ -174,6 +174,8 @@ public class Simulation : IAsyncDisposable
     private double? _shiftOrderTime = null;
     private bool _shiftDay = false;
     private double _powerOrderRequestCooldown = 0; // 70s ... 0s => new power order
+    
+    private bool _shouldRefuel = false;
 
     private HashSet<string> _activeAlarmSfx = new(StringComparer.OrdinalIgnoreCase);
 
@@ -1204,7 +1206,7 @@ public class Simulation : IAsyncDisposable
             }
         }
 
-        if (!Turbine1.IsBroken())
+        if (!Turbine1.IsBroken() && Turbine1.Rpm.Value > 0)
         {
             var damage = Parameters.TurbineSecondsPerDamage(Turbine1.Vibration.Value);
             Turbine1.SecondsToDamage += dt;
@@ -1216,7 +1218,7 @@ public class Simulation : IAsyncDisposable
             }
         }
 
-        if (!Turbine2.IsBroken())
+        if (!Turbine2.IsBroken() && Turbine2.Rpm.Value > 0)
         {
             var damage = Parameters.TurbineSecondsPerDamage(Turbine2.Vibration.Value);
             Turbine2.SecondsToDamage += dt;
@@ -1257,8 +1259,22 @@ public class Simulation : IAsyncDisposable
         await _loop.DisposeAsync();
     }
 
+    public bool CanRefuel()
+    {
+        if (Fuel.Value < 0.8)
+        {
+            _shouldRefuel = true;
+        }
+        return _shouldRefuel;
+    }
+
     public void RefuelReactor()
     {
-        Fuel.Value = Math.Clamp(Fuel.Value + 0.2, 0, 1);
+        var value = Fuel.Value + 0.2;
+        Fuel.Value = Math.Clamp(value, 0, 1);
+        if (value >= 1)
+        {
+            _shouldRefuel = false;
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿@implements IDisposable
 @page "/"
+@using NNPP.Models
 @using NNPP.Pages.Components
 @using NNPP.Reactor
 @inject Simulation Sim
@@ -42,7 +43,7 @@
 
 <MeltdownVeil/>
 
-<section class="overview">
+<section class="overview @_alarmClass">
     <div class="overview-section">
         <h2>Reactor Overview</h2>
         <div class="overview-subsection">
@@ -79,7 +80,7 @@
     </div>
 </section>
 
-<div class="board">
+<div class="board @_alarmClass">
     <div class="label">
         <h3>Reactor Primary</h3>
     </div>
@@ -196,7 +197,7 @@
     </div>
 </div>
 
-<div class="board">
+<div class="board @_alarmClass">
     <div class="label">
         <h3>Emergency Shutdown & Startup</h3>
     </div>
@@ -239,7 +240,7 @@
 </div>
 
 
-<div class="board">
+<div class="board @_alarmClass">
     <div class="label">
         <h3>Turbines</h3>
     </div>
@@ -333,7 +334,7 @@
     </div>
 </div>
 
-<div class="board">
+<div class="board @_alarmClass">
     <div class="label">
         <h3>Facility Grid</h3>
     </div>
@@ -370,7 +371,7 @@
     </div>
 </div>
 
-<div class="board">
+<div class="board @_alarmClass">
     <div class="label">
         <h3>Shift Manager</h3>
     </div>
@@ -410,7 +411,7 @@
     </div>
 </div>
 
-<div class="board">
+<div class="board @_alarmClass">
     <div class="label">
         <h3>Plant Maintenance</h3>
     </div>
@@ -481,7 +482,7 @@
                     </div>
                     <div class="bottom">
                         <div class="vertical-grid">
-                            <RefuelButton Callback="generator.Refuel"/>
+                            <RefuelButton Callback="generator.Refuel" Condition="generator.CanRefuel"/>
                             <RepairButton Callback="generator.Repair"/>
                         </div>
                         <div class="vertical-grid">
@@ -502,7 +503,7 @@
                     </Display>
                 </div>
                 <div class="bottom">
-                    <RefuelButton Callback="Sim.RefuelReactor" Label="Reactor"/>
+                    <RefuelButton Callback="Sim.RefuelReactor" Label="Reactor" CooldownDuration="15" Condition="Sim.CanRefuel"/>
                 </div>
             </div>
         </div>
@@ -511,11 +512,23 @@
 
 @code {
     private bool InIntro { get; set; } = true;
+    private string _alarmClass = "";
 
     protected override async Task OnInitializedAsync()
     {
         await Audio.PreloadAllAsync();
         Sim.Ticked += OnTick;
+        Sim.OnUpdate += OnUpdate;
+    }
+
+    private void OnUpdate(object? sender, double dt)
+    {
+        _alarmClass = Sim.ReactorStatus.Value switch
+        {
+            ReactorStatus.Overheat => "alarm-overheat",
+            ReactorStatus.Emergency => "alarm-emergency",
+            _ => "",
+        };
     }
 
     private void OnTick() => InvokeAsync(StateHasChanged);

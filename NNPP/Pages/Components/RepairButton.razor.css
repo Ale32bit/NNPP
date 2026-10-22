@@ -25,3 +25,12 @@
 .action img {
     width: 1em;
 }
+
+.disabled {
+    cursor: not-allowed;
+    background-color: #8f8f8f;
+}
+
+.disabled:hover {
+    background-color: #9e9e9e;
+}

@@ -2,7 +2,7 @@
 @using NNPP.Reactor
 @inject Simulation Sim
 
-<button class="action" @onclick="Repair" @(Disabled)><img src="assets/wrench.svg" alt="wrench"/>Repair @Label @CooldownText</button>
+<button class="action @Disabled" @onclick="Repair" @(Disabled)><img src="assets/wrench.svg" alt="wrench"/>Repair @Label @CooldownText</button>
 
 @code {
     [Parameter, EditorRequired] public Action Callback { get; set; }

@@ -244,3 +244,22 @@ h2 {
     justify-content: center;
     gap: 10px;
 }
+
+.alarm-overheat {
+    --alarm-color: orange;
+    animation: background-alarm 0.7s ease-in-out infinite alternate;
+}
+
+.alarm-emergency {
+    --alarm-color: red;
+    animation: background-alarm 0.2s ease-in-out infinite alternate;
+}
+
+@keyframes background-alarm {
+    0% {
+        box-shadow: 0 0 4px var(--alarm-color);
+    }
+    100% {
+        box-shadow: 0 0 30px var(--alarm-color);
+    }
+}
