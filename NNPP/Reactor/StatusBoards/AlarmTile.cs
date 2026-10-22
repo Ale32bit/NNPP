@@ -9,7 +9,10 @@ public class AlarmTile(string label, TileColor color = TileColor.Yellow, bool re
 
     public override void Ack()
     {
-        if (Status != TileStatus.Off)
+        if (Status == TileStatus.AlarmPassive)
+        {
+            Status = TileStatus.Off;
+        } else if (Status != TileStatus.Off)
         {
             Status = TileStatus.On;
         }
@@ -21,6 +24,11 @@ public class AlarmTile(string label, TileColor color = TileColor.Yellow, bool re
         {
             Status = TileStatus.AlarmActive;
         }
+    }
+
+    public void PassiveTrigger()
+    {
+        Status = TileStatus.AlarmPassive;
     }
 
     public override void Reset()

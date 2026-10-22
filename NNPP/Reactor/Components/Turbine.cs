@@ -13,8 +13,6 @@ public class Turbine
         Broken,
     }
 
-    public bool Tripped { get; set; } = false;
-    
     public double SecondsToDamage { get; set; } = 0;
 
     public MetricPercentage Valve { get; } = new("Valves", 0);
@@ -61,7 +59,6 @@ public class Turbine
 
     public void Break()
     {
-        Tripped = true;
         Health.Value = 0;
         Status.Value = TurbineStatus.Broken;
     }

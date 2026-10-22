@@ -174,7 +174,7 @@ public class Simulation : IAsyncDisposable
     private double? _shiftOrderTime = null;
     private bool _shiftDay = false;
     private double _powerOrderRequestCooldown = 0; // 70s ... 0s => new power order
-    
+
     private bool _shouldRefuel = false;
 
     private HashSet<string> _activeAlarmSfx = new(StringComparer.OrdinalIgnoreCase);
@@ -261,7 +261,7 @@ public class Simulation : IAsyncDisposable
         Notify("Welcome to NNPPRS", "Please report any bug!", silent: true);
 
         Task.Run(RunShiftLoop);
-        
+
         OnStart?.Invoke(this, EventArgs.Empty);
     }
 
@@ -425,25 +425,17 @@ public class Simulation : IAsyncDisposable
 
         //Turbine1.Vibration.Value = Parameters.TurbineVibration.SampleRounded(Turbine1.FlowRate.Value);
         //Turbine2.Vibration.Value = Parameters.TurbineVibration.SampleRounded(Turbine2.FlowRate.Value);
-        
+
         if (Turbine1.Rpm.Value >= Parameters.Turbine.RpmBreak || Turbine1.Health.Value <= 0)
         {
             Turbine1.Break();
+            TurbineBoard.Turbine1Tripped.PassiveTrigger();
         }
 
         if (Turbine2.Rpm.Value >= Parameters.Turbine.RpmBreak || Turbine2.Health.Value <= 0)
         {
             Turbine2.Break();
-        }
-
-        if (Turbine1.Rpm.Value < 100)
-        {
-            Turbine1.Tripped = false;
-        }
-
-        if (Turbine2.Rpm.Value < 100)
-        {
-            Turbine2.Tripped = false;
+            TurbineBoard.Turbine2Tripped.PassiveTrigger();
         }
 
         if (Turbine1.IsSynced())
@@ -452,6 +444,7 @@ public class Simulation : IAsyncDisposable
             if (Turbine1.FlowRate.Value < Parameters.Turbine.FlowMin)
             {
                 Turbine1.SyncSwitch.Value = false;
+                TurbineBoard.Turbine1Tripped.PassiveTrigger();
             }
         }
         else
@@ -465,6 +458,7 @@ public class Simulation : IAsyncDisposable
             if (Turbine2.FlowRate.Value < Parameters.Turbine.FlowMin)
             {
                 Turbine2.SyncSwitch.Value = false;
+                TurbineBoard.Turbine2Tripped.PassiveTrigger();
             }
         }
         else
@@ -507,16 +501,7 @@ public class Simulation : IAsyncDisposable
                 var sign = (int)RodControl.Position;
                 var delta = Parameters.Core.RodSpeed * dt * sign;
                 RodInsertion.Value += delta;
-
-                if (RodInsertion.Value > 1)
-                {
-                    RodInsertion.Value = 1;
-                }
-
-                if (RodInsertion.Value < 0)
-                {
-                    RodInsertion.Value = 0;
-                }
+                RodInsertion.Value = Math.Clamp(RodInsertion.Value, 0, 1);
             }
 
             if (ReactorTemperature.Value >= Parameters.Core.HighTemp && !_reactorOverheat && !_meltdown)
@@ -614,7 +599,15 @@ public class Simulation : IAsyncDisposable
         {
             turbine.Status.Value = Turbine.TurbineStatus.Desynced;
             turbine.SyncSwitch.RawSet(false);
-            turbine.Tripped = true;
+
+            if (turbine == Turbine1)
+            {
+                TurbineBoard.Turbine1Tripped.PassiveTrigger();
+            }
+            else if (turbine == Turbine2)
+            {
+                TurbineBoard.Turbine2Tripped.PassiveTrigger();
+            }
         }
         else if (turbine.IsSyncPossible())
         {
@@ -1140,8 +1133,8 @@ public class Simulation : IAsyncDisposable
         TurbineBoard.Turbine2Synced.Check(Turbine2.IsSynced());
         TurbineBoard.Turbine1Malfunction.Check(Turbine1.IsBroken());
         TurbineBoard.Turbine2Malfunction.Check(Turbine2.IsBroken());
-        TurbineBoard.Turbine1Tripped.Check(Turbine1.Tripped);
-        TurbineBoard.Turbine2Tripped.Check(Turbine2.Tripped);
+        // TurbineBoard.Turbine1Tripped.Check(Turbine1.Tripped);
+        // TurbineBoard.Turbine2Tripped.Check(Turbine2.Tripped);
         TurbineBoard.Turbine1Overspeed.Check(Turbine1.Rpm.Value >= 4000);
         TurbineBoard.Turbine2Overspeed.Check(Turbine2.Rpm.Value >= 4000);
         TurbineBoard.Turbine1Underspeed.Check(Turbine1.Rpm.Value < 2000);
@@ -1229,16 +1222,17 @@ public class Simulation : IAsyncDisposable
                 Turbine2.Health.Value--;
             }
         }
-        
+
         // todo: handle random component break, include EXT too while at it..
     }
-    
+
     public bool CanRefuel()
     {
         if (Fuel.Value < 0.8)
         {
             _shouldRefuel = true;
         }
+
         return _shouldRefuel;
     }
 
