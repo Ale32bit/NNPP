@@ -1,0 +1,40 @@
+﻿.alarm {
+    --beams: 4;
+    --period: calc(360deg / var(--beams));
+    --w: calc(var(--period) * .5);
+    --interval: 10s;
+    --color: red;
+
+    top: -10rem;
+    right: 33%;
+    translate: 50% -50%;
+    animation-direction: reverse;
+    
+    filter: blur(5px);
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+
+    position: fixed;
+    width: 300vmax;
+    height: 300vmax;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: screen;
+    background: repeating-conic-gradient(transparent 0deg,
+    var(--color) calc(var(--w) / 2),
+    transparent var(--w),
+    transparent var(--period));
+    -webkit-mask: radial-gradient(circle, #000 0, transparent 45%);
+    mask: radial-gradient(circle, #000 0, transparent 45%);
+    animation: spin var(--interval) linear infinite;
+}
+
+.show {
+    opacity: 0.66;
+}
+
+@keyframes spin {
+    to {
+        rotate: 360deg;
+    }
+}
