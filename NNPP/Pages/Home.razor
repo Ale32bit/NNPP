@@ -2,6 +2,7 @@
 @page "/"
 @using NNPP.Models
 @using NNPP.Pages.Components
+@using NNPP.Pages.Components.NavTabs
 @using NNPP.Reactor
 @inject Simulation Sim
 @inject AudioManager Audio
@@ -27,10 +28,8 @@
 }
 
 <nav>
-    <h1>NNPPRS</h1>
-    <Settings/>
-    <Guide/>
-    <ManagerControl/>
+    <h1 class="@(Sim.Tainted() ? "tainted" : "")">NNPPRS</h1>
+    <NavTabs/>
 </nav>
 
 <KeyListener Simulation="Sim"/>

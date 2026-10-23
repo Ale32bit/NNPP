@@ -2,8 +2,6 @@
 @inject NavigationManager uriHelper
 
 @code {
-    private bool _updateAvailable = false;
-
     protected override async Task OnInitializedAsync()
     {
         await RegisterForUpdateAvailableNotification();

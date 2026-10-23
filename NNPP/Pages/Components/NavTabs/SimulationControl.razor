@@ -1,53 +1,47 @@
 ﻿@using NNPP.Reactor
 @inject Simulation Sim
 
-<button @onclick="Toggle" class="popup-button @TaintedClass">SIMULATION CONTROL</button>
-
-@if (_openMenu)
+@if (Sim.Tainted())
 {
-    <div class="popup">
-        <h3>Simulation Control</h3>
-        <p><b>Using these controls will disable XP gain.</b></p>
-        <div>
-            <label>Reactor Temperature (K)</label>
-            <input @bind="Temperature" type="number"/>
-            <button @onclick="SetTemperature">SET</button>
-        </div>
-
-        <div>
-            <label>Fuel (%)</label>
-            <input @bind="Fuel" type="number"/>
-            <button @onclick="SetFuel">SET</button>
-        </div>
-        
-        <div>
-            <label>Rod Insertion (%)</label>
-            <input @bind="RodInsertion" type="number"/>
-            <button @onclick="SetRodInsertion">SET</button>
-        </div>
-
-        <div>
-            <button @onclick="TriggerMeltdown">Trigger meltdown</button>
-            <button @onclick="ToggleReactor">Toggle reactor</button>
-            <button @onclick="ForceSyncTurbines">Force sync turbines</button>
-            <button @onclick="OperationPreset">Operation preset</button>
-        </div>
-    </div>
+    <p style="background-color: #ff5555;"><b>Simulation tainted, XP disabled.</b></p>
+}
+else
+{
+    <p><b>Using these controls will disable XP gain.</b></p>
 }
 
+<div>
+    <label>Reactor Temperature (K)</label>
+    <input @bind="Temperature" type="number"/>
+    <button @onclick="SetTemperature">SET</button>
+</div>
+
+<div>
+    <label>Fuel (%)</label>
+    <input @bind="Fuel" type="number"/>
+    <button @onclick="SetFuel">SET</button>
+</div>
+
+<div>
+    <label>Rod Insertion (%)</label>
+    <input @bind="RodInsertion" type="number"/>
+    <button @onclick="SetRodInsertion">SET</button>
+</div>
+
+<div>
+    <button @onclick="TriggerMeltdown">Trigger meltdown</button>
+    <button @onclick="ToggleReactor">Toggle reactor</button>
+    <button @onclick="ForceSyncTurbines">Force sync turbines</button>
+    <button @onclick="OperationPreset">Operation preset</button>
+</div>
+
 @code {
-    private bool _openMenu = false;
     private bool _tainted = false;
     private string TaintedClass => _tainted ? "tainted" : "";
 
     private double Temperature { get; set; } = Parameters.Core.StallTemp;
     private double Fuel { get; set; } = 100;
     private double RodInsertion { get; set; } = 100;
-
-    public void Toggle()
-    {
-        _openMenu = !_openMenu;
-    }
 
     public void SetTemperature()
     {
@@ -60,7 +54,7 @@
         Taint();
         Sim.Fuel.Value = Fuel / 100d;
     }
-    
+
     public void SetRodInsertion()
     {
         Taint();
@@ -112,5 +106,4 @@
         _tainted = true;
         Sim.Taint();
     }
-
 }

@@ -1,0 +1,48 @@
+﻿@using NNPP.Reactor
+@inject Simulation Sim
+
+@for (var i = 0; i < _tabs.Count; i++)
+{
+    var index = i;
+    var tab = _tabs[index];
+    <button class="menu-button" @onclick="_ => OnClick(index)">@tab.Label</button>
+    
+    <div class="popup" @key="tab.Label" style="@(index == _selectedTab ? "" : "display: none;")">
+        <div class="header">
+            <h3>@tab.Label</h3>
+            <button class="close-button" title="Close" @onclick="() => _selectedTab = null">✖</button>
+        </div>
+        @tab.Popup
+    </div>
+}
+
+@code {
+
+    private record Tab(string Label, RenderFragment Popup);
+
+    private IList<Tab> _tabs = [];
+    
+    private int? _selectedTab;
+
+    protected override void OnInitialized()
+    {
+        _tabs =
+        [
+            new("Settings", @<Settings/>),
+            new("Guide", @<Guide/>),
+            new("Simulation Control", @<SimulationControl/>),
+        ];
+    }
+
+    private void OnClick(int index)
+    {
+        if (_selectedTab == index)
+        {
+            _selectedTab = null;
+            return;
+        }
+
+        _selectedTab = index;
+    }
+
+}

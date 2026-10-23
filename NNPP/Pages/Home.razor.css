@@ -263,3 +263,11 @@ h2 {
         box-shadow: 0 0 30px var(--alarm-color);
     }
 }
+
+.tainted {
+    color: #ff5555;
+    text-shadow: -1px -1px black,
+    -1px 1px black,
+    1px -1px black,
+    1px 1px black;
+}

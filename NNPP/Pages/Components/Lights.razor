@@ -2,14 +2,13 @@
 @inject Simulation Sim
 @inject AudioManager Audio
 
-<div class="lights @_class">
+<div class="lights @Class">
 </div>
 
 @code {
     public bool Enable { get; set; } = true;
     private bool _changing;
-    private bool _playing = false;
-    private string _class => Enable ? "" : "dark";
+    private string Class => Enable ? "" : "dark";
 
     protected override void OnInitialized()
     {

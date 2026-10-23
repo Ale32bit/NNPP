@@ -1059,6 +1059,8 @@ public class Simulation : IAsyncDisposable
         _tainted = true;
     }
 
+    public bool Tainted() => _tainted;
+
     public async Task AddXpAsync(double xp, string message)
     {
         if (_tainted)

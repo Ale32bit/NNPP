@@ -6,7 +6,7 @@
 
 @code {
     [Parameter, EditorRequired] public Action Callback { get; set; }
-    [Parameter] public string Label { get; set; }
+    [Parameter] public string? Label { get; set; }
 
     private static readonly double CooldownDuration = 3; // seconds
     private double _cooldown = 0;
