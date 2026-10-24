@@ -1261,7 +1261,7 @@ public class Simulation : IAsyncDisposable
                     var breakBoth = RandomWrapper.Next(0, 2) == 1;
                     if (breakBoth)
                     {
-                        await Task.Delay(RandomWrapper.Next(750, 1500));
+                        await Task.Delay(RandomWrapper.Next(1500, 5000));
                         extB.Running.Value = false;
                     }
                 });
