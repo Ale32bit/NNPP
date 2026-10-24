@@ -1,10 +1,12 @@
-﻿using System.Security.Cryptography;
+﻿using System.Diagnostics;
+using System.Security.Cryptography;
 using NNPP.Models;
 using NNPP.Models.Inputs;
 using NNPP.Models.Metrics;
 using NNPP.Reactor.Components;
 using NNPP.Reactor.StatusBoards;
 using AuthButton = NNPP.Models.Inputs.AuthButton;
+using Switch = NNPP.Models.Inputs.Switch;
 
 namespace NNPP.Reactor;
 
@@ -149,6 +151,8 @@ public class Simulation : IAsyncDisposable
     public TurbineBoard TurbineBoard { get; } = new();
 
     public bool Stalled { get; set; } = false;
+    
+    public double RandomHostileCooldown = RandomWrapper.Next(450, 1200);
 
     private bool _tainted = false;
 
@@ -178,7 +182,7 @@ public class Simulation : IAsyncDisposable
     private bool _shouldRefuel = false;
 
     private HashSet<string> _activeAlarmSfx = new(StringComparer.OrdinalIgnoreCase);
-
+    
     private const string _na = "N/A";
 
     // EVENTS
@@ -904,19 +908,19 @@ public class Simulation : IAsyncDisposable
 
     public int GenerateOrder()
     {
-        return RandomNumberGenerator.GetInt32(Parameters.Shift.PowerOrderMinPower,
+        return RandomWrapper.Next(Parameters.Shift.PowerOrderMinPower,
             Parameters.Shift.PowerOrderMaxPower) * GetPoeaMultiplier();
     }
 
     public int GenerateOrderTime()
     {
-        var index = RandomNumberGenerator.GetInt32(0, Parameters.Shift.PowerOrderTimes.Length);
+        var index = RandomWrapper.Next(0, Parameters.Shift.PowerOrderTimes.Length);
         return Parameters.Shift.PowerOrderTimes[index];
     }
 
     public int GenerateOrderMargin()
     {
-        return RandomNumberGenerator.GetInt32(Parameters.Shift.DemandMinMargin, Parameters.Shift.DemandMaxMargin);
+        return RandomWrapper.Next(Parameters.Shift.DemandMinMargin, Parameters.Shift.DemandMaxMargin);
     }
 
     private void AttemptRequestOrder()
@@ -1070,8 +1074,13 @@ public class Simulation : IAsyncDisposable
         xp *= bonus;
         Profile.Experience += (int)xp;
         PlayerXp.Value = Profile.Experience;
-        await Storage.SetAsync("profile", Profile);
+        await SaveProfileAsync();
         Notify("Bonus Paycheck", $"{message} (+{xp:N0}) ({bonus:F1}x)");
+    }
+
+    public async Task SaveProfileAsync()
+    {
+        await Storage.SetAsync("profile", Profile);
     }
 
     public void HandleStatusBoards(double dt)
@@ -1219,6 +1228,43 @@ public class Simulation : IAsyncDisposable
             {
                 Turbine2.SecondsToDamage = 0;
                 Turbine2.Health.Value--;
+            }
+        }
+
+        if (Profile.EnableHostiles)
+        {
+            RandomHostileCooldown -= dt;
+
+            if (RandomHostileCooldown <= 0)
+            {
+                RandomHostileCooldown = RandomWrapper.Next(450, 1200);
+                Task.Run(async () =>
+                {
+                    var extA = Grid.Transformer1;
+                    var extB = Grid.Transformer2;
+
+                    var shouldNotify = extA.Running.Value && extB.Running.Value;
+
+                    if (RandomWrapper.Next(0, 2) == 1)
+                    {
+                        (extA, extB) = (extB, extA);
+                    }
+
+
+                    extA.Running.Value = false;
+
+                    if (shouldNotify)
+                    {
+                        Notify("Transformer Failure", "External power has been lost due to a transformer failure.");
+                    }
+
+                    var breakBoth = RandomWrapper.Next(0, 2) == 1;
+                    if (breakBoth)
+                    {
+                        await Task.Delay(RandomWrapper.Next(750, 1500));
+                        extB.Running.Value = false;
+                    }
+                });
             }
         }
 

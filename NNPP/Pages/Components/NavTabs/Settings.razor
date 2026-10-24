@@ -17,6 +17,12 @@
     <input class="slider" type="range" min="0" max="1" step="0.01" @bind="SfxVolume"/>
 </div>
 
+<div>
+    <input id="hostiles-toggle" type="checkbox" @bind="EnableHostiles"/>
+    <label for="hostiles-toggle">Enable hostiles</label>
+    <p><small>(Randomly break external transformers)</small></p>
+</div>
+
 @code {
 
     private double MasterVolume
@@ -59,20 +65,29 @@
         }
     } = 0.2;
 
+    private bool EnableHostiles
+    {
+        get => Sim.Profile.EnableHostiles;
+        set
+        {
+            Sim.Profile.EnableHostiles = value;
+            _ = Sim.SaveProfileAsync();
+        }
+    }
+
     private bool _started;
 
     protected override void OnInitialized()
     {
         Sim.OnUpdate += (_, _) =>
         {
-            if (!_started)
-            {
-                UpdateMasterVolume();
-                UpdateAlarmsVolume();
-                UpdateMusicVolume();
-                UpdateSfxVolume();
-                _started = true;
-            }
+            if (_started) return;
+            _started = true;
+
+            UpdateMasterVolume();
+            UpdateAlarmsVolume();
+            UpdateMusicVolume();
+            UpdateSfxVolume();
         };
     }
 

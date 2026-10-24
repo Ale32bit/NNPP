@@ -63,7 +63,7 @@ public class GameLoop : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        _cts.Cancel();
+        await _cts.CancelAsync();
         _timer.Dispose();
         if (_task is not null) await _task;
         _cts.Dispose();

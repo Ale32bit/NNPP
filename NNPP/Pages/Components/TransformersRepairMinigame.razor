@@ -1,0 +1,155 @@
+﻿@using NNPP.Reactor
+@using NNPP.Reactor.Components
+
+@if (Opened)
+{
+    <div class="minigame-overlay" @onclick="Close">
+        <div class="minigame-container" @onclick:stopPropagation="true">
+
+            <h3>TRANSFORMER REPAIR - ARC ISOLATION</h3>
+            <p>Click RED arcing sections to isolate them</p>
+
+            <div class="cells">
+                @for (int i = 0; i < 25; i++)
+                {
+                    var id = i;
+                    var key = $"cell-{id}";
+                    <div class="cell @GetCellClass(id)" @key="key" @onclick="_ => OnCellClick(id)"></div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<button class="action @Disabled" @onclick="Open" @(Disabled)><img src="assets/wrench.svg" alt="wrench"/>Repair Transformer @Label</button>
+
+@code {
+    private bool Opened { get; set; } = false;
+    private string Disabled => Transformer.Running.Value ? "disabled" : "";
+
+    private CancellationTokenSource? _cts;
+
+    [Parameter, EditorRequired] public required ExternalTransformer Transformer { get; set; }
+    [Parameter] public required string Label { get; set; }
+
+    public enum CellState
+    {
+        Normal,
+        Arcing,
+        Isolated
+    }
+
+    public List<CellState> CellStates { get; set; } = [];
+
+    public bool ShouldOpen()
+    {
+        return !Transformer.Running.Value;
+    }
+
+    public void Open()
+    {
+        if (!ShouldOpen())
+        {
+            return;
+        }
+
+        Opened = true;
+
+        CellStates = new List<CellState>();
+        for (int i = 0; i < 25; i++)
+        {
+            CellStates.Add(CellState.Normal);
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            ArcRandomCell();
+        }
+
+        _cts = new CancellationTokenSource();
+
+        Task.Run(async () =>
+        {
+            try
+            {
+                var size = 1;
+                var delay = 500;
+                while (!_cts.IsCancellationRequested)
+                {
+                    await Task.Delay(delay, _cts.Token);
+                    var amount = RandomWrapper.Next(1, size);
+                    for (var i = 0; i < amount; i++)
+                    {
+                        ArcRandomCell();
+                    }
+
+                    delay = Math.Min(delay * 2, 3000);
+                    size = Math.Min(size + 1, 3);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                
+            }
+        }, _cts.Token);
+    }
+
+    public void Close()
+    {
+        Opened = false;
+        _cts?.Cancel();
+    }
+
+    private bool IsRepaired()
+    {
+        return CellStates.All(cell => cell != CellState.Arcing);
+    }
+
+    private void ArcRandomCell()
+    {
+        for (var i = 0; i < 25; i++)
+        {
+            var id = RandomWrapper.Next(0, CellStates.Count);
+            if (CellStates[id] != CellState.Normal) continue;
+            CellStates[id] = CellState.Arcing;
+            break;
+        }
+    }
+
+    public string GetCellClass(int id)
+    {
+        if (id >= CellStates.Count)
+        {
+            return "";
+        }
+
+        return CellStates[id] switch
+        {
+            CellState.Arcing => "cell-arcing",
+            CellState.Isolated => "cell-isolated",
+            _ => ""
+        };
+    }
+
+    public void OnCellClick(int id)
+    {
+        if (id >= CellStates.Count)
+        {
+            return;
+        }
+
+        var cellState = CellStates[id];
+        if (cellState == CellState.Arcing)
+        {
+            CellStates[id] = CellState.Isolated;
+            StateHasChanged();
+        }
+
+        if (IsRepaired())
+        {
+            Transformer.Running.Value = true;
+            Close();
+        }
+    }
+
+}

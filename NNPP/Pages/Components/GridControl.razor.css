@@ -24,6 +24,7 @@
     width: 3px;
     height: 3px;
 }
+
 .keyboard > div {
     aspect-ratio: 1;
     background: #d7d0ab;

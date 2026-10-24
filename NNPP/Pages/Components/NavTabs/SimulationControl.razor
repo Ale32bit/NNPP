@@ -33,6 +33,7 @@ else
     <button @onclick="ToggleReactor">Toggle reactor</button>
     <button @onclick="ForceSyncTurbines">Force sync turbines</button>
     <button @onclick="OperationPreset">Operation preset</button>
+    <button @onclick="TriggerHostileAttack">Trigger hostile attack</button>
 </div>
 
 @code {
@@ -99,6 +100,12 @@ else
         Sim.RodInsertion.Value = 0.55;
         Sim.FeedwaterPump1.Rpm.Value = Parameters.Feedwater.MaxRpm * Sim.FeedwaterPump1.Utilization.Value;
         Sim.FeedwaterPump2.Rpm.Value = Parameters.Feedwater.MaxRpm * Sim.FeedwaterPump2.Utilization.Value;
+    }
+    
+    public void TriggerHostileAttack()
+    {
+        Taint();
+        Sim.RandomHostileCooldown = 0;
     }
 
     private void Taint()

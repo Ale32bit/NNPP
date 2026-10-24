@@ -1,0 +1,99 @@
+﻿.action {
+    display: block;
+    cursor: pointer;
+    user-select: none;
+    margin: 2px;
+    background-color: #EEE;
+    color: #111;
+    padding: 4px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: bold;
+    border: 2px solid #555;
+    border-radius: 4px;
+}
+
+.action:hover {
+    background-color: #FFF;
+}
+
+.action:active {
+    background: #AAA;
+}
+
+.action img {
+    width: 1em;
+}
+
+.disabled {
+    cursor: not-allowed;
+    background-color: #8f8f8f;
+}
+
+.disabled:hover {
+    background-color: #9e9e9e;
+}
+
+.minigame-overlay {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(0,0,0,.5);
+    backdrop-filter: blur(2px);
+    z-index: 1000;
+}
+
+.minigame-container {
+    background-color: #19191e;
+    user-select: none;
+    border-radius: 20px;
+    padding: 40px;
+    
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+h3 {
+    color: #eef548;
+    font-weight: 600;
+    margin: 0;
+}
+
+p {
+    color: #aaaaaa;
+}
+
+.cells {
+    display: inline-grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 1rem;
+    justify-content: center;
+    justify-items: center;
+    background-color: #232328;
+    padding: 1rem;
+    border-radius: 10px;
+}
+
+.cell {
+    margin: 0;
+    width: 96px;
+    aspect-ratio: 1;
+    border: 15px solid #3c4650;
+    border-radius: 8px;
+    background-color: #282832;
+}
+
+.cell-arcing {
+    cursor: pointer;
+    border-color: #ff5050;
+}
+
+.cell-isolated {
+    border-color: #50b4ff;
+}

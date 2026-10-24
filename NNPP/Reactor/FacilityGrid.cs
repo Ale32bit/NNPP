@@ -53,7 +53,11 @@ public class FacilityGrid(Simulation sim)
     };
 
     // External transformers can break
-    public bool ExternalRunning { get; set; } = true;
+
+    public ExternalTransformer Transformer1 { get; set; } = new();
+    public ExternalTransformer Transformer2 { get; set; } = new();
+    
+    public bool ExternalRunning => Transformer1.Running.Value && Transformer2.Running.Value;
 
     // Aux to DC
     public bool DcConnected { get; set; } = true;
@@ -263,7 +267,7 @@ public class FacilityGrid(Simulation sim)
                 PrimaryPending = null;
                 NotifyGridChange("Reactor Bus", Primary.Value == PrimarySource.External ? "External Bus" : "Turbines");
             }
-            
+
             _primaryPendingTime -= dt;
         }
 
@@ -273,9 +277,10 @@ public class FacilityGrid(Simulation sim)
             {
                 Auxiliary.Value = AuxiliaryPending.Value;
                 AuxiliaryPending = null;
-                NotifyGridChange("Auxiliary Bus", Auxiliary.Value == AuxiliarySource.Primary ? "Reactor Bus" : "Generators");
+                NotifyGridChange("Auxiliary Bus",
+                    Auxiliary.Value == AuxiliarySource.Primary ? "Reactor Bus" : "Generators");
             }
-            
+
             _auxiliaryPendingTime -= dt;
         }
 
@@ -295,14 +300,15 @@ public class FacilityGrid(Simulation sim)
                     sim.Notify("Facility Power Grid", "Power to DC Bus has been cut.");
                 }
             }
-            
+
             _dcPendingTime -= dt;
         }
     }
 
     private void NotifyGridPending()
     {
-        sim.Notify("Facility Power Grid", "Reactor Operations requests a grid change. This change will happen automatically. Standby.");
+        sim.Notify("Facility Power Grid",
+            "Reactor Operations requests a grid change. This change will happen automatically. Standby.");
     }
 
     private void NotifyGridChange(string bus, string source)
