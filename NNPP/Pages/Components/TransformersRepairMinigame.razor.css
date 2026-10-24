@@ -112,11 +112,3 @@ p {
 .cell-isolated {
     border-color: #50b4ff;
 }
-
-@keyframes jump {
-    0%   { top: 15%; left: 20%; transform: translate(-50%, -50%) rotate(0deg); }
-    20%  { top: 30%; left: 80%; transform: translate(-50%, -50%) rotate(65deg); }
-    40%  { top: 0%; left: 70%; transform: translate(-50%, -50%) rotate(-30deg); }
-    60%  { top: 80%; left: 25%; transform: translate(-50%, -50%) rotate(140deg); }
-    80%  { top: 50%; left: 10%; transform: translate(-50%, -50%) rotate(200deg); }
-}
