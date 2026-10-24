@@ -14,7 +14,9 @@
                 {
                     var id = i;
                     var key = $"cell-{id}";
-                    <div class="cell @GetCellClass(id)" @key="key" @onclick="_ => OnCellClick(id)"></div>
+                    <div class="cell @GetCellClass(id)" style="@GetRandomValues(id)" @key="key" @onclick="_ => OnCellClick(id)">
+                        
+                    </div>
                 }
             </div>
         </div>
@@ -24,6 +26,14 @@
 <button class="action @Disabled" @onclick="Open" @(Disabled)><img src="assets/wrench.svg" alt="wrench"/>Repair Transformer @Label</button>
 
 @code {
+    public struct Arc
+    {
+        public int X;
+        public int Y;
+        public int R;
+        public int Ms;
+    }
+    
     private bool Opened { get; set; } = false;
     private string Disabled => Transformer.Running.Value ? "disabled" : "";
 
@@ -40,9 +50,11 @@
     }
 
     public List<CellState> CellStates { get; set; } = [];
+    public Arc[] CellArcs { get; set; } = new Arc[25];
 
     public bool ShouldOpen()
     {
+        // return true;
         return !Transformer.Running.Value;
     }
 
@@ -56,9 +68,11 @@
         Opened = true;
 
         CellStates = new List<CellState>();
+        CellArcs = new Arc[25];
         for (int i = 0; i < 25; i++)
         {
             CellStates.Add(CellState.Normal);
+            CellArcs[i] = CreateArc();
         }
 
         for (int i = 0; i < 3; i++)
@@ -112,6 +126,7 @@
             var id = RandomWrapper.Next(0, CellStates.Count);
             if (CellStates[id] != CellState.Normal) continue;
             CellStates[id] = CellState.Arcing;
+            CellArcs[id] = CreateArc();
             break;
         }
     }
@@ -129,6 +144,17 @@
             CellState.Isolated => "cell-isolated",
             _ => ""
         };
+    }
+
+    public string GetRandomValues(int id)
+    {
+        var arc = CellArcs[id];
+        if (arc.Ms + 100 < Milliseconds())
+        {
+            CellArcs[id] = CreateArc();
+        }
+        
+        return $"--arc-x: {arc.X}%; --arc-y: {arc.Y}%; --arc-r: {arc.R}deg;";
     }
 
     public void OnCellClick(int id)
@@ -152,4 +178,19 @@
         }
     }
 
+    private static Arc CreateArc()
+    {
+        return new Arc
+        {
+            Ms = Milliseconds() + RandomWrapper.Next(0, 100),
+            X = RandomWrapper.Next(0, 100),
+            Y = RandomWrapper.Next(0, 100),
+            R = RandomWrapper.Next(0, 360),
+        };
+    }
+
+    private static int Milliseconds()
+    {
+        return (int)(DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond);
+    }
 }
