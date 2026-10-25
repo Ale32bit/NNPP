@@ -518,7 +518,8 @@ public class Simulation : IAsyncDisposable
                 PlayMusic(AudioKeys.Music.Overheat, 0.25);
                 _reactorOverheat = true;
                 Notify("Reactor overheat",
-                    "The Reactor is above safe operating parameters. Lower temperature immediately.", NotificationKind.Critical);
+                    "The Reactor is above safe operating parameters. Lower temperature immediately.",
+                    NotificationKind.Critical);
             }
 
             if (ReactorTemperature.Value < 2000 && _reactorOverheat)
@@ -700,7 +701,8 @@ public class Simulation : IAsyncDisposable
 
         await PlayMusic(AudioKeys.Music.Meltdown, 1, loop: false);
         Notify("Reactor overheat",
-            "The Reactor is above safe operating parameters. Lower temperature immediately.", NotificationKind.Critical);
+            "The Reactor is above safe operating parameters. Lower temperature immediately.",
+            NotificationKind.Critical);
 
         await Sleep(7);
 
@@ -727,7 +729,8 @@ public class Simulation : IAsyncDisposable
         if (ReactorTemperature.Value < 900)
         {
             Notify("Reactor shutdown",
-                "Temperature has returned to safe operating parameters. Full shutdown in progress.", NotificationKind.Critical);
+                "Temperature has returned to safe operating parameters. Full shutdown in progress.",
+                NotificationKind.Critical);
             _extraHeat = -57;
             await PlayMusic(AudioKeys.Music.Shutdown, 1, loop: false);
 
@@ -784,7 +787,8 @@ public class Simulation : IAsyncDisposable
         RodInsertion.Value = 0;
         RodInsertion.ValueOverride = "ERR";
         _extraHeat = 57;
-        Notify("Reactor SCRAM", "Control rods have sustained damage. SCRAM sequence has failed.", NotificationKind.Critical);
+        Notify("Reactor SCRAM", "Control rods have sustained damage. SCRAM sequence has failed.",
+            NotificationKind.Critical);
     }
 
     public double GetTurbineOutput()
@@ -913,8 +917,12 @@ public class Simulation : IAsyncDisposable
 
     public int GenerateOrder()
     {
-        return RandomWrapper.Next(Parameters.Shift.PowerOrderMinPower,
-            Parameters.Shift.PowerOrderMaxPower) * GetPoeaMultiplier();
+        return Math.Clamp(
+            RandomWrapper.Next(Parameters.Shift.PowerOrderMinPower, Parameters.Shift.PowerOrderMaxPower)
+            * GetPoeaMultiplier(),
+            Parameters.Shift.PowerOrderMinPower,
+            Parameters.Shift.PowerOrderMaxPowerPoea
+        );
     }
 
     public int GenerateOrderTime()
@@ -1364,7 +1372,8 @@ public class Simulation : IAsyncDisposable
         OnNotification?.Invoke(this, notification);
     }
 
-    public void Notify(string title, string message, NotificationKind kind = NotificationKind.Normal, bool permanent = false, bool silent = false)
+    public void Notify(string title, string message, NotificationKind kind = NotificationKind.Normal,
+        bool permanent = false, bool silent = false)
     {
         Notify(new Notification(title, message, kind, permanent, silent));
     }

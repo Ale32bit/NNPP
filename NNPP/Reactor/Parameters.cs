@@ -113,9 +113,10 @@ public static class Parameters
     public static class Shift
     {
         public const int Duration = 900;
-        public const int PowerOrderMinPower = 15000; // 2x if POEA
+        public const int PowerOrderMinPower = 15000;
         public const int PowerOrderMaxPower = 24500;
-        public static readonly int[] PowerOrderTimes = [15, 20, 25, 30, 45];
+        public const int PowerOrderMaxPowerPoea = 46000; // 2x alone would do 49k, Poea still clamps it to 46k
+        public static readonly int[] PowerOrderTimes = [15, 20, 25, 30, 35];
         public const int PowerOrderRequestCooldown = 70;
         public const int DemandMinMargin = 950;
         public const int DemandMaxMargin = 1500;
