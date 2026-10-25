@@ -107,8 +107,8 @@ public class FacilityGrid(Simulation sim)
     {
         return source switch
         {
-            PrimarySource.External => TurbinesCanSupply(),
-            PrimarySource.Turbines => ExtCanSupply(),
+            PrimarySource.External => ExtCanSupply(),
+            PrimarySource.Turbines => TurbinesCanSupply(),
             _ => false,
         };
     }
