@@ -59,8 +59,10 @@ public class Turbine
 
     public void Break()
     {
+        if (IsBroken()) return;
         Health.Value = 0;
         Status.Value = TurbineStatus.Broken;
+        Simulation.BreakComponent(this);
     }
 
     public void Repair()

@@ -64,10 +64,14 @@ public class AudioManager(IJSRuntime js) : IAsyncDisposable
     public async ValueTask<bool> IsSfxLoopingAsync(string key) =>
         await (await _mod.Value).InvokeAsync<bool>("isSfxLooping", Norm(key));
 
+    public double GetRandomPitch()
+    {
+        return 1 + (Random.Shared.NextDouble() / 5 - 0.1);
+    }
+
     public ValueTask Interact()
     {
-        var pitch = (Random.Shared.NextDouble() / 5) - 0.1;
-        return PlaySfxAsync(AudioKeys.Sfx.ControlInteract, 1, 1 + pitch);
+        return PlaySfxAsync(AudioKeys.Sfx.ControlInteract, 1, GetRandomPitch());
     }
 
     public async ValueTask DisposeAsync()

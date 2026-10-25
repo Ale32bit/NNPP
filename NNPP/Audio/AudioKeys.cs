@@ -6,6 +6,7 @@ public static class AudioKeys
     {
         public const string Notification = "sfx.notification";
         public const string NotificationCritical = "sfx.notificationCritical";
+        public const string Experience = "sfx.experience";
         public const string MetalCry = "sfx.metalcry";
         public const string ReactorExplosion = "sfx.reactorExplosion";
         public const string AnnouncerMeltdown = "sfx.announcerMeltdown";
@@ -21,6 +22,7 @@ public static class AudioKeys
         public const string PowerOut = "sfx.powerOut";
         public const string PowerIn = "sfx.powerIn";
         public const string BlackOut = "sfx.blackOut";
+        public const string ComponentBreak = "sfx.componentBreak";
         
         // general alarms
         public const string AlarmMalfunction = "sfx.alarmMalfunction";
@@ -31,6 +33,8 @@ public static class AudioKeys
         // i ran out of adjectives
         public const string Alarm1 = "sfx.alarm1";
         public const string AlarmOverspeed = "sfx.alarmOverspeed";
+        
+        public const string DamageAlarm = "sfx.damageAlarm";
     }
     
     public static class Music

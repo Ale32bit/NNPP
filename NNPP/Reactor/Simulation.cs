@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using NNPP.Models;
 using NNPP.Models.Inputs;
 using NNPP.Models.Metrics;
@@ -12,6 +11,8 @@ namespace NNPP.Reactor;
 
 public class Simulation : IAsyncDisposable
 {
+    public static event EventHandler? OnComponentBreak;
+
     private AudioManager Audio { get; set; }
     private PersistentStorage Storage { get; set; }
 
@@ -151,7 +152,7 @@ public class Simulation : IAsyncDisposable
     public TurbineBoard TurbineBoard { get; } = new();
 
     public bool Stalled { get; set; } = false;
-    
+
     public double RandomHostileCooldown = RandomWrapper.Next(450, 1200);
 
     private bool _tainted = false;
@@ -180,9 +181,11 @@ public class Simulation : IAsyncDisposable
     private double _powerOrderRequestCooldown = 0; // 70s ... 0s => new power order
 
     private bool _shouldRefuel = false;
+    private double _brokenComponentAlarmCooldown = 0;
+    private double _randomComponentBreakCooldown = RandomWrapper.Next(30, 90);
 
     private HashSet<string> _activeAlarmSfx = new(StringComparer.OrdinalIgnoreCase);
-    
+
     private const string _na = "N/A";
 
     // EVENTS
@@ -229,6 +232,8 @@ public class Simulation : IAsyncDisposable
         ShiftOrderSwitch.Triggered += (_, value) => AttemptRequestOrder();
         ShiftEfficiencyActSwitch.Triggered += PoeaSwitchTriggered;
         ShiftHazardPaySwitch.Triggered += HazardPaySwitchTriggered;
+
+        OnComponentBreak += async (component, _) => await ComponentBroke(component);
     }
 
     public void Start()
@@ -513,7 +518,7 @@ public class Simulation : IAsyncDisposable
                 PlayMusic(AudioKeys.Music.Overheat, 0.25);
                 _reactorOverheat = true;
                 Notify("Reactor overheat",
-                    "The Reactor is above safe operating parameters. Lower temperature immediately.", true);
+                    "The Reactor is above safe operating parameters. Lower temperature immediately.", NotificationKind.Critical);
             }
 
             if (ReactorTemperature.Value < 2000 && _reactorOverheat)
@@ -695,7 +700,7 @@ public class Simulation : IAsyncDisposable
 
         await PlayMusic(AudioKeys.Music.Meltdown, 1, loop: false);
         Notify("Reactor overheat",
-            "The Reactor is above safe operating parameters. Lower temperature immediately.", true);
+            "The Reactor is above safe operating parameters. Lower temperature immediately.", NotificationKind.Critical);
 
         await Sleep(7);
 
@@ -705,12 +710,12 @@ public class Simulation : IAsyncDisposable
 
         _extraHeat = Parameters.Core.MeltdownExtraHeat;
         await Audio.StopSfxAsync(AudioKeys.Sfx.MeltdownAlarm);
-        Notify("Reactor meltdown", "All Non-Reactor Operations staff are to evacuate.", true);
+        Notify("Reactor meltdown", "All Non-Reactor Operations staff are to evacuate.", NotificationKind.Critical);
 
         await Sleep(10);
 
         Notify("Reactor shutdown",
-            "An official emergency has been declared. Emergency options are now available.", true);
+            "An official emergency has been declared. Emergency options are now available.", NotificationKind.Critical);
 
         await Sleep(15);
 
@@ -722,7 +727,7 @@ public class Simulation : IAsyncDisposable
         if (ReactorTemperature.Value < 900)
         {
             Notify("Reactor shutdown",
-                "Temperature has returned to safe operating parameters. Full shutdown in progress.", true);
+                "Temperature has returned to safe operating parameters. Full shutdown in progress.", NotificationKind.Critical);
             _extraHeat = -57;
             await PlayMusic(AudioKeys.Music.Shutdown, 1, loop: false);
 
@@ -749,7 +754,7 @@ public class Simulation : IAsyncDisposable
             await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion, 2d);
             await Sleep(0.964); // Very precise :tm:
             Notify("Reactor meltdown",
-                "Reactor continues to be in a critical state. Full Evacuation in progress.", true);
+                "Reactor continues to be in a critical state. Full Evacuation in progress.", NotificationKind.Critical);
             _extraHeat = 57;
             NotGreatNotTerrible = true;
 
@@ -770,7 +775,7 @@ public class Simulation : IAsyncDisposable
         RodControl.Position = RodController.ControlPosition.Neutral;
         RodControl.Locked = true;
         Audio.PlaySfxLoopAsync(AudioKeys.Sfx.ScramActive);
-        Notify("Reactor scram", "SCRAM sequence engaged.", true);
+        Notify("Reactor scram", "SCRAM sequence engaged.", NotificationKind.Critical);
     }
 
     private void ScramFailRods()
@@ -779,7 +784,7 @@ public class Simulation : IAsyncDisposable
         RodInsertion.Value = 0;
         RodInsertion.ValueOverride = "ERR";
         _extraHeat = 57;
-        Notify("Reactor SCRAM", "Control rods have sustained damage. SCRAM sequence has failed.", true);
+        Notify("Reactor SCRAM", "Control rods have sustained damage. SCRAM sequence has failed.", NotificationKind.Critical);
     }
 
     public double GetTurbineOutput()
@@ -1075,7 +1080,7 @@ public class Simulation : IAsyncDisposable
         Profile.Experience += (int)xp;
         PlayerXp.Value = Profile.Experience;
         await SaveProfileAsync();
-        Notify("Bonus Paycheck", $"{message} (+{xp:N0}) ({bonus:F1}x)");
+        Notify("Bonus Paycheck", $"{message} (+{xp:N0}) ({bonus:F1}x)", NotificationKind.Experience);
     }
 
     public async Task SaveProfileAsync()
@@ -1250,8 +1255,7 @@ public class Simulation : IAsyncDisposable
                         (extA, extB) = (extB, extA);
                     }
 
-
-                    extA.Running.Value = false;
+                    extA.Break();
 
                     if (shouldNotify)
                     {
@@ -1262,13 +1266,35 @@ public class Simulation : IAsyncDisposable
                     if (breakBoth)
                     {
                         await Task.Delay(RandomWrapper.Next(1500, 5000));
-                        extB.Running.Value = false;
+                        extB.Break();
                     }
                 });
             }
         }
 
-        // todo: handle random component break, include EXT too while at it..
+        _randomComponentBreakCooldown -= dt;
+        if (_randomComponentBreakCooldown <= 0)
+        {
+            _randomComponentBreakCooldown = RandomWrapper.Next(30, 90);
+            var poChance = 1 - ShiftOrders.Value / 10d;
+            var shiftChance = 1d - ShiftTimeLeft.Value / Parameters.Shift.Duration;
+            var fate = Random.Shared.NextDouble();
+            if (fate <= poChance * shiftChance)
+            {
+                BreakRandomComponent();
+            }
+        }
+
+        if (IsAnyComponentBroken())
+        {
+            _brokenComponentAlarmCooldown += dt;
+
+            if (_brokenComponentAlarmCooldown >= 3)
+            {
+                _brokenComponentAlarmCooldown = 0;
+                Audio.PlaySfxAsync(AudioKeys.Sfx.DamageAlarm);
+            }
+        }
     }
 
     public bool CanRefuel()
@@ -1291,14 +1317,56 @@ public class Simulation : IAsyncDisposable
         }
     }
 
+    public bool IsAnyComponentBroken()
+    {
+        return Turbine1.IsBroken() || Turbine2.IsBroken() ||
+               FeedwaterPump1.IsBroken() || FeedwaterPump2.IsBroken() ||
+               Grid.Generators.Any(q => q.Broken) || !Grid.ExternalRunning;
+    }
+
+    public void BreakRandomComponent()
+    {
+        var component = RandomWrapper.Next(0, 7); // 2 turbs, 2 fw pumps, 3 gens
+        switch (component)
+        {
+            case 0 when Turbine1.Rpm.Value > 0:
+                Turbine1.Break();
+                break;
+            case 1 when Turbine2.Rpm.Value > 0:
+                Turbine2.Break();
+                break;
+            case 2:
+                FeedwaterPump1.Break();
+                break;
+            case 3:
+                FeedwaterPump2.Break();
+                break;
+            case 4:
+                Grid.Generators[0].Break();
+                break;
+            case 5:
+                Grid.Generators[1].Break();
+                break;
+            case 6:
+                Grid.Generators[2].Break();
+                break;
+        }
+    }
+
+    public async Task ComponentBroke(object? component)
+    {
+        var pitch = Audio.GetRandomPitch();
+        await Audio.PlaySfxAsync(AudioKeys.Sfx.ComponentBreak, volume: 2, pitch: pitch);
+    }
+
     public void Notify(Notification notification)
     {
         OnNotification?.Invoke(this, notification);
     }
 
-    public void Notify(string title, string message, bool critical = false, bool permanent = false, bool silent = false)
+    public void Notify(string title, string message, NotificationKind kind = NotificationKind.Normal, bool permanent = false, bool silent = false)
     {
-        Notify(new Notification(title, message, critical, permanent, silent));
+        Notify(new Notification(title, message, kind, permanent, silent));
     }
 
     public ValueTask PlayMusic(string key, double volume = 1, double fadeSeconds = 0, bool loop = true)
@@ -1315,5 +1383,10 @@ public class Simulation : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await _loop.DisposeAsync();
+    }
+
+    public static void BreakComponent(object component)
+    {
+        OnComponentBreak?.Invoke(component, EventArgs.Empty);
     }
 }

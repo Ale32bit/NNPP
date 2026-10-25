@@ -1,6 +1,13 @@
 ﻿namespace NNPP.Models;
 
-public record Notification(string Title, string Message, bool Critical = false, bool Permanent = false, bool Silent = false)
+public enum NotificationKind
+{
+    Normal,
+    Critical,
+    Experience,
+}
+
+public record Notification(string Title, string Message, NotificationKind Kind = NotificationKind.Normal, bool Permanent = false, bool Silent = false)
 {
     public DateTime Timestamp { get; set; } = DateTime.Now;
 }

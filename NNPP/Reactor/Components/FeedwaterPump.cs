@@ -27,6 +27,8 @@ public class FeedwaterPump
     public bool Alive { get; set; } = true;
 
     public bool Running => Powered && Alive;
+    
+    public bool IsBroken() => !Alive;
 
     public int GetPowerDemand() => Parameters.FeedwaterPumpPowerDemand(Utilization.Value);
 
@@ -34,8 +36,10 @@ public class FeedwaterPump
 
     public void Break()
     {
+        if (IsBroken()) return;
         Alive = false;
         Health.Value = 0;
+        Simulation.BreakComponent(this);
     }
 
     public void Repair()

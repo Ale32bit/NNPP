@@ -41,6 +41,14 @@ public class GridGenerator(Simulation sim)
         var wave = Math.Sin(0.5 * sim.Runtime * Math.PI * rng.NextDouble());
         return (int)(wave * rng.NextDouble() * Parameters.Grid.GenPowerNoiseMax);
     }
+
+    public void Break()
+    {
+        if(Broken) return;
+        Health.Value = 0;
+        Status = GeneratorStatus.Broken;
+        Simulation.BreakComponent(this);
+    }
     
     public void Repair()
     {

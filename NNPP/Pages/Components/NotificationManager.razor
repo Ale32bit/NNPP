@@ -53,16 +53,15 @@
 
         if (!notification.Silent)
         {
-            if (notification.Critical)
+            var sfx = notification.Kind switch
             {
-                await Audio.StopSfxAsync(AudioKeys.Sfx.NotificationCritical);
-                await Audio.PlaySfxAsync(AudioKeys.Sfx.NotificationCritical);
-            }
-            else
-            {
-                await Audio.StopSfxAsync(AudioKeys.Sfx.Notification);
-                await Audio.PlaySfxAsync(AudioKeys.Sfx.Notification);
-            }
+                NotificationKind.Critical => AudioKeys.Sfx.NotificationCritical,
+                NotificationKind.Experience => AudioKeys.Sfx.Experience,
+                _ => AudioKeys.Sfx.Notification
+            };
+
+            await Audio.StopSfxAsync(sfx);
+            await Audio.PlaySfxAsync(sfx);
         }
 
         await Task.Delay(10, _cts.Token);

@@ -1,4 +1,5 @@
-﻿@using NNPP.Reactor
+﻿@using NNPP.Models
+@using NNPP.Reactor
 @inject Simulation Sim
 @inject AudioManager Audio
 
@@ -49,7 +50,7 @@
             StateHasChanged();
             await Audio.PlaySfxAsync(AudioKeys.Sfx.BlackOut);
             await Sim.Sleep(5);
-            Sim.Notify("Grid Failure", "Switch to another grid or increase pressure.", critical: true);
+            Sim.Notify("Grid Failure", "Switch to another grid or increase pressure.", kind: NotificationKind.Critical);
         }
 
         _changing = false;
