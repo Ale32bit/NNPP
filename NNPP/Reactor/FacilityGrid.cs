@@ -103,6 +103,26 @@ public class FacilityGrid(Simulation sim)
         return AuxSupply.Value > 0;
     }
 
+    public bool IsSourcePowering(PrimarySource source)
+    {
+        return source switch
+        {
+            PrimarySource.External => TurbinesCanSupply(),
+            PrimarySource.Turbines => ExtCanSupply(),
+            _ => false,
+        };
+    }
+    
+    public bool IsSourcePowering(AuxiliarySource source)
+    {
+        return source switch
+        {
+            AuxiliarySource.Primary => PrimCanSupply(),
+            AuxiliarySource.Generators => GensCanSupply(),
+            _ => false,
+        };
+    }
+
     public bool IsDcPowered()
     {
         var auxSupply = AuxSupply.Value;

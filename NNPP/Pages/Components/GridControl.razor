@@ -154,15 +154,15 @@
         {
             return PendingText;
         }
-        
+
+        if (InUse(source) && Grid.IsSourcePowering(source))
+        {
+            return CurrentlyInUseText;
+        }
+
         if (!CanUse(source))
         {
             return NoPowerText;
-        }
-
-        if (InUse(source))
-        {
-            return CurrentlyInUseText;
         }
 
         return EmptyText;
@@ -175,7 +175,7 @@
             return PendingText;
         }
 
-        if (InUse(source))
+        if (InUse(source) && Grid.IsSourcePowering(source))
         {
             return CurrentlyInUseText;
         }
