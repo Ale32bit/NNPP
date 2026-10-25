@@ -154,15 +154,15 @@
         {
             return PendingText;
         }
+        
+        if (!CanUse(source))
+        {
+            return NoPowerText;
+        }
 
         if (InUse(source))
         {
             return CurrentlyInUseText;
-        }
-
-        if (!CanUse(source))
-        {
-            return NoPowerText;
         }
 
         return EmptyText;
