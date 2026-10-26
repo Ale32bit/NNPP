@@ -1,4 +1,6 @@
-﻿namespace NNPP.Reactor.StatusBoards;
+﻿using NNPP.Audio;
+
+namespace NNPP.Reactor.StatusBoards;
 
 public class GridGenBoard : AbstractStatusBoard
 {

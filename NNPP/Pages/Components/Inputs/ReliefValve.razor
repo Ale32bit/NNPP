@@ -1,4 +1,5 @@
-﻿@using NNPP.Models.Inputs
+﻿@using NNPP.Audio
+@using NNPP.Models.Inputs
 @inject AudioManager Audio
 
 <div class="switch">
@@ -6,20 +7,19 @@
         <span class="light" style="color: @_offLight">•</span>
         <span class="light" style="color: @_onLight">•</span>
     </div>
-    <div class="knob" style="transform: @_transform;" @onclick="OnClick"></div>
+    <div class="knob" style="transform: @Transform;" @onclick="OnClick"></div>
 </div>
 
 @code {
     [Parameter, EditorRequired] public required ReliefValveSwitch Valve { get; set; }
-
-    private string _transform = "";
+    
+    private string Transform => $"rotate({(Valve.IsOpen() ? -90 : 0)}deg)";
     private string _offLight = "#F00";
     private string _onLight = "#000";
 
     protected override void OnInitialized()
     {
         Valve.OnStatusChanged += Update;
-        //Update();
     }
 
     private void OnClick()
@@ -29,8 +29,6 @@
 
     private void Update()
     {
-        _transform = $"rotate({(Valve.IsOpen() ? -90 : 0)}deg)";
-
         switch (Valve.Status)
         {
             case ReliefValveSwitch.ReliefValveStatus.Ready:

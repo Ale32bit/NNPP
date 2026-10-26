@@ -1,4 +1,5 @@
 ﻿using NNPP.Models;
+using NNPP.Models.Metrics;
 using NNPP.Reactor.Components;
 
 namespace NNPP.Reactor;
@@ -91,7 +92,6 @@ public class FacilityGrid(Simulation sim)
     {
         return IsPrimaryPowered();
     }
-
 
     public bool IsPrimaryPowered()
     {

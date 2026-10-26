@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using NNPP.Audio;
 using NNPP.Models;
 using NNPP.Models.Inputs;
 using NNPP.Models.Metrics;
@@ -1251,30 +1252,42 @@ public class Simulation : IAsyncDisposable
             if (RandomHostileCooldown <= 0)
             {
                 RandomHostileCooldown = RandomWrapper.Next(450, 1200);
+                
                 Task.Run(async () =>
                 {
-                    var extA = Grid.Transformer1;
-                    var extB = Grid.Transformer2;
-
-                    var shouldNotify = extA.Running.Value && extB.Running.Value;
-
-                    if (RandomWrapper.Next(0, 2) == 1)
+                    if (RandomWrapper.NextBool())
                     {
-                        (extA, extB) = (extB, extA);
+                        // Break EXT
+                        var extA = Grid.Transformer1;
+                        var extB = Grid.Transformer2;
+
+                        var shouldNotify = extA.Running.Value && extB.Running.Value;
+
+                        if (RandomWrapper.NextBool())
+                        {
+                            (extA, extB) = (extB, extA);
+                        }
+
+                        extA.Break();
+
+                        if (shouldNotify)
+                        {
+                            Notify("Transformer Failure", "External power has been lost due to a transformer failure.");
+                        }
+
+                        var breakBoth = RandomWrapper.NextBool();
+                        if (breakBoth)
+                        {
+                            await Task.Delay(RandomWrapper.Next(1500, 5000));
+                            extB.Break();
+                        }
                     }
-
-                    extA.Break();
-
-                    if (shouldNotify)
+                    else
                     {
-                        Notify("Transformer Failure", "External power has been lost due to a transformer failure.");
-                    }
-
-                    var breakBoth = RandomWrapper.Next(0, 2) == 1;
-                    if (breakBoth)
-                    {
+                        // Disable coolant pumps
+                        CoolantPumpAlpha.Switch.Value = false;
                         await Task.Delay(RandomWrapper.Next(1500, 5000));
-                        extB.Break();
+                        CoolantPumpBeta.Switch.Value = false;
                     }
                 });
             }

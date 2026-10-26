@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 
-namespace NNPP;
+namespace NNPP.Audio;
 
 public class MusicCredits
 {

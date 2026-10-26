@@ -1,4 +1,5 @@
-﻿@using NNPP.Models.Inputs
+﻿@using NNPP.Audio
+@using NNPP.Models.Inputs
 @inject AudioManager Audio
 
 <div class="frame">
@@ -14,7 +15,7 @@
         <span style="--a:0deg">•</span>
         <span style="--a:30deg">+</span>
         <span style="--a:60deg">++</span>
-        <div class="knob" style="transform: @_transform;"></div>
+        <div class="knob" style="transform: @Transform;"></div>
         <div class="interact-box">
             <div class="interact" @onclick="TurnLeft" title="Decrease"></div>
             <div class="interact" @onclick="TurnRight" title="Increase"></div>
@@ -27,7 +28,7 @@
     
     [Parameter] public string? Label { get; set; }
 
-    private string _transform = "";
+    private string Transform => $"rotate({(Switch.Value) * 30}deg)";
     
     public void TurnLeft()
     {
@@ -43,8 +44,6 @@
     {
         var value = Math.Clamp(Switch.Value + step, -2, 2);
         Switch.Position = (RateSwitch.SwitchPosition)value;
-
-        _transform = $"rotate({(value) * 30}deg)";
         Audio.Interact();
     }
 }

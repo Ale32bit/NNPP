@@ -1,4 +1,4 @@
-﻿namespace NNPP;
+﻿namespace NNPP.Audio;
 
 public enum AudioType
 {

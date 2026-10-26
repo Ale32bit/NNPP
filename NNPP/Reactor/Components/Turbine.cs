@@ -1,5 +1,6 @@
 ﻿using NNPP.Models;
 using NNPP.Models.Inputs;
+using NNPP.Models.Metrics;
 using NNPP.Pages.Components;
 
 namespace NNPP.Reactor.Components;

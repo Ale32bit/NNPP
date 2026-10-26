@@ -1,0 +1,38 @@
+﻿@using NNPP.Audio
+@using NNPP.Models.Inputs
+@inject AudioManager Audio
+
+<div class="frame">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <div class="label">
+            <span>@Label</span>
+        </div>
+    }
+    <div class="switch">
+
+        <div class="indicator">
+            <span class="light" style="color: @OffLight">•</span>
+            <span class="light" style="color: @OnLight">•</span>
+        </div>
+        <div class="knob" style="transform: @Transform;" onclick="@OnClick"></div>
+    </div>
+
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required ISwitch Switch { get; set; }
+
+    [Parameter] public string? Label { get; set; }
+
+    private string Transform => $"rotate({(Switch.Value ? -90 : 0)}deg)";
+    private string OnLight => Switch.Value ? "#0F0" : "#000";
+    private string OffLight => Switch.Value ? "#000" : "#F00";
+
+    private void OnClick()
+    {
+        Switch.Value = !Switch.Value;
+        Audio.Interact();
+    }
+
+}

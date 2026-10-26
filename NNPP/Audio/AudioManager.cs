@@ -1,7 +1,6 @@
-﻿using System.Runtime.CompilerServices;
-using Microsoft.JSInterop;
+﻿using Microsoft.JSInterop;
 
-namespace NNPP;
+namespace NNPP.Audio;
 
 public class AudioManager(IJSRuntime js) : IAsyncDisposable
 {

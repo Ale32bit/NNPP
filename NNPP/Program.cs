@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.JSInterop;
 using NNPP;
+using NNPP.Audio;
 using NNPP.Reactor;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);

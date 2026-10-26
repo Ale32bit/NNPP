@@ -1,4 +1,4 @@
-﻿namespace NNPP.Models;
+﻿namespace NNPP.Models.Metrics;
 
 public class MetricEnum<T>(string label, T initialValue) : IParameter where T : struct, IConvertible
 {

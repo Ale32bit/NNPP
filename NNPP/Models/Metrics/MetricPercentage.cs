@@ -1,4 +1,4 @@
-﻿namespace NNPP.Models;
+﻿namespace NNPP.Models.Metrics;
 
 public class MetricPercentage : Metric
 {
