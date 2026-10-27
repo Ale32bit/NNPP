@@ -63,6 +63,7 @@ public class Turbine
         if (IsBroken()) return;
         Health.Value = 0;
         Status.Value = TurbineStatus.Broken;
+        SyncSwitch.RawSet(false);
         Simulation.BreakComponent(this);
     }
 

@@ -11,7 +11,18 @@
     box-shadow: rgb(50 50 50 / 0.65) 0 3px 3px 1px;
     
     cursor: pointer;
+
+    transition: box-shadow 0.1s ease-in-out;
 }
+
+.frame:hover {
+    box-shadow: 0 0 1rem 0.5rem rgb(255 166 0 / 0.66);
+}
+
+.frame:active {
+    box-shadow: 0 0 1rem 0.5rem rgb(255 215 146);
+}
+
 
 .keyboard {
     --cols: 13;
