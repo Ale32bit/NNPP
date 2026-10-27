@@ -2,6 +2,8 @@
     position: fixed;
     top: 0;
     right: 0;
+    z-index: 1000;
+    
 }
 
 .notification {
@@ -13,6 +15,7 @@
     color: #fff;
     margin: 10px;
     transition: margin-right 0.5s ease-in-out;
+    pointer-events: none;
 }
 
 .hide {

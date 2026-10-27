@@ -1,0 +1,26 @@
+﻿.rumble { animation: rumble var(--d, .7s) linear; }
+
+@keyframes rumble {
+    0%   { transform: none; }
+    4%   { transform: translate(calc(var(--s) * -1.00), calc(var(--s) *  .70)); }
+    8%   { transform: translate(calc(var(--s) *   .90), calc(var(--s) * -.95)); }
+    12%  { transform: translate(calc(var(--s) *  -.70), calc(var(--s) * -.80)); }
+    16%  { transform: translate(calc(var(--s) *   .85), calc(var(--s) *  .55)); }
+    20%  { transform: translate(calc(var(--s) *  -.60), calc(var(--s) *  .75)); }
+    25%  { transform: translate(calc(var(--s) *   .55), calc(var(--s) * -.50)); }
+    30%  { transform: translate(calc(var(--s) *  -.45), calc(var(--s) * -.40)); }
+    36%  { transform: translate(calc(var(--s) *   .40), calc(var(--s) *  .45)); }
+    42%  { transform: translate(calc(var(--s) *  -.30), calc(var(--s) *  .30)); }
+    48%  { transform: translate(calc(var(--s) *   .28), calc(var(--s) * -.25)); }
+    55%  { transform: translate(calc(var(--s) *  -.20), calc(var(--s) * -.18)); }
+    62%  { transform: translate(calc(var(--s) *   .15), calc(var(--s) *  .16)); }
+    70%  { transform: translate(calc(var(--s) *  -.10), calc(var(--s) *  .08)); }
+    78%  { transform: translate(calc(var(--s) *   .07), calc(var(--s) * -.06)); }
+    86%  { transform: translate(calc(var(--s) *  -.04), calc(var(--s) *  .03)); }
+    93%  { transform: translate(calc(var(--s) *   .02), calc(var(--s) * -.01)); }
+    100% { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rumble { animation: none; }
+}

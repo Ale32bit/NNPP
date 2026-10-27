@@ -43,15 +43,20 @@ else
     <div>
         <h4>Debug</h4>
         
-        <button @onclick="Sim.Turbine1.Break">Break Turbine 1</button>
-        <button @onclick="Sim.Turbine2.Break">Break Turbine 2</button>
+        <div>
+            <button @onclick="Sim.Turbine1.Break">Break Turbine 1</button>
+            <button @onclick="Sim.Turbine2.Break">Break Turbine 2</button>
         
-        <button @onclick="Sim.FeedwaterPump1.Break">Break Feedwater 1</button>
-        <button @onclick="Sim.FeedwaterPump2.Break">Break Feedwater 2</button>
+            <button @onclick="Sim.FeedwaterPump1.Break">Break Feedwater 1</button>
+            <button @onclick="Sim.FeedwaterPump2.Break">Break Feedwater 2</button>
         
-        <button @onclick="Sim.Grid.Generators[0].Break">Break Gen 1</button>
-        <button @onclick="Sim.Grid.Generators[1].Break">Break Gen 2</button>
-        <button @onclick="Sim.Grid.Generators[2].Break">Break Gen 3</button>
+            <button @onclick="Sim.Grid.Generators[0].Break">Break Gen 1</button>
+            <button @onclick="Sim.Grid.Generators[1].Break">Break Gen 2</button>
+            <button @onclick="Sim.Grid.Generators[2].Break">Break Gen 3</button>
+        </div>
+        <div>
+            <button @onclick="() => Sim.Shake(1)">Shake</button>
+        </div>
     </div>
 }
 

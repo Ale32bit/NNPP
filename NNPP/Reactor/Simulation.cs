@@ -195,6 +195,7 @@ public class Simulation : IAsyncDisposable
     public event EventHandler<Notification>? OnNotification;
     public event EventHandler<string>? OnMusic;
     public event EventHandler? OnStart;
+    public event EventHandler<double>? OnShake;
 
     /// <summary>
     /// Use OnUpdate.
@@ -707,6 +708,7 @@ public class Simulation : IAsyncDisposable
 
         await Sleep(7);
 
+        Shake(2);
         await Audio.PlaySfxAsync(AudioKeys.Sfx.MeltdownExplosion);
 
         await Sleep(9);
@@ -752,10 +754,10 @@ public class Simulation : IAsyncDisposable
                 ScramButton.Available = false;
             }
 
-            await Audio.PlaySfxAsync(AudioKeys.Sfx.MetalCry);
+            await Audio.PlaySfxAsync(AudioKeys.Sfx.MetalCry, volume: 2);
             await PlayMusic(AudioKeys.Music.Evacuate, 1, loop: false);
             await Sleep(6);
-            await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion, 2d);
+            await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion, 3d);
             await Sleep(0.964); // Very precise :tm:
             Notify("Reactor meltdown",
                 "Reactor continues to be in a critical state. Full Evacuation in progress.", NotificationKind.Critical);
@@ -869,6 +871,11 @@ public class Simulation : IAsyncDisposable
         return ShiftEfficiencyActSwitch.Value ? 2 : 1;
     }
 
+    public bool IsPoeaEnabled()
+    {
+        return ShiftEfficiencyActSwitch.Value;
+    }
+
     public double GetBonusMultiplier()
     {
         double baseMul = GetPoeaMultiplier();
@@ -918,12 +925,12 @@ public class Simulation : IAsyncDisposable
 
     public int GenerateOrder()
     {
-        return Math.Clamp(
-            RandomWrapper.Next(Parameters.Shift.PowerOrderMinPower, Parameters.Shift.PowerOrderMaxPower)
-            * GetPoeaMultiplier(),
-            Parameters.Shift.PowerOrderMinPower,
-            Parameters.Shift.PowerOrderMaxPowerPoea
-        );
+        if (IsPoeaEnabled())
+        {
+            return RandomWrapper.Next(Parameters.Shift.PowerOrderMinPower * 2, Parameters.Shift.PowerOrderMaxPowerPoea);
+        }
+
+        return RandomWrapper.Next(Parameters.Shift.PowerOrderMinPower, Parameters.Shift.PowerOrderMaxPower);
     }
 
     public int GenerateOrderTime()
@@ -1252,7 +1259,7 @@ public class Simulation : IAsyncDisposable
             if (RandomHostileCooldown <= 0)
             {
                 RandomHostileCooldown = RandomWrapper.Next(450, 1200);
-                
+
                 Task.Run(async () =>
                 {
                     if (RandomWrapper.NextBool())
@@ -1378,6 +1385,11 @@ public class Simulation : IAsyncDisposable
     {
         var pitch = Audio.GetRandomPitch();
         await Audio.PlaySfxAsync(AudioKeys.Sfx.ComponentBreak, volume: 2, pitch: pitch);
+    }
+
+    public void Shake(double strength)
+    {
+        OnShake?.Invoke(this, strength);
     }
 
     public void Notify(Notification notification)

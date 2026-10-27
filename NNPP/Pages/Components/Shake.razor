@@ -1,0 +1,60 @@
+﻿@using NNPP.Reactor
+@inject Simulation Sim
+@implements IDisposable
+
+<div class="@_class" style="@_style">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string _class = "";
+    private string _style = "";
+    private double _remainingTime;
+    private bool _active = false;
+
+    protected override void OnInitialized()
+    {
+        Sim.OnShake += HandleShake;
+        Sim.OnUpdate += HandleUpdate;
+    }
+
+    private void HandleShake(object? _, double strength) => InvokeAsync(() => OnShake(strength));
+    private void HandleUpdate(object? _, double dt) => InvokeAsync(() => OnUpdate(dt));
+
+    private void OnShake(double strength)
+    {
+        if (_active)
+            return;
+        
+        _remainingTime = 0.7;
+        _active = true;
+        _class = "rumble";
+        _style = FormattableString.Invariant(
+            $"--s:{strength * 8}px;--r:0deg;--d:0.7s");
+        StateHasChanged();
+    }
+
+    private void OnUpdate(double dt)
+    {
+        if (_remainingTime <= 0)
+        {
+            if (!_active) return;
+            _active = false;
+            _class = "";
+            StateHasChanged();
+        }
+        else
+        {
+            _remainingTime -= dt;
+        }
+    }
+
+    public void Dispose()
+    {
+        Sim.OnShake -= HandleShake;
+        Sim.OnUpdate -= HandleUpdate;
+    }
+
+}
