@@ -556,11 +556,6 @@ public class Simulation : IAsyncDisposable
 
             if (_meltdown && ScramButton.Enabled && RodInsertion.Value < 1)
             {
-                if (RodInsertion.Value < 0.8)
-                {
-                    _scramRodWillFail = true;
-                }
-
                 if (!_scramRodFailed)
                 {
                     RodInsertion.Value += Parameters.Core.RodSpeedScram * dt;
@@ -784,6 +779,13 @@ public class Simulation : IAsyncDisposable
         if (!NotGreatNotTerrible)
         {
             _extraHeat = 0;
+        }
+        
+        var chance = 1 - RodInsertion.Value / 0.8;
+        var fate = Random.Shared.NextDouble();
+        if (fate < chance)
+        {
+            _scramRodWillFail = true;
         }
 
         RodControl.Position = RodController.ControlPosition.Neutral;
