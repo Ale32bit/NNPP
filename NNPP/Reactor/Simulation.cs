@@ -171,7 +171,7 @@ public class Simulation : IAsyncDisposable
 
     private double _ignitionTime = 0;
     private bool _ignitingTemperature = false;
-    private bool _igniting;
+    public bool Igniting { get; set; }
 
     private bool _enableTier4 = false;
     private double _shiftRemainingTime = 0;
@@ -196,6 +196,7 @@ public class Simulation : IAsyncDisposable
     public event EventHandler<string>? OnMusic;
     public event EventHandler? OnStart;
     public event EventHandler<double>? OnShake;
+    public event EventHandler<AlarmLightSetting>? OnAlarmLightSet;
 
     /// <summary>
     /// Use OnUpdate.
@@ -517,6 +518,7 @@ public class Simulation : IAsyncDisposable
 
             if (ReactorTemperature.Value >= Parameters.Core.HighTemp && !_reactorOverheat && !_meltdown)
             {
+                SetAlarmLight(AlarmLightSetting.Warn);
                 PlayMusic(AudioKeys.Music.Overheat, 0.25);
                 _reactorOverheat = true;
                 Notify("Reactor overheat",
@@ -532,6 +534,10 @@ public class Simulation : IAsyncDisposable
                 }
 
                 _reactorOverheat = false;
+                if (!_meltdown)
+                {
+                    SetAlarmLight(AlarmLightSetting.None);
+                }
             }
 
             if ((ReactorTemperature.Value >= Parameters.Core.MeltdownTemperature || _forceMeltdown) && !_meltdown)
@@ -658,21 +664,17 @@ public class Simulation : IAsyncDisposable
 
     public void AttemptIgnition()
     {
-        if (Running)
-        {
-            Audio.PlaySfxAsync(AudioKeys.Sfx.ControlDenied);
-            return;
-        }
-
-        if (IgnitionAuthBravo8.Value && IgnitionShutdownPumps.Value)
+        if (!Running && IgnitionAuthBravo8.Value && IgnitionShutdownPumps.Value)
         {
             Ignited = true;
-            _igniting = true;
+            Igniting = true;
             Audio.PlaySfxAsync(AudioKeys.Sfx.AuthTrigger, 2d);
 
             Task.Run(async () =>
             {
                 await PlayMusic(AudioKeys.Music.Ignition, loop: false);
+                await Audio.PlaySfxAsync(AudioKeys.Sfx.AmbientAlarm, loop: true);
+                SetAlarmLight(AlarmLightSetting.Warn);
                 await Sleep(8.6);
                 Notify("Reactor Ignition", "The Facility Reactor is currently being ignited. Standby");
                 await Sleep(2.4);
@@ -682,7 +684,9 @@ public class Simulation : IAsyncDisposable
                 RodControl.Locked = false;
                 Running = true;
                 _ignitingTemperature = false;
-                _igniting = false;
+                Igniting = false;
+                await Audio.StopSfxAsync(AudioKeys.Sfx.AmbientAlarm);
+                SetAlarmLight(AlarmLightSetting.None);
                 await AddXpAsync(100, "Ignited the reactor.");
             });
         }
@@ -695,6 +699,8 @@ public class Simulation : IAsyncDisposable
     public async Task Meltdown()
     {
         _meltdown = true;
+
+        SetAlarmLight(AlarmLightSetting.Critical);
 
         await Audio.PlaySfxLoopAsync(AudioKeys.Sfx.MeltdownAlarm);
         await Audio.PlaySfxAsync(AudioKeys.Sfx.AnnouncerMeltdown);
@@ -736,6 +742,8 @@ public class Simulation : IAsyncDisposable
                 NotificationKind.Critical);
             _extraHeat = -57;
             await PlayMusic(AudioKeys.Music.Shutdown, 1, loop: false);
+
+            SetAlarmLight(AlarmLightSetting.None);
 
             await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
             await Sleep(10);
@@ -1009,7 +1017,7 @@ public class Simulation : IAsyncDisposable
             Notify("Shift Management",
                 $"{day} Shift personnel. The shift has started. You may begin doing power orders.");
 
-            if (!_meltdown && !_reactorOverheat && !_igniting)
+            if (!_meltdown && !_reactorOverheat && !Igniting)
             {
                 if (day == "Day")
                 {
@@ -1392,6 +1400,16 @@ public class Simulation : IAsyncDisposable
         OnShake?.Invoke(this, strength);
     }
 
+    public static void BreakComponent(object component)
+    {
+        OnComponentBreak?.Invoke(component, EventArgs.Empty);
+    }
+
+    public void SetAlarmLight(AlarmLightSetting setting)
+    {
+        OnAlarmLightSet?.Invoke(this, setting);
+    }
+
     public void Notify(Notification notification)
     {
         OnNotification?.Invoke(this, notification);
@@ -1417,10 +1435,5 @@ public class Simulation : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await _loop.DisposeAsync();
-    }
-
-    public static void BreakComponent(object component)
-    {
-        OnComponentBreak?.Invoke(component, EventArgs.Empty);
     }
 }

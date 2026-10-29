@@ -9,39 +9,16 @@
     public double Interval { get; set; } = 10;
     public string Color { get; set; } = "red";
 
-    private ReactorStatus _status = ReactorStatus.Offline;
-
     protected override void OnInitialized()
     {
-        Sim.OnUpdate += (_, dt) => OnUpdate(dt);
+        Sim.OnAlarmLightSet += (_, setting) => OnAlarmLightSet(setting);
     }
-
-    private void OnUpdate(double dt)
+    
+    private void OnAlarmLightSet(AlarmLightSetting setting)
     {
-        if (_status == Sim.ReactorStatus.Value)
-        {
-            return;
-        }
-
-        _status = Sim.ReactorStatus.Value;
-        switch (_status)
-        {
-            case ReactorStatus.Overheat:
-                Enable = true;
-                Interval = 10;
-                Color = "orange";
-                break;
-            case ReactorStatus.Emergency or ReactorStatus.Error:
-                Enable = true;
-                Interval = 5;
-                Color = "red";
-                break;
-            default:
-                Enable = false;
-                break;
-        }
-
+        Enable = setting.Enable;
+        Interval = setting.Interval;
+        Color = setting.Color;
         StateHasChanged();
     }
-
 }

@@ -35,6 +35,7 @@ public static class AudioKeys
         public const string AlarmOverspeed = "sfx.alarmOverspeed";
         
         public const string DamageAlarm = "sfx.damageAlarm";
+        public const string AmbientAlarm = "sfx.ambientAlarm";
     }
     
     public static class Music
