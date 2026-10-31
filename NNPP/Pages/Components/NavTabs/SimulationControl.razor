@@ -56,6 +56,7 @@ else
         </div>
         <div>
             <button @onclick="() => Sim.Shake(1)">Shake</button>
+            <button @onclick="TriggerMeltdownSkip">Trigger meltdown with skip</button>
         </div>
     </div>
 }
@@ -86,10 +87,16 @@ else
         Sim.RodInsertion.Value = RodInsertion / 100d;
     }
 
-    public void TriggerMeltdown()
+    public async Task TriggerMeltdown()
     {
         Taint();
-        Sim.TriggerMeltdown();
+        await Sim.Meltdown(false);
+    }
+    
+    public async Task TriggerMeltdownSkip()
+    {
+        Taint();
+        await Sim.Meltdown(true);
     }
 
     public void ToggleReactor()

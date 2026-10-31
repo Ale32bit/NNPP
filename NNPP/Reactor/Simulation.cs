@@ -7,6 +7,7 @@ using NNPP.Reactor.Components;
 using NNPP.Reactor.StatusBoards;
 using AuthButton = NNPP.Models.Inputs.AuthButton;
 using Switch = NNPP.Models.Inputs.Switch;
+using Timer = System.Timers.Timer;
 
 namespace NNPP.Reactor;
 
@@ -167,7 +168,6 @@ public class Simulation : IAsyncDisposable
 
     // it's anrover :pray:
     public bool NotGreatNotTerrible { get; private set; } = false;
-    private bool _forceMeltdown = false;
 
     private double _ignitionTime = 0;
     private bool _ignitingTemperature = false;
@@ -197,6 +197,7 @@ public class Simulation : IAsyncDisposable
     public event EventHandler? OnStart;
     public event EventHandler<double>? OnShake;
     public event EventHandler<AlarmLightSetting>? OnAlarmLightSet;
+    public event EventHandler<GameOverType>? OnGameOver;
 
     /// <summary>
     /// Use OnUpdate.
@@ -307,7 +308,7 @@ public class Simulation : IAsyncDisposable
                 }
                 else
                 {
-                    ReactorStatus.Value = Models.ReactorStatus.Emergency;
+                    ReactorStatus.Value = Models.ReactorStatus.Runaway;
                 }
             }
         }
@@ -540,12 +541,12 @@ public class Simulation : IAsyncDisposable
                 }
             }
 
-            if ((ReactorTemperature.Value >= Parameters.Core.MeltdownTemperature || _forceMeltdown) && !_meltdown)
+            if (ReactorTemperature.Value >= Parameters.Core.MeltdownTemperature && !_meltdown)
             {
                 // meltdown task runs in background and may not set _meltdown in time, triggering multiple times.
                 _meltdown = true;
 
-                Meltdown().ContinueWith(task =>
+                Meltdown(false).ContinueWith(task =>
                 {
                     if (task.IsFaulted)
                     {
@@ -691,44 +692,48 @@ public class Simulation : IAsyncDisposable
         }
     }
 
-    public async Task Meltdown()
+    public async Task Meltdown(bool skipToEnd)
     {
         _meltdown = true;
 
         SetAlarmLight(AlarmLightSetting.Critical);
+        if (!skipToEnd)
+        {
+            await Audio.PlaySfxLoopAsync(AudioKeys.Sfx.MeltdownAlarm);
+            await Audio.PlaySfxAsync(AudioKeys.Sfx.AnnouncerMeltdown);
 
-        await Audio.PlaySfxLoopAsync(AudioKeys.Sfx.MeltdownAlarm);
-        await Audio.PlaySfxAsync(AudioKeys.Sfx.AnnouncerMeltdown);
+            await Sleep(3);
 
-        await Sleep(3);
+            await PlayMusic(AudioKeys.Music.Meltdown, 1, loop: false);
+            Notify("Reactor overheat",
+                "The Reactor is above safe operating parameters. Lower temperature immediately.",
+                NotificationKind.Critical);
 
-        await PlayMusic(AudioKeys.Music.Meltdown, 1, loop: false);
-        Notify("Reactor overheat",
-            "The Reactor is above safe operating parameters. Lower temperature immediately.",
-            NotificationKind.Critical);
+            await Sleep(7);
 
-        await Sleep(7);
+            Shake(2);
+            await Audio.PlaySfxAsync(AudioKeys.Sfx.MeltdownExplosion);
 
-        Shake(2);
-        await Audio.PlaySfxAsync(AudioKeys.Sfx.MeltdownExplosion);
+            await Sleep(9);
 
-        await Sleep(9);
+            _extraHeat = Parameters.Core.MeltdownExtraHeat;
+            await Audio.StopSfxAsync(AudioKeys.Sfx.MeltdownAlarm);
+            Notify("Reactor meltdown", "All Non-Reactor Operations staff are to evacuate.", NotificationKind.Critical);
 
-        _extraHeat = Parameters.Core.MeltdownExtraHeat;
-        await Audio.StopSfxAsync(AudioKeys.Sfx.MeltdownAlarm);
-        Notify("Reactor meltdown", "All Non-Reactor Operations staff are to evacuate.", NotificationKind.Critical);
+            await Sleep(10);
 
-        await Sleep(10);
+            Notify("Reactor shutdown",
+                "An official emergency has been declared. Emergency options are now available.",
+                NotificationKind.Critical);
 
-        Notify("Reactor shutdown",
-            "An official emergency has been declared. Emergency options are now available.", NotificationKind.Critical);
+            await Sleep(15);
 
-        await Sleep(15);
+            await Audio.PlaySfxAsync(AudioKeys.Sfx.AuthTrigger, 2d);
+            ScramButton.Available = true;
 
-        await Audio.PlaySfxAsync(AudioKeys.Sfx.AuthTrigger, 2d);
-        ScramButton.Available = true;
 
-        await Sleep(190);
+            await Sleep(190);
+        }
 
         if (ReactorTemperature.Value < 900)
         {
@@ -744,10 +749,11 @@ public class Simulation : IAsyncDisposable
             await Sleep(10);
 
             await AddXpAsync(1000, "Successfully shutdown the reactor.");
-
-            await Sleep(20);
+            
+            await Sleep(6.348);
+            OnGameOver?.Invoke(this, GameOverType.Shutdown);
             Notify("SCRAM Qualification",
-                "\"That... Was close.\" Successfully scram the reactor before it explodes. Refresh the page to restart.",
+                "\"That... Was close.\" Successfully scram the reactor before it explodes.",
                 silent: true, permanent: true);
         }
         else
@@ -760,7 +766,7 @@ public class Simulation : IAsyncDisposable
             await Audio.PlaySfxAsync(AudioKeys.Sfx.MetalCry, volume: 2);
             await PlayMusic(AudioKeys.Music.Evacuate, 1, loop: false);
             await Sleep(6);
-            await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion, 3d);
+            await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion, 5d);
             await Sleep(0.964); // Very precise :tm:
             Notify("Reactor meltdown",
                 "Reactor continues to be in a critical state. Full Evacuation in progress.", NotificationKind.Critical);
@@ -768,8 +774,10 @@ public class Simulation : IAsyncDisposable
             NotGreatNotTerrible = true;
 
             await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
-            await Sleep(30);
-            Notify("Unforeseen Consequences", "Experience a meltdown. Refresh the page to restart.", silent: true,
+            await Sleep(23.36);
+            OnGameOver?.Invoke(this, GameOverType.Meltdown);
+            SetAlarmLight(AlarmLightSetting.Meltdown);
+            Notify("Unforeseen Consequences", "Experience a meltdown.", silent: true,
                 permanent: true);
         }
     }
@@ -780,7 +788,7 @@ public class Simulation : IAsyncDisposable
         {
             _extraHeat = 0;
         }
-        
+
         var chance = 1 - RodInsertion.Value / 0.8;
         var fate = Random.Shared.NextDouble();
         if (fate < chance)
@@ -826,11 +834,6 @@ public class Simulation : IAsyncDisposable
         {
             KeyPress?.Invoke(this, args);
         }
-    }
-
-    public void TriggerMeltdown()
-    {
-        _forceMeltdown = true;
     }
 
     private void PoeaSwitchTriggered(object? sender, bool active)
@@ -1432,6 +1435,12 @@ public class Simulation : IAsyncDisposable
     public Task Sleep(double seconds)
     {
         return Task.Delay(TimeSpan.FromSeconds(seconds));
+    }
+
+    public Task Schedule(TimeSpan delay, Action action, CancellationToken ct = default)
+    {
+        return Task.Delay(delay, ct).ContinueWith(_ => action(), ct, TaskContinuationOptions.OnlyOnRanToCompletion,
+            TaskScheduler.Default);
     }
 
     public async ValueTask DisposeAsync()

@@ -34,6 +34,8 @@
     <NavTabs/>
 </nav>
 
+<GameOverScreen/>
+
 <KeyListener Simulation="Sim"/>
 
 <NotificationManager/>
@@ -548,7 +550,7 @@
         _alarmClass = Sim.ReactorStatus.Value switch
         {
             ReactorStatus.Overheat => "alarm-overheat",
-            ReactorStatus.Emergency => "alarm-emergency",
+            ReactorStatus.Runaway => "alarm-emergency",
             _ => "",
         };
     }

@@ -2,11 +2,11 @@
 
 public enum ReactorStatus
 {
+    Offline, // Reactor is offline, shutdown successful, or not yet ignited
+    Heating, // Igniting
     Cold, // 323K
     Stable, // >323K
     Overheat, // >2400
-    Emergency, // During meltdown
+    Runaway, // During meltdown
     Error, // Shutdown failure
-    Offline, // Reactor is offline, shutdown successful, or not yet ignited
-    Heating, // Igniting
 }

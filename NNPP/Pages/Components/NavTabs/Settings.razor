@@ -24,6 +24,11 @@
     <p><small>(Randomly break external transformers)</small></p>
 </div>
 
+<div>
+    <input id="gameover-screen" type="checkbox" @bind="EnableGameOverScreen"/>
+    <label for="gameover-screen">Enable Game Over screen</label>
+</div>
+
 @code {
 
     private double MasterVolume
@@ -72,6 +77,16 @@
         set
         {
             Sim.Profile.EnableHostiles = value;
+            _ = Sim.SaveProfileAsync();
+        }
+    }
+    
+    private bool EnableGameOverScreen
+    {
+        get => Sim.Profile.ShowGameOverScreen;
+        set
+        {
+            Sim.Profile.ShowGameOverScreen = value;
             _ = Sim.SaveProfileAsync();
         }
     }

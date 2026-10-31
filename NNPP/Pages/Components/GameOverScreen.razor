@@ -1,0 +1,56 @@
+﻿@using NNPP.Models
+@using NNPP.Reactor
+@inject Simulation Sim
+@inject NavigationManager Nav
+
+@*Notify("Unforeseen Consequences", "Experience a meltdown. Refresh the page to restart.", silent: true,
+                permanent: true);*@
+@if (Show)
+{
+    <div class="screen">
+        <div class="overlay"></div>
+
+        <div class="stripe"></div>
+
+        <div class="content">
+            @if (_type == GameOverType.Meltdown)
+            {
+                <div>
+                    <h2>CORE<br/>MELTDOWN</h2>
+                    <p>You did not cool the reactor down in time.</p>
+                </div>
+            }
+            else
+            {
+                <div>
+                    <h2>CORE<br/>SHUTDOWN</h2>
+                    <p>The reactor has been safely shutdown.</p>
+                </div>
+            }
+            <div>
+                <button @onclick="() => Nav.Refresh()">Restart Reactor</button>
+            </div>
+
+        </div>
+
+        <div class="stripe"></div>
+    </div>
+}
+
+@code {
+    private bool Show { get; set; }
+    private GameOverType _type;
+
+    protected override void OnInitialized()
+    {
+        Sim.OnGameOver += (_, type) =>
+        {
+            if (!Sim.Profile.ShowGameOverScreen) return;
+            Sim.Running = false;
+            Show = true;
+            _type = type;
+            StateHasChanged();
+        };
+    }
+
+}
