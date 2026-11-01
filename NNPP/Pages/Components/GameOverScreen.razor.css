@@ -38,6 +38,10 @@
     line-height: 1;
 }
 
+.screen .green {
+    color: #25d711;
+}
+
 .screen p {
     margin: 0;
 }

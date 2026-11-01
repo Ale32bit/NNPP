@@ -4,12 +4,40 @@
     z-index: 100;
     pointer-events: none;
     background: rgb(255 189 43);
-    backdrop-filter: blur(1px);
     opacity: 0;
+    mix-blend-mode: screen;
+}
+
+.rad {
+    position: fixed;
+    z-index: 101;
+    pointer-events: none;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    mix-blend-mode: screen;
 }
 
 .notgreatnotterrible {
     opacity: 0.5;
     backdrop-filter: blur(1px);
     transition: opacity 2s linear(2, 2 10%, 2 18%, 1), backdrop-filter .5s ease;
+}
+
+@keyframes grain {
+    0% {
+        transform: translate(0, 0)
+    }
+    20% {
+        transform: translate(-7%, 4%)
+    }
+    40% {
+        transform: translate(5%, -9%)
+    }
+    60% {
+        transform: translate(-11%, -3%)
+    }
+    80% {
+        transform: translate(8%, 10%)
+    }
 }

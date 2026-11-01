@@ -36,6 +36,8 @@ public static class AudioKeys
         
         public const string DamageAlarm = "sfx.damageAlarm";
         public const string AmbientAlarm = "sfx.ambientAlarm";
+        
+        public const string Geiger = "sfx.geiger";
     }
     
     public static class Music

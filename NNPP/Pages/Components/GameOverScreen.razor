@@ -7,34 +7,40 @@
                 permanent: true);*@
 @if (Show)
 {
-    <div class="screen">
-        <div class="overlay"></div>
-
-        <div class="stripe"></div>
-
-        <div class="content">
-            @if (_type == GameOverType.Meltdown)
-            {
+    @if (_type == GameOverType.Meltdown)
+    {
+        <div class="screen">
+            <div class="overlay"></div>
+            <div class="stripe"></div>
+            <div class="content">
                 <div>
                     <h2>CORE<br/>MELTDOWN</h2>
                     <p>You did not cool the reactor down in time.</p>
                 </div>
-            }
-            else
-            {
+
                 <div>
-                    <h2>CORE<br/>SHUTDOWN</h2>
+                    <button @onclick="() => Nav.Refresh()">Restart Reactor</button>
+                </div>
+            </div>
+            <div class="stripe"></div>
+        </div>
+    }
+    else
+    {
+        <div class="screen">
+            <div class="overlay"></div>
+            <div class="content">
+                <div>
+                    <h2 class="green">CORE<br/>SHUTDOWN</h2>
                     <p>The reactor has been safely shutdown.</p>
                 </div>
-            }
-            <div>
-                <button @onclick="() => Nav.Refresh()">Restart Reactor</button>
+
+                <div>
+                    <button @onclick="() => Nav.Refresh()">Restart Reactor</button>
+                </div>
             </div>
-
         </div>
-
-        <div class="stripe"></div>
-    </div>
+    }
 }
 
 @code {

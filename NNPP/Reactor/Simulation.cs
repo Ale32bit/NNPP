@@ -772,6 +772,7 @@ public class Simulation : IAsyncDisposable
                 "Reactor continues to be in a critical state. Full Evacuation in progress.", NotificationKind.Critical);
             _extraHeat = 57;
             NotGreatNotTerrible = true;
+            await Audio.PlaySfxLoopAsync(AudioKeys.Sfx.Geiger, volume: 1.5d);
 
             await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
             await Sleep(23.36);

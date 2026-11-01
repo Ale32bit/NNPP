@@ -1,16 +1,47 @@
 ﻿@using NNPP.Reactor
 @inject Simulation Sim
+@inject IJSRuntime JS
 
 <div class="veil @_class">
 </div>
+
+@if (Enable)
+{
+    <canvas @ref="_canvas" class="rad"></canvas>
+}
 
 @code {
     public bool Enable { get; set; } = false;
     private string _class => Enable ? "notgreatnotterrible" : "";
 
+    private ElementReference _canvas;
+    private IJSObjectReference? _module;
+    private IJSObjectReference? _fx;
+
+    private object Opts => new
+    {
+        dose = 0.02d,
+        px = 1,
+        fps = 20,
+    };
+
     protected override void OnInitialized()
     {
         Sim.OnUpdate += (_, _) => Ticked();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Enable && _fx is null)
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./rad.js");
+            _fx = await _module.InvokeAsync<IJSObjectReference>("start", _canvas, Opts);
+        } else if(!Enable && _fx is not null)
+        {
+            await _fx.InvokeVoidAsync("stop");
+            await _fx.DisposeAsync();
+            _fx = null;
+        }
     }
 
     private void Ticked()
@@ -18,7 +49,8 @@
         if (!Sim.NotGreatNotTerrible)
             return;
         Enable = Sim.NotGreatNotTerrible;
+        _fx?.InvokeVoidAsync("set", Opts);
+
         StateHasChanged();
     }
-
 }
