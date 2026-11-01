@@ -1,0 +1,40 @@
+﻿@using Microsoft.AspNetCore.Components.WebAssembly.Hosting
+@using NNPP.Reactor
+@inject Simulation Sim
+@inject IWebAssemblyHostEnvironment Env
+
+@if (Env.IsDevelopment())
+{
+    <div class="debug">
+        <table>
+            <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var (key, value) in Get())
+            {
+                <tr>
+                    <td>@key</td>
+                    <td class="t-@value.ToLowerInvariant()">@value</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    public Dictionary<string, string> Get() => Sim.Watcher.GetWatchedValues();
+
+    protected override void OnInitialized()
+    {
+        if (Env.IsDevelopment())
+        {
+            Sim.OnUpdate += (_, dt) => { StateHasChanged(); };
+        }
+    }
+
+}

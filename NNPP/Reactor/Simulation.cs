@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using NNPP.Audio;
+using NNPP.Debug;
 using NNPP.Models;
 using NNPP.Models.Inputs;
 using NNPP.Models.Metrics;
@@ -19,6 +20,8 @@ public class Simulation : IAsyncDisposable
     private PersistentStorage Storage { get; set; }
 
     public Profile Profile { get; set; } = new();
+    
+    public Watcher Watcher { get; } = new();
 
     // COMPONENTS and VARIABLES
     public bool Running { get; set; } = false;
@@ -238,6 +241,23 @@ public class Simulation : IAsyncDisposable
         ShiftHazardPaySwitch.Triggered += HazardPaySwitchTriggered;
 
         OnComponentBreak += async (component, _) => await ComponentBroke(component);
+
+        AddDebugWatches();
+    }
+
+    private void AddDebugWatches()
+    {
+        Watcher.Watch(() => Running);
+        Watcher.Watch(() => _meltdown);
+        
+        Watcher.Watch(() => RodControl.Position);
+        Watcher.Watch(() => RodInsertion.Value);
+        
+        Watcher.Watch(() => Turbine1.Rpm.Value);
+        Watcher.Watch(() => Turbine2.Rpm.Value);
+        
+        Watcher.Watch(() => CoolantPumpAlpha.Rpm.Value);
+        Watcher.Watch(() => CoolantPumpBeta.Rpm.Value);
     }
 
     public void Start()
@@ -407,6 +427,7 @@ public class Simulation : IAsyncDisposable
         var turb1RpmTarget = Parameters.RpmTarget(Turbine1.FlowRate.Value, !Turbine1.CanRun());
         var turb1RpmTau = Parameters.RpmTau(Turbine1.AccelerationSwitch.Position, !Turbine1.CanRun());
         var turb1Accel = 0d;
+        Watcher.Watch(nameof(turb1RpmTarget), turb1RpmTarget);
         if (Turbine1.IsSynced())
         {
             Turbine1.Rpm.Value = Parameters.Turbine.SyncRpm;
@@ -420,6 +441,7 @@ public class Simulation : IAsyncDisposable
         var turb2RpmTarget = Parameters.RpmTarget(Turbine2.FlowRate.Value, !Turbine2.CanRun());
         var turb2RpmTau = Parameters.RpmTau(Turbine2.AccelerationSwitch.Position, !Turbine2.CanRun());
         var turb2Accel = 0d;
+        Watcher.Watch(nameof(turb2RpmTarget), turb2RpmTarget);
         if (Turbine2.IsSynced())
         {
             Turbine2.Rpm.Value = Parameters.Turbine.SyncRpm;
@@ -505,8 +527,12 @@ public class Simulation : IAsyncDisposable
             if (!Stalled)
             {
                 // heat rate
-                ReactorTemperature.Value += Parameters.TemperatureRate(Fuel.Value, RodInsertion.Value, _extraHeat,
+                var temperatureRate = Parameters.TemperatureRate(Fuel.Value, RodInsertion.Value, _extraHeat,
                     FeedwaterLevel.Value, GetCoolantRate(), GetRunningReliefValves(), ScramButton.Enabled) * dt;
+
+                ReactorTemperature.Value += temperatureRate;
+                
+                Watcher.Watch(nameof(temperatureRate), temperatureRate * Tickrate);
             }
 
             if (RodControl.Position != RodController.ControlPosition.Neutral && !_scramRodFailed)

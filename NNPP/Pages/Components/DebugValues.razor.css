@@ -1,0 +1,38 @@
+﻿.debug {
+    background-color: #f0f0f0;
+    color: #000;
+    outline: 1px solid red;
+    
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    
+    z-index: 10000;
+    padding: 10px;
+    margin: 10px;
+}
+
+.debug table {
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid black;
+}
+
+th {
+    font-weight: bold;
+}
+td {
+    padding: 0 5px;
+}
+
+.t-true {
+    color: green;
+    font-weight: bold;
+}
+
+.t-false {
+    color: red;
+}
