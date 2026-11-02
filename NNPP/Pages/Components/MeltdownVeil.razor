@@ -34,7 +34,7 @@
     {
         if (Enable && _fx is null)
         {
-            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./rad.js");
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/rad.js");
             _fx = await _module.InvokeAsync<IJSObjectReference>("start", _canvas, Opts);
         } else if(!Enable && _fx is not null)
         {

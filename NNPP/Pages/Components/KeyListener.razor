@@ -13,7 +13,7 @@
     {
         if (!first) return;
         _ref = DotNetObjectReference.Create(this);
-        _mod = await JS.InvokeAsync<IJSObjectReference>("import", "./keys.js");
+        _mod = await JS.InvokeAsync<IJSObjectReference>("import", "./js/keys.js");
         _handle = await _mod.InvokeAsync<IJSObjectReference>("listen", _ref);
     }
 

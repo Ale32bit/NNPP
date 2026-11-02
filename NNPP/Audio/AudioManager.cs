@@ -1,4 +1,5 @@
 ﻿using Microsoft.JSInterop;
+using Microsoft.JSInterop.Implementation;
 
 namespace NNPP.Audio;
 
@@ -17,7 +18,7 @@ public class AudioManager(IJSRuntime js) : IAsyncDisposable
     private readonly Dictionary<string, Audio> _map = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly Lazy<Task<IJSObjectReference>> _mod = new(() =>
-        js.InvokeAsync<IJSObjectReference>("import", "./audio.js").AsTask());
+        js.InvokeAsync<IJSObjectReference>("import", "./js/audio.js").AsTask());
 
     public AudioManager Register(string key, string path, AudioType type)
     {
@@ -62,6 +63,11 @@ public class AudioManager(IJSRuntime js) : IAsyncDisposable
 
     public async ValueTask<bool> IsSfxLoopingAsync(string key) =>
         await (await _mod.Value).InvokeAsync<bool>("isSfxLooping", Norm(key));
+
+    public async ValueTask<IJSObjectReference> GetContextAsync()
+    {
+        return await _mod.Value;
+    }
 
     public double GetRandomPitch()
     {

@@ -1,0 +1,35 @@
+﻿@using NNPP.Audio
+@implements IAsyncDisposable
+@inject AudioManager Audio
+
+<canvas class="visualizer" @ref="canvas"></canvas>
+
+@code {
+    [Parameter] public string Bus { get; set; } = "master";
+    [Parameter] public string Mode { get; set; } = "bars";
+    [Parameter] public int Bars { get; set; } = 48;
+    [Parameter] public string Color { get; set; } = "#ff3b2f";
+
+    ElementReference canvas;
+    IJSObjectReference? mod;
+    int id;
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (!first) return;
+        mod = await Audio.GetContextAsync();
+        id = await mod.InvokeAsync<int>("startVisualizer", canvas, Bus, Mode, new { bars = Bars, color = Color });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (mod is null) return;
+        try
+        {
+            await mod.InvokeVoidAsync("stopVisualizer", id);
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+    }
+}
