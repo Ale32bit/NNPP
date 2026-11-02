@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using NNPP.Audio;
+﻿using NNPP.Audio;
 using NNPP.Debug;
 using NNPP.Models;
 using NNPP.Models.Inputs;
@@ -8,7 +7,6 @@ using NNPP.Reactor.Components;
 using NNPP.Reactor.StatusBoards;
 using AuthButton = NNPP.Models.Inputs.AuthButton;
 using Switch = NNPP.Models.Inputs.Switch;
-using Timer = System.Timers.Timer;
 
 namespace NNPP.Reactor;
 
@@ -165,6 +163,7 @@ public class Simulation : IAsyncDisposable
     private bool _reactorOverheat = false;
     private double _extraHeat = 0;
     private bool _meltdown = false;
+    private bool _meltdownStarted = false;
     private bool _scramRodWillFail = false;
 
     private bool _scramRodFailed = false;
@@ -567,11 +566,9 @@ public class Simulation : IAsyncDisposable
                 }
             }
 
-            if (ReactorTemperature.Value >= Parameters.Core.MeltdownTemperature && !_meltdown)
+            if (ReactorTemperature.Value >= Parameters.Core.MeltdownTemperature && !_meltdown && !_meltdownStarted)
             {
-                // meltdown task runs in background and may not set _meltdown in time, triggering multiple times.
-                _meltdown = true;
-
+                _meltdownStarted = true;
                 Meltdown(false).ContinueWith(task =>
                 {
                     if (task.IsFaulted)
@@ -720,6 +717,11 @@ public class Simulation : IAsyncDisposable
 
     public async Task Meltdown(bool skipToEnd)
     {
+        if (_meltdown)
+        {
+            return;
+        }
+        
         _meltdown = true;
 
         SetAlarmLight(AlarmLightSetting.Critical);
