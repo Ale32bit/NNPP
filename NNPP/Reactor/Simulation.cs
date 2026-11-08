@@ -18,7 +18,7 @@ public class Simulation : IAsyncDisposable
     private PersistentStorage Storage { get; set; }
 
     public Profile Profile { get; set; } = new();
-    
+
     public Watcher Watcher { get; } = new();
 
     // COMPONENTS and VARIABLES
@@ -248,13 +248,13 @@ public class Simulation : IAsyncDisposable
     {
         Watcher.Watch(() => Running);
         Watcher.Watch(() => _meltdown);
-        
+
         Watcher.Watch(() => RodControl.Position);
         Watcher.Watch(() => RodInsertion.Value);
-        
+
         Watcher.Watch(() => Turbine1.Rpm.Value);
         Watcher.Watch(() => Turbine2.Rpm.Value);
-        
+
         Watcher.Watch(() => CoolantPumpAlpha.Rpm.Value);
         Watcher.Watch(() => CoolantPumpBeta.Rpm.Value);
     }
@@ -530,7 +530,7 @@ public class Simulation : IAsyncDisposable
                     FeedwaterLevel.Value, GetCoolantRate(), GetRunningReliefValves(), ScramButton.Enabled) * dt;
 
                 ReactorTemperature.Value += temperatureRate;
-                
+
                 Watcher.Watch(nameof(temperatureRate), temperatureRate * Tickrate);
             }
 
@@ -721,7 +721,7 @@ public class Simulation : IAsyncDisposable
         {
             return;
         }
-        
+
         _meltdown = true;
 
         SetAlarmLight(AlarmLightSetting.Critical);
@@ -777,7 +777,7 @@ public class Simulation : IAsyncDisposable
             await Sleep(10);
 
             await AddXpAsync(1000, "Successfully shutdown the reactor.");
-            
+
             await Sleep(6.348);
             OnGameOver?.Invoke(this, GameOverType.Shutdown);
             Notify("SCRAM Qualification",
@@ -1047,10 +1047,11 @@ public class Simulation : IAsyncDisposable
                 $"{day} Shift personnel. You have 5 minutes to get to your stations. Reactor prep may begin at the shift tone.");
             await Sleep(16);
             // TODO: HORN HERE
+            await Sleep(10);
             // supposedly have to wait lots of time before starting, but nah
             Notify("Shift Management",
                 $"{day} Shift personnel. The shift has started. You may begin doing power orders.");
-
+            
             if (!_meltdown && !_reactorOverheat && !Igniting)
             {
                 if (day == "Day")
@@ -1067,11 +1068,22 @@ public class Simulation : IAsyncDisposable
 
             await Task.Delay(TimeSpan.FromSeconds(_shiftRemainingTime));
 
-
             var tier = GetShiftTier();
             var xp = GetShiftXp(tier);
-            Notify("Shift Management",
-                $"Tier {tier} shift achieved. Excellent work. Your paychecks will reflect your dedication.");
+
+            if (tier >= 3)
+            {
+                Notify("Shift Management",
+                    $"Tier {tier} shift achieved. Excellent work. Your paychecks will reflect your dedication.");
+
+                await PlayMusic(AudioKeys.Music.Tier3, loop: false);
+            }
+            else
+            {
+                Notify("Shift Management",
+                    $"{day} Shift personnel. The shift has ended, your paychecks will be determined by the shift tier.");
+            }
+
             await Sleep(16);
             await AddXpAsync(xp, $"Successfully completed a Tier {tier} shift!");
             await Sleep(10);
