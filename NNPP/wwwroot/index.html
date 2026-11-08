@@ -40,7 +40,12 @@
     <p>Source Code: <a href="https://github.com/Ale32bit/NNPP" target="_blank">Ale32bit/NNPP</a></p>
 </footer>
 
-<script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+<script src="_framework/blazor.webassembly#[.{fingerprint}].js" autostart="false"></script>
+<script>
+    Blazor.start({
+        applicationCulture: "en-US",
+    });
+</script>
 <script src="sw-registrator.js"></script>
 <script>
     window.getElementSize = el => {
