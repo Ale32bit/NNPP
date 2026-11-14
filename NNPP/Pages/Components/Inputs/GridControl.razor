@@ -263,7 +263,7 @@
             return;
         }
 
-        Grid.SwitchGrid(!Grid.DcConnected);
+        Grid.SwitchGrid(Grid.DcConnected ? FacilityGrid.DcSource.DcOff : FacilityGrid.DcSource.DcOn);
     }
 
 

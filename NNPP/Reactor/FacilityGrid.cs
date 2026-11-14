@@ -6,8 +6,7 @@ namespace NNPP.Reactor;
 
 public class FacilityGrid(Simulation sim)
 {
-    // TODO: .NET 11 feature
-    // public union GridSource(PrimarySource, AuxiliarySource);
+    public union GridSource(PrimarySource, AuxiliarySource, DcSource);
 
     public enum PrimarySource
     {
@@ -19,6 +18,12 @@ public class FacilityGrid(Simulation sim)
     {
         Primary,
         Generators,
+    }
+
+    public enum DcSource
+    {
+        DcOn,
+        DcOff,
     }
 
     public IReadOnlyList<GridGenerator> Generators { get; } = [new(sim), new(sim), new(sim)];
@@ -57,7 +62,7 @@ public class FacilityGrid(Simulation sim)
 
     public ExternalTransformer Transformer1 { get; set; } = new();
     public ExternalTransformer Transformer2 { get; set; } = new();
-    
+
     public bool ExternalRunning => Transformer1.Running.Value && Transformer2.Running.Value;
 
     // Aux to DC
@@ -103,22 +108,15 @@ public class FacilityGrid(Simulation sim)
         return AuxSupply.Value > 0;
     }
 
-    public bool IsSourcePowering(PrimarySource source)
+    public bool IsSourcePowering(GridSource source)
     {
         return source switch
         {
             PrimarySource.External => ExtCanSupply(),
             PrimarySource.Turbines => TurbinesCanSupply(),
-            _ => false,
-        };
-    }
-    
-    public bool IsSourcePowering(AuxiliarySource source)
-    {
-        return source switch
-        {
             AuxiliarySource.Primary => PrimCanSupply(),
             AuxiliarySource.Generators => GensCanSupply(),
+            DcSource => IsDcPowered(),
             _ => false,
         };
     }
@@ -336,49 +334,36 @@ public class FacilityGrid(Simulation sim)
         sim.Notify("Facility Power Grid", $"{bus} is now being powered by {source}");
     }
 
-    // TODO: once .NET 11 is released, switch to union types
-
-    /// <summary>
-    /// Switch primary source.
-    /// </summary>
-    /// <param name="source"></param>
-    public void SwitchGrid(PrimarySource source)
+    public void SwitchGrid(GridSource source)
     {
-        PrimaryPending = source;
-        _primaryPendingTime = PendingTime;
+        switch (source)
+        {
+            case PrimarySource primary:
+                PrimaryPending = primary;
+                _primaryPendingTime = PendingTime;
+                break;
+            case AuxiliarySource auxiliary:
+                AuxiliaryPending = auxiliary;
+                _auxiliaryPendingTime = PendingTime;
+                break;
+            case DcSource dc:
+                DcPending = dc == DcSource.DcOn;
+                _dcPendingTime = PendingTime;
+                break;
+        }
+        
         NotifyGridPending();
+        
     }
 
-    /// <summary>
-    /// Switch auxiliary source.
-    /// </summary>
-    /// <param name="source"></param>
-    public void SwitchGrid(AuxiliarySource source)
+    public bool IsPending(GridSource source)
     {
-        AuxiliaryPending = source;
-        _auxiliaryPendingTime = PendingTime;
-        NotifyGridPending();
-    }
-
-    /// <summary>
-    /// Toggle DC grid.
-    /// </summary>
-    /// <param name="toggle"></param>
-    public void SwitchGrid(bool toggle)
-    {
-        DcPending = toggle;
-        _dcPendingTime = PendingTime;
-        NotifyGridPending();
-    }
-
-    public bool IsPending(PrimarySource source)
-    {
-        return PrimaryPending == source;
-    }
-
-    public bool IsPending(AuxiliarySource source)
-    {
-        return AuxiliaryPending == source;
+        return source switch
+        {
+            PrimarySource primary => PrimaryPending == primary,
+            AuxiliarySource auxiliary => AuxiliaryPending == auxiliary,
+            DcSource => IsDcPending(),
+        };
     }
 
     public bool IsDcPending()
