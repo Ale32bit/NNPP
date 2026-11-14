@@ -230,6 +230,16 @@ public static class Parameters
     public static double FeedwaterCoolingRate(double level) =>
         Feedwater.Cooling - Math.Min(Feedwater.LossMax, Feedwater.LossPerLevel * Math.Max(0, Feedwater.Knee - level));
 
+    public static double FeedwaterSwitchRate(int position) =>
+        position switch
+        {
+            2 => 0.02,
+            1 => 0.002,
+            -1 => -0.002,
+            -2 => -0.02,
+            _ => 0,
+        };
+    
     public static double SwitchRate(int position) =>
         position switch
         {
