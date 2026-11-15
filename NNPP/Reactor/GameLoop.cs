@@ -7,7 +7,7 @@ public class GameLoop : IAsyncDisposable
     private readonly Action<double> _update;
     private readonly Action _render;
 
-    private readonly TimeSpan _step;
+    private TimeSpan _step;
     private readonly PeriodicTimer _timer;
 
     private readonly CancellationTokenSource _cts = new();
@@ -20,6 +20,12 @@ public class GameLoop : IAsyncDisposable
 
         _step = TimeSpan.FromSeconds(1.0 / tickRate);
         _timer = new PeriodicTimer(_step);
+    }
+
+    public void SetTickrate(int tickRate)
+    {
+        _step = TimeSpan.FromSeconds(1.0 / tickRate);
+        _timer.Period = _step;
     }
 
     public void Start()

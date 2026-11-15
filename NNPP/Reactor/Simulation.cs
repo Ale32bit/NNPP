@@ -12,6 +12,9 @@ namespace NNPP.Reactor;
 
 public class Simulation : IAsyncDisposable
 {
+    public const int DefaultTickrate = 60;
+    public const int LowPerformanceTickrate = 20;
+
     public static event EventHandler? OnComponentBreak;
 
     private AudioManager Audio { get; set; }
@@ -28,7 +31,17 @@ public class Simulation : IAsyncDisposable
     public bool Started => _started;
 
     public ulong Tick { get; private set; } = 0;
-    public int Tickrate { get; set; } = 20;
+
+    public int Tickrate
+    {
+        get;
+        set
+        {
+            field = value;
+            _loop.SetTickrate(value);
+        }
+    } = DefaultTickrate;
+
     public double Runtime { get; private set; } = 0;
 
     public MetricEnum<ReactorStatus> ReactorStatus { get; } = new("Reactor Status", Models.ReactorStatus.Cold);
@@ -1051,7 +1064,7 @@ public class Simulation : IAsyncDisposable
             // supposedly have to wait lots of time before starting, but nah
             Notify("Shift Management",
                 $"{day} Shift personnel. The shift has started. You may begin doing power orders.");
-            
+
             if (!_meltdown && !_reactorOverheat && !Igniting)
             {
                 if (day == "Day")

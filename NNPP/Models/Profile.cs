@@ -8,4 +8,5 @@ public class Profile
     // Randomly break external transformers
     public bool EnableHostiles { get; set; } = true;
     public bool ShowGameOverScreen { get; set; } = true;
+    public bool LowPerformance { get; set; } = false;
 }
