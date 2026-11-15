@@ -632,7 +632,9 @@ public class Simulation : IAsyncDisposable
 
     public double GetCoolantRate()
     {
-        return Parameters.CoolantRate(CoolantPumpAlpha.Rpm.Value, CoolantPumpBeta.Rpm.Value, CoolantValve.Value);
+        return FeedwaterLevel.Value > 0
+            ? Parameters.CoolantRate(CoolantPumpAlpha.Rpm.Value, CoolantPumpBeta.Rpm.Value, CoolantValve.Value)
+            : 0;
     }
 
     public int GetRunningReliefValves()
