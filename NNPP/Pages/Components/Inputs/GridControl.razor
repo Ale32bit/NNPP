@@ -46,14 +46,7 @@
     </div>
 }
 
-<div class="frame" @onclick="Open">
-    <div class="keyboard">
-        @for (int i = 0; i < 13 * 4; i++)
-        {
-            <div class="key"></div>
-        }
-    </div>
-</div>
+<img class="keyboard" src="assets/keyboard.svg" alt="Grid Control" @onclick="Open"/>
 
 @code {
     [Parameter, EditorRequired] public required FacilityGrid Grid { get; set; }
