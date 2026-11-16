@@ -806,10 +806,10 @@ public class Simulation : IAsyncDisposable
                 ScramButton.Available = false;
             }
 
-            await Audio.PlaySfxAsync(AudioKeys.Sfx.MetalCry, volume: 2);
+            await Audio.PlaySfxAsync(AudioKeys.Sfx.MetalCry, volume: 3);
             await PlayMusic(AudioKeys.Music.Evacuate, 1, loop: false);
-            await Sleep(6);
-            await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion, 5d);
+            await Sleep(5.232); // was 6
+            await Audio.PlaySfxAsync(AudioKeys.Sfx.ReactorExplosion, 4d);
             await Sleep(0.964); // Very precise :tm:
             Notify("Reactor meltdown",
                 "Reactor continues to be in a critical state. Full Evacuation in progress.", NotificationKind.Critical);
@@ -818,7 +818,7 @@ public class Simulation : IAsyncDisposable
             await Audio.PlaySfxLoopAsync(AudioKeys.Sfx.Geiger, volume: 1.5d);
 
             await Audio.StopSfxAsync(AudioKeys.Sfx.ScramActive, 30);
-            await Sleep(23.36);
+            await Sleep(24.128);
             OnGameOver?.Invoke(this, GameOverType.Meltdown);
             SetAlarmLight(AlarmLightSetting.Meltdown);
             Notify("Unforeseen Consequences", "Experience a meltdown.", silent: true,
