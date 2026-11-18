@@ -16,12 +16,12 @@ public static class Parameters
         public const double LowFuelThreshold = 0.75;
         public const double HeatFullRate = 26;
         public const double RodCoolFullRate = 0.2;
-        public const double ScramCoolingRate = 3;
         public const double RvCoolingRate = 7.5;
         public const double FuelBurnRate = 0.000474;
         public const double RodSpeed = 0.02;
         public const double MeltdownTemperature = 3120;
-        public const double MeltdownExtraHeat = 17.9;
+        public const double ScramCoolingRate = -21;
+        public const double MeltdownHeatingRate = 18;
         public const double RodSpeedScram = 0.08;
         public const double IgnitionRate = 7.604651163;
 
@@ -151,15 +151,14 @@ public static class Parameters
 
     public static double TemperatureRate(double fuel, double rod, double extraHeat, double waterLevel,
         double coolantRate,
-        int rvOpen, bool scramCooling)
+        int rvOpen)
     {
         return HeatGeneration(fuel)
-               + extraHeat // meltdown heat rate
+               + extraHeat // extra heat applied during meltdown, or scram cooling
                - FeedwaterCoolingRate(waterLevel)
                - coolantRate
                - RodCooling(fuel) * 100 * rod
-               - Core.RvCoolingRate * rvOpen
-               - (scramCooling ? Core.ScramCoolingRate : 0); // scramCooling = SCRAM active and not jammed
+               - Core.RvCoolingRate * rvOpen;
     }
 
     public static double StepTemp(double temp, double rate, double dt)
@@ -169,7 +168,7 @@ public static class Parameters
 
     public static double HeatGeneration(double fuel)
     {
-        return fuel >= Core.LowFuelThreshold
+        return fuel > Core.LowFuelThreshold
             ? Core.HeatFullRate
             : fuel > 0
                 ? 20 * fuel + 6

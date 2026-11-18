@@ -540,7 +540,7 @@ public class Simulation : IAsyncDisposable
             {
                 // heat rate
                 var temperatureRate = Parameters.TemperatureRate(Fuel.Value, RodInsertion.Value, _extraHeat,
-                    FeedwaterLevel.Value, GetCoolantRate(), GetRunningReliefValves(), ScramButton.Enabled) * dt;
+                    FeedwaterLevel.Value, GetCoolantRate(), GetRunningReliefValves()) * dt;
 
                 ReactorTemperature.Value += temperatureRate;
 
@@ -759,7 +759,7 @@ public class Simulation : IAsyncDisposable
 
             await Sleep(9);
 
-            _extraHeat = Parameters.Core.MeltdownExtraHeat;
+            _extraHeat = Parameters.Core.MeltdownHeatingRate;
             await Audio.StopSfxAsync(AudioKeys.Sfx.MeltdownAlarm);
             Notify("Reactor meltdown", "All Non-Reactor Operations staff are to evacuate.", NotificationKind.Critical);
 
@@ -830,7 +830,7 @@ public class Simulation : IAsyncDisposable
     {
         if (!NotGreatNotTerrible)
         {
-            _extraHeat = 0;
+            _extraHeat = Parameters.Core.ScramCoolingRate;
         }
 
         var chance = 1 - RodInsertion.Value / 0.8;
