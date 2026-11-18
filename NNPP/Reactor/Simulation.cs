@@ -536,16 +536,12 @@ public class Simulation : IAsyncDisposable
         if (Running)
         {
             Stalled = (RodInsertion.Value >= 1 && ReactorTemperature.Value <= Parameters.Core.StallTemp) && !_meltdown;
-            if (!Stalled)
-            {
-                // heat rate
-                var temperatureRate = Parameters.TemperatureRate(Fuel.Value, RodInsertion.Value, _extraHeat,
-                    FeedwaterLevel.Value, GetCoolantRate(), GetRunningReliefValves()) * dt;
+            var temperatureRate = Parameters.TemperatureRate(Fuel.Value, RodInsertion.Value, _extraHeat,
+                FeedwaterLevel.Value, GetCoolantRate(), GetRunningReliefValves(), ReactorTemperature.Value) * dt;
 
-                ReactorTemperature.Value += temperatureRate;
+            ReactorTemperature.Value += temperatureRate;
 
-                Watcher.Watch(nameof(temperatureRate), temperatureRate * Tickrate);
-            }
+            Watcher.Watch(nameof(temperatureRate), temperatureRate * Tickrate);
 
             if (RodControl.Position != RodController.ControlPosition.Neutral && !_scramRodFailed)
             {

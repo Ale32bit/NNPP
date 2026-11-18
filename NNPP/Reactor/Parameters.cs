@@ -25,6 +25,9 @@ public static class Parameters
         public const double RodSpeedScram = 0.08;
         public const double IgnitionRate = 7.604651163;
 
+        public const double LowTempCooling = 500; // under this temp, apply -1K of heating rate
+        public const double LowTempCoolingRate = -1;
+
         // for status board
         public const double LowTemp = 600;
         public const double HighTemp = 2400;
@@ -150,9 +153,13 @@ public static class Parameters
     }
 
     public static double TemperatureRate(double fuel, double rod, double extraHeat, double waterLevel,
-        double coolantRate,
-        int rvOpen)
+        double coolantRate, int rvOpen, double currentTemperature)
     {
+        if (currentTemperature < Core.LowTempCooling)
+        {
+            extraHeat += Core.LowTempCoolingRate;
+        }
+        
         return HeatGeneration(fuel)
                + extraHeat // extra heat applied during meltdown, or scram cooling
                - FeedwaterCoolingRate(waterLevel)
