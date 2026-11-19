@@ -56,7 +56,7 @@ h2 {
 .station {
     display: flex;
     flex-direction: column;
-    width: 223px;
+    width: 210px;
     height: 320px;
 }
 
