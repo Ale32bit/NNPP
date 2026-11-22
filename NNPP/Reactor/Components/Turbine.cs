@@ -5,7 +5,7 @@ using NNPP.Pages.Components;
 
 namespace NNPP.Reactor.Components;
 
-public class Turbine
+public class Turbine : IRepairable
 {
     public enum TurbineStatus
     {
@@ -76,9 +76,20 @@ public class Turbine
             Status.Value = TurbineStatus.Desynced;
         }
     }
+    
+    public void FullRepair()
+    {
+        Health.Value = 100;
+        Status.Value = TurbineStatus.Desynced;
+    }
 
     public static int LitDot(double phase)
     {
         return ((int)Math.Round(phase / 12) % Synchroscope.Dots + Synchroscope.Dots) % Synchroscope.Dots;
+    }
+    
+    public double GetHealthPercentage()
+    {
+        return Health.Value / 100;
     }
 }

@@ -30,7 +30,7 @@
 
                 break;
             case ButtonType.On:
-                if (Generator is { Running: false, Broken: false })
+                if (Generator.Running && !Generator.IsBroken())
                 {
                     Generator.Status = GridGenerator.GeneratorStatus.On;
                 }

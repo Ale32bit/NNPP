@@ -199,6 +199,7 @@ public class Simulation : IAsyncDisposable
     private bool _shouldRefuel = false;
     private double _brokenComponentAlarmCooldown = 0;
     private double _randomComponentBreakCooldown = RandomWrapper.Next(30, 90);
+    private double _autoPmCooldown = 5;
 
     private HashSet<string> _activeAlarmSfx = new(StringComparer.OrdinalIgnoreCase);
 
@@ -622,6 +623,18 @@ public class Simulation : IAsyncDisposable
         Grid.Update(dt);
 
         HandleDamage(dt);
+
+        _autoPmCooldown -= dt;
+        if (_autoPmCooldown <= 0)
+        {
+            var repairable = GetNextRepairable();
+            if (repairable is not null && Profile.EnableAutoPm)
+            {
+                repairable.Repair();
+            }
+            
+            _autoPmCooldown = 5;
+        }
 
         OnUpdate?.Invoke(this, dt);
     }
@@ -1212,9 +1225,9 @@ public class Simulation : IAsyncDisposable
         GridGenBoard.Gen1Running.Check(Grid.Generators[0].Running);
         GridGenBoard.Gen2Running.Check(Grid.Generators[1].Running);
         GridGenBoard.Gen3Running.Check(Grid.Generators[2].Running);
-        GridGenBoard.Gen1Malf.Check(Grid.Generators[0].Broken);
-        GridGenBoard.Gen2Malf.Check(Grid.Generators[1].Broken);
-        GridGenBoard.Gen3Malf.Check(Grid.Generators[2].Broken);
+        GridGenBoard.Gen1Malf.Check(Grid.Generators[0].IsBroken());
+        GridGenBoard.Gen2Malf.Check(Grid.Generators[1].IsBroken());
+        GridGenBoard.Gen3Malf.Check(Grid.Generators[2].IsBroken());
         GridGenBoard.TurbinesUnsync.Check(!Turbine1.IsSynced() || !Turbine2.IsSynced());
         GridGenBoard.TurbinesReversePower.Check((Turbine1.IsSynced() || Turbine2.IsSynced()) &&
                                                 GetTurbineOutput() <= 0);
@@ -1410,11 +1423,30 @@ public class Simulation : IAsyncDisposable
         }
     }
 
+    public IRepairable? GetNextRepairable()
+    {
+        return new List<IRepairable>
+            {
+                CoolantPumpAlpha,
+                CoolantPumpBeta,
+                FeedwaterPump1,
+                FeedwaterPump2,
+                Turbine1,
+                Turbine2,
+                Grid.Transformer1,
+                Grid.Transformer2,
+                Grid.Generators[0],
+                Grid.Generators[1],
+                Grid.Generators[2],
+            }
+            .FirstOrDefault(repairable => repairable.GetHealthPercentage() < 0.9);
+    }
+
     public bool IsAnyComponentBroken()
     {
         return Turbine1.IsBroken() || Turbine2.IsBroken() ||
                FeedwaterPump1.IsBroken() || FeedwaterPump2.IsBroken() ||
-               Grid.Generators.Any(q => q.Broken) || !Grid.ExternalRunning;
+               Grid.Generators.Any(q => q.IsBroken()) || !Grid.ExternalRunning;
     }
 
     public void BreakRandomComponent()

@@ -3,7 +3,7 @@ using NNPP.Models.Metrics;
 
 namespace NNPP.Reactor.Components;
 
-public class GridGenerator(Simulation sim)
+public class GridGenerator(Simulation sim) : IRepairable
 {
     public enum GeneratorStatus
     {
@@ -11,6 +11,8 @@ public class GridGenerator(Simulation sim)
         On,
         Broken,
     }
+
+    private bool _wasActive;
 
     public GeneratorStatus Status { get; set; } = GeneratorStatus.Off;
 
@@ -28,7 +30,7 @@ public class GridGenerator(Simulation sim)
     };
     
     public bool Running => Status == GeneratorStatus.On;
-    public bool Broken => Status == GeneratorStatus.Broken;
+    public bool IsBroken() => Status == GeneratorStatus.Broken;
 
     public double GetOutput()
     {
@@ -45,20 +47,27 @@ public class GridGenerator(Simulation sim)
 
     public void Break()
     {
-        if(Broken) return;
+        if(IsBroken()) return;
+        _wasActive = Running;
         Health.Value = 0;
         Status = GeneratorStatus.Broken;
         Simulation.BreakComponent(this);
     }
-    
+
     public void Repair()
     {
         var health = Math.Clamp((int)Health.Value + 25, 0, 100);
         Health.Value = health;
         if (health == 100 && Status == GeneratorStatus.Broken)
         {
-            Status = GeneratorStatus.Off;
+            Status = _wasActive ? GeneratorStatus.On : GeneratorStatus.Off;
         }
+    }
+
+    public void FullRepair()
+    {
+        Health.Value = 100;
+        Status = _wasActive ? GeneratorStatus.On : GeneratorStatus.Off;
     }
 
     public bool CanRefuel()
@@ -69,5 +78,10 @@ public class GridGenerator(Simulation sim)
     public void Refuel()
     {
         Fuel.Value = Math.Clamp(Fuel.Value + 0.3, 0, 1);
+    }
+    
+    public double GetHealthPercentage()
+    {
+        return Health.Value / 100;
     }
 }

@@ -4,7 +4,7 @@ using NNPP.Models.Metrics;
 
 namespace NNPP.Reactor.Components;
 
-public class FeedwaterPump
+public class FeedwaterPump : IRepairable
 {
     public double SecondsToDamage = 0;
     public Metric Rpm { get; } = new("RPM", 0) { ShowUnit = false, DecimalPlaces = 0 };
@@ -51,5 +51,16 @@ public class FeedwaterPump
         {
             Alive = true;
         }
+    }
+
+    public void FullRepair()
+    {
+        Health.Value = 100;
+        Alive = true;
+    }
+
+    public double GetHealthPercentage()
+    {
+        return Health.Value / 100;
     }
 }

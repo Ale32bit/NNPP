@@ -25,6 +25,12 @@
 </div>
 
 <div>
+    <input id="autopm-toggle" type="checkbox" @bind="EnableAutoPm"/>
+    <label for="autopm-toggle">Enable Plant Maintenance Staff</label>
+    <p><small>(Automatically repair components)</small></p>
+</div>
+
+<div>
     <input id="gameover-screen" type="checkbox" @bind="EnableGameOverScreen"/>
     <label for="gameover-screen">Enable Game Over screen</label>
 </div>
@@ -83,6 +89,16 @@
         set
         {
             Sim.Profile.EnableHostiles = value;
+            _ = Sim.SaveProfileAsync();
+        }
+    }
+    
+    private bool EnableAutoPm
+    {
+        get => Sim.Profile.EnableAutoPm;
+        set
+        {
+            Sim.Profile.EnableAutoPm = value;
             _ = Sim.SaveProfileAsync();
         }
     }
