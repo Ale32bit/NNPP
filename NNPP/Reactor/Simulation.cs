@@ -839,7 +839,7 @@ public class Simulation : IAsyncDisposable
     {
         if (!NotGreatNotTerrible)
         {
-            _extraHeat = Parameters.Core.ScramCoolingRate;
+            _extraHeat += Parameters.Core.ScramCoolingRate;
         }
 
         var chance = 1 - RodInsertion.Value / 0.8;
